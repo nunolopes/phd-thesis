@@ -1,0 +1,19 @@
+prefix : <http://xsparql.deri.org/data/>
+prefix foaf: <http://xmlns.com/foaf/0.1/>
+declare ordering unordered;
+declare variable $rdf external;
+
+for person.personid as $person, person.name as $name
+from person
+return  <person name="{$name}">{ 
+    for closed_auctions.closed_auction_id as $ca, closed_auctions.itemref as $itemRef
+    from closed_auctions
+    where closed_auctions.buyer = $person
+    return <item>{
+      for item.name as $itemname 
+      from item, region
+      where item.region = region.regionid and region.name = 'europe' and
+          item.itemid = $itemRef
+          return $itemname
+    }</item>
+}</person>

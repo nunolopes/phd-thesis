@@ -1,0 +1,91 @@
+
+\begin{tikzpicture}[node distance = 35pt,scale=.7,transform shape,%
+  terminal/.style={ rectangle,minimum size=6mm,rounded corners=2mm,text centered,draw=black!50,fill=gray!20},%
+  component/.style={ rectangle,minimum size=6mm,rounded corners=2mm,text centered,draw=black!50},%
+  rdb/.style={cylinder, shape border rotate=90, draw,minimum width=1.5cm,minimum height=1cm, shape aspect=.35}%
+  ]
+
+  \tikzstyle{every node}=[font=\footnotesize]
+
+
+  %  reasoner
+  \node[terminal, text width=1.5cm, minimum height=1cm] (reasoner) {Reasoner}; %
+
+  \coordinate[left= 5em of reasoner.west] (left-reasoner);
+
+  % domains
+  \begin{scope}[node distance = 5pt,text width=1.2cm,anchor=east]
+    \node[component] at (left-reasoner) (ac) {Access Control}; %
+  \end{scope}
+
+  % domains outer box
+  \node[draw=black,dotted,thick,inner sep=10pt,rectangle,fit=(ac)] (domains) {} ;%
+  \node[inner sep=0,fill=white] at (domains.north) (domains-label) { \bf Domains};
+
+  \draw[-latex] (reasoner.west) -- (domains.east);%
+
+
+  \coordinate[right= 5em of reasoner.north east] (right-reasoner);
+  % domains
+  \begin{scope}[node distance = 5pt,text width=1.1cm,anchor=north west]
+    \node[component] at (right-reasoner) (crules) {Custom Rules}; %
+    \node[component, below=of crules]  (rhodf) {$\rhodf$}; %
+  \end{scope}
+
+  % rules outer box
+  \node[draw=black,dotted,thick,inner sep=10pt,rectangle,fit=(rhodf) (crules)] (rules) {} ;%
+  \node[inner sep=0,fill=white] at (rules.north) {\bf Rules};
+
+  \draw[-latex] (reasoner.east) -- ($(rules.north west)!(reasoner.east)!(rules.south west)$);%
+
+
+  % anql 
+  \node[terminal,text width=1.5cm, above =1em of reasoner] (anql) {AnQL}; %
+
+  \draw[latex-] (reasoner.north) -- (anql.south);%
+
+  % input sources
+  \node[below=2em of reasoner, rdb, align=center]  (ardf)  {Annotated\\ RDF};%
+
+
+  \draw[latex-latex] (reasoner.south) -- (ardf.north);%
+
+  \node[draw=black,inner sep=10pt,rectangle,fit=(rules) (domains) (anql) (ardf)] (ac) {} ;%
+  \node[inner sep=0,fill=white] at (ac.north) (ac-name) { \bf Access Control Enforcement};
+
+
+  \node[terminal,below =1em  of ac,minimum width=9.5cm] (xsparql) {Data Integration}; %
+  \draw[-latex] ($(xsparql.north west)!(ardf.south)!(xsparql.north east)$) -- (ardf.south);%
+
+  \node[terminal,above =1.5em  of ac,minimum width=9.5cm] (anql-rewriter) {Query Rewriter}; %
+  \draw[-latex] (anql-rewriter.south) -- (ac-name.north);%
+
+  \node[terminal,above =1.5em  of anql-rewriter,,minimum width=9.5cm] (auth) {Authentication}; %
+  \draw[-latex] (auth.south) -- (anql-rewriter.north);%
+
+
+ 
+  \node[below=1em of xsparql, rdb]  (crm)  {CRM};%
+  \draw[-latex] (crm.north) -- (xsparql.south);%
+
+
+  \node[left=of crm, rdb]  (hr)  {HR};%
+  \draw[-latex] (hr.north) -- ($(xsparql.south west)!(hr.north)!(xsparql.south east)$);%
+
+
+  \node[right=of crm, rdb]  (dms)  {DMS};%
+  \draw[-latex] (dms.north) -- ($(xsparql.south west)!(dms.north)!(xsparql.south east)$);%
+
+
+
+\end{tikzpicture}
+
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% mode: flyspell
+%%% mode: reftex
+%%% TeX-master: "../thesis"
+%%% End:
+

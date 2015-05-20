@@ -1,0 +1,88 @@
+According to the prototype described in \cref{sec:implementation-notes}, the implementation of the access control
+annotation domain consists of a Prolog module that is imported by the reasoner.
+%
+This module defines the domain operations $\otimes_{ac}$ and $\oplus_{ac}$, represented as the predicates
+\texttt{infimum/3} and \texttt{supremum/3}, respectively.
+%
+The annotation values are represented simply by using \emph{lists}, in this case lists of lists, following the
+definitions presented in the previous section. 
+%
+
+
+
+The implementation of the $\oplus_{ac}$ operation involves concatenating the list representation of both annotations and
+then performing the normalisation operation.
+%
+As for the $\otimes_{ac}$ operation, we follow a similar procedure to the $\oplus_{ac}$ operation, with the additional
+step of applying one of the previously presented \emph{brave} and \emph{safe} conflict resolution methods.
+%
+The evaluation of the \nrdn program can be performed based on the representation of the annotation values, by checking
+if the list of credentials of a user is a superset of any of the positive literals of the statements of our annotation
+values and also that it does not contain any of the negative literals of the statement.
+%
+
+An example of \ac{RDF} data annotated with Access Control information, where the salary information is only available to
+the respective employee, is presented in \cref{fig:ardf-ac}.  In this figure we are representing the \ac{RDF} triples
+and annotation element using the N-Quads \ac{RDF} serialisation~\cite{CyganiakHarthHogan:2009aa}.
+%
+\begin{data}[t]
+\centering
+\begin{lstlisting}[basicstyle=\tt\small]
+@prefix : <http://urq.deri.org/enterprise#> . 
+
+:westportCars rdf:type :Company  "[[jb]]".
+:westportCars :netIncome 1000000 .
+:joeBloggs :worksFor :westportCars .
+:joeBloggs :salary 80000 "[[jb]]".
+:johnSmith :worksFor :westportCars .
+:johnSmith :salary 40000 "[[js]].
+\end{lstlisting}
+\caption{Access Control Annotated RDFS}
+\label{fig:ardf-ac}
+\end{data}
+%
+Using AnQL, the extension of the SPARQL query language described in \cref{sec:annotated-sparql}, it is possible
+to perform queries that take into consideration the access control annotations.
+%
+An example of an AnQL query over this data is presented in the following example:
+%
+\begin{example}[AnQL Query Example]
+  %
+  \label{sec:anql-ac-query} This query specifies that we are interested in the salary of employees that someone with the
+  permissions $[[jb,st,it]]$ is allowed to access.
+  %
+\begin{lstlisting}[basicstyle=\tt\small,frame=none,numbers=none]
+SELECT * WHERE { ?p :salary ?s "[[jb, st, it]]" } 
+\end{lstlisting}
+  % 
+  The answers for this query (when matched against \cref{fig:ardf-ac}) under SPARQL semantics,
+  \ie~if the annotation would be omitted, would be:
+  \[ \set{ 
+    %
+    \set{ \var{p} \to \uri{{:}joeBloggs}, \var{s} \to 80000 }, 
+    % 
+    \set{ \var{p} \to \uri{{:}johnSmith}, \var{s} \to 40000 }
+    % 
+  } \enspace.\]
+  %
+  However, with the inclusion of domain annotations, an AnQL query engine must also perform the following check: \(
+  [[jb,st,it]]\) satisfies the \nrdn program \(\lambda\),
+  % 
+  where $\lambda$ is the program represented by the annotation of each matched triple, thus yielding only the following
+  answer:
+  %
+  \[ \set{ 
+    % 
+    \set{ \var{p} \to \uri{{:}joeBloggs}, \var{s} \to 80000 }
+    % 
+  } \enspace. \]
+\end{example}
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% mode: flyspell
+%%% mode: reftex
+%%% mode: visual-line
+%%% TeX-master: "../thesis"
+%%% End:

@@ -1,0 +1,174 @@
+
+
+\section{Relational Model}
+\label{sec:relational-model}
+
+Due to the ever-growing need to store information, database systems were one of the most researched software systems and
+have evolved from the use of the filesystem to store the data into the currently ubiquitous relational database
+management systems~\cite{AbiteboulHullVianu:1995aa}.
+%
+Initially, the simple use of filesystems to store data did not enforce any structure on the data, where each file could
+have its own internal structure. 
+% 
+One major turning point in the evolution of database systems was the separation of the \emph{logical} definition of the
+data from its \emph{physical} representation (known as the \emph{data independence principle}).  Thus, the task of
+managing the physical representation is left up to the \emph{database management system} and is usually hidden from the
+database user.
+%
+This separation also led to the development of several logical data models that allowed data to be described
+independently of their physical representation.
+% 
+The logical data models can be composed primarily of a Data Definition Language (DDL) and a Data Manipulation Language
+(DML).  The DDL specifies the structure used to represent data while the DML specifies methods to access and update
+data.
+%
+The hierarchical and network data models were the first logical models to be introduced, where the former used a tree
+structure for representing its data and the latter a graph structure.
+%
+However, according to~\citet{AbiteboulHullVianu:1995aa}, major issues with these logical models were:
+\begin{inparaenum}[(i)]
+\item they were still closely related to the physical representation model; and
+\item their DML were limited, focusing mostly on navigating the physical representation.
+\end{inparaenum}
+
+The introduction of the relational model by~\citet{Codd:1970aa}, with its strong theoretical foundations, propelled
+database management systems forward, allowing for advances in efficient query translation methods (from the relational
+logical model into the physical representation model) and query optimisation techniques.
+%
+In the relational model, data is represented primarily using named \emph{relations}, where each \emph{relational tuple}
+(or record) consists of several typed and named \emph{attributes}.  A commonly used alternative representation for
+relational data depicts each relation as a table, where the attributes are the columns of this table, and each
+relational tuple is represented as a row in the table.
+%
+Next we present a definition of the relational model, based on~\citet{AbiteboulHullVianu:1995aa}, that relies on the
+pairwise disjoint and countably infinite sets \AR for relation names, \AAs for attribute names and \AD for the domain of
+values that the attributes can hold.
+%
+An element~$d \in \AD$ is called a \emph{constant} and for an attribute~$a \in \AAs$ we represent the domain of~$a$
+as~$\dom{a}$.
+%
+Furthermore, a total order is assumed between the elements of \AAs: this is a necessary feature to later allow us to
+specify relational instances in a similar fashion to logic programming~\cite{Lloyd:1987aa}.
+%
+\begin{definition}[Relation and database schema]
+  \label{def:database-schema}
+  A \emph{relation schema} is represented as~$r[U]$, where~$r \in \AR$ is a relation name and~$U \subset \AAs$ is a set
+  of attribute names, called the \emph{sort} of~$r$ and denoted by~$\funcCall{sort}{r}$.  The \emph{arity} of~$r$
+  consists of its number of attributes:~$|\funcCall{sort}{r}|$.
+  % 
+  In turn, a \emph{database schema}~$S$ is a non-empty and finite set of relation schemas.
+\end{definition}
+
+
+
+\begin{example}[Relational Schema]
+  %
+  \label{ex:bands-schema}
+  %
+  A possible schema for a relational database that stores information relevant to our \usecase
+  is~$S = \set{\relationName{person}, \relationName{band}, \relationName{album}, \relationName{song}}$, where
+  %
+  \begin{align*}
+    \funcCall{sort}{\relationName{person}} &= \set{\mathit{personId}, \mathit{personName}, \mathit{bandId}}\\
+    \funcCall{sort}{\relationName{band}} &= \set{\mathit{bandId}, \mathit{bandName}}\\
+    \funcCall{sort}{\relationName{album}} &= \set{\mathit{albumId}, \mathit{albumName}, \mathit{bandId}}\\
+    \funcCall{sort}{\relationName{song}} &= \set{\mathit{songId}, \mathit{songName}, \mathit{albumId}}%\\
+  \end{align*}%
+  %
+\end{example}
+
+
+
+Other features of the relational model include primary and foreign keys.
+%
+Intuitively, a primary key consists of a set of attributes that uniquely identify the tuples of a relation.  For
+example, in our database schema we assume an artificially generated number that uniquely identifies each person or band
+($\mathit{personId}$ and~$\mathit{bandId}$, respectively).
+%
+Foreign keys are used to specify dependencies between attributes of two different relations: the connected attributes
+must have the same value in both relations.  This can be seen in \cref{ex:bands-schema}, where the same attribute
+names are used in different relations to specify the foreign keys, \eg~$\mathit{bandId}$ in the
+relations~\relationName{person} and~\relationName{band}.
+
+%
+Furthermore, the \NULL value is assumed to belong to all domains and, unless otherwise specified by means of
+constraints, can be used in place of any valid value for an attribute of a relation. The intended meaning of \NULL
+values is to represent missing or unknown information.
+%
+However, since \NULL values greatly complicate the definition of the algebra operations (presented in
+\cref{sec:sql-semantics}), we will, for the most part, ignore \NULL values in the presented definitions.
+
+
+
+\subsection*{Database Instances}
+\label{sec:database-instances}
+
+
+\citet{AbiteboulHullVianu:1995aa} present different perspectives for representing relational tuples \ie~\emph{instances}
+of relational schemas, the \emph{conventional} and \emph{logic programming} perspectives.
+%
+The so-called \emph{conventional} perspective on relational databases (used later in \cref{sec:sql-semantics})
+represents tuples as functions, where a tuple~$t$ over a finite set of attributes~$U$ consists of a function~$u$ with
+domain~$U$.
+%
+The sort of~$u$ is~$U$ and the value of~$u$ of an attribute~$a \in U$ is denoted~\funcCall{u}{a}.
+%
+Extending this notion to a set of attributes~$V \subseteq U$, we say that~$u[V] = u|_{V}$ denotes the restriction of the
+function~$u$ to~$V$, \ie~$u[V]$ denotes a new tuple~$v$ over~$V$ such that~$\funcCall{v}{a} = \funcCall{u}{a}$ for each
+attribute~$a \in V$.
+
+
+%
+An alternate view focuses on the \emph{logic programming} perspective, under which a relational tuple can be viewed as a
+\emph{fact}.  For a relation name~$r$ with arity~$n$, a fact is an expression~$\fact{r}{a_{1}, \dots, a_{n}}$, where
+each~$a_{i} \in \AD$ is a constant.  Facts can also be represented as~$\fact{r}{u}$, where~$u = \tuple{a_{1}, \dots,
+  a_{n}}$.
+%
+According to this representation, a \emph{relation instance} over a relation schema~$r$ is a finite set of facts
+over~$r$ and a \emph{database instance} over a database schema~$S$ is the union of all relation instances over~$r$, for
+each relation schema~$r \in S$.
+%
+Since relations are represented as sets, the standard set operations of intersection, union and difference ($\cap,
+\cup$, and~$-$, respectively) can be applied and relations can be compared using the~$\subset, \subseteq, =$, and~$\neq$
+operators.
+%
+\footnote{We note that although the relational model is formally described using a set based semantics, it is common for
+  database systems to use multi-sets for representing the data and the results of \acs{SQL} queries.}
+%
+\cref{ex:relational-data} represents a database instance following the logic programming perspective.
+%
+\begin{example}[Database Instance]
+  %
+  \label{ex:relational-data}
+  % 
+  The database instance containing the \usecase data from \cref{ex:usecase-data}, over the database schema
+  presented in \cref{ex:bands-schema}, is as follows:
+  %
+  \pagebreak[2]
+  \begin{align*}
+    \{\ 
+        & \fact{person}{1, \atom{Marco Hietala}, 1}, \fact{person}{2, \atom{Tarja Turunen}, 1}, \\
+        & \fact{band}{1, \atom{Nightwish}}, \\
+        & \fact{album}{1, \atom{Wishmaster}, 1}, \\
+        & \fact{song}{1,\atom{FantasMic}, 1}, \fact{song}{2, \atom{Wishmaster}, 1} 
+        \}
+  \end{align*}
+\end{example}
+%
+Both views on relational data are equivalent and are used for different formalisations of the relational model and query
+languages (as presented in \cref{sec:querying-rdb}).
+
+
+
+
+
+
+
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% mode: flyspell
+%%% mode: reftex
+%%% TeX-master: "../thesis"
+%%% End:

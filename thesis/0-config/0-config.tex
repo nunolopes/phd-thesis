@@ -1,0 +1,32 @@
+% have hyperref be final
+\PassOptionsToPackage{final,pdfborder={0 0 0}}{hyperref}
+
+\PassOptionsToPackage{monochrome}{color}
+\usepackage{color}
+
+\input{0-config/1-packages}
+
+\input{0-config/2-commands}
+
+\input{0-config/3-format}
+
+\input{0-config/5-hyperref}
+
+\ifclassicthesis
+\input{0-config/3a-classicthesis}
+\input{0-config/geometry}
+\else
+\input{0-config/geometry}
+\input{0-config/3a-headings}
+\fi
+
+\input{0-config/4-tikz-stuff}
+
+
+% \includeonly{0-abstract,1-introduction/0-introduction,2-data-models/0-data-models,8-conclusion/0-conclusion}
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "../thesis"
+%%% End:

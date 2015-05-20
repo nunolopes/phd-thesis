@@ -1,0 +1,60 @@
+\begin{tikzpicture}[
+]\begin{loglogaxis}[
+xlabel={Dataset size in MB (log scale)},
+ylabel={Time in seconds (log scale)},
+scaled x ticks = false,
+x tick label style = {/pgf/number format/fixed},
+scaled y ticks = false,
+y tick label style = {/pgf/number format/fixed},
+xmax=100,enlargelimits=true,xtick={1,2,5,10,20,50,100},xticklabels={1,2,5,10,20,50,100},log basis x=10,log basis y=10,unbounded coords=jump,xminorticks=false,yminorticks=false,height=6cm,width=8cm,filter discard warning=false,legend style={inner sep=0,legend columns=2,draw=none,font=\tiny,at={(0,0)},anchor=south east,legend pos=south east,anchor=south east,legend cell align=left}]
+\addplot[smooth,dashed, color=blue, every mark/.append style={solid},mark=x,] coordinates {
+(1.0000000000, 77.3025000000)
+(2.0000000000, 292.5787500000)
+(5.0000000000, inf)
+(10.0000000000, inf)
+(20.0000000000, inf)
+(50.0000000000, inf)
+(100.0000000000, NaN)
+};
+\addlegendentry{$\mathit{XS^{rdf}}$}
+\addplot[smooth,dashed, color=blue, every mark/.append style={solid},mark=triangle,] coordinates {
+(1.0000000000, 4.4350000000)
+(2.0000000000, 4.9100000000)
+(5.0000000000, 7.7025000000)
+(10.0000000000, 10.7900000000)
+(20.0000000000, 19.6025000000)
+(50.0000000000, 78.7562500000)
+(100.0000000000, NaN)
+};
+\addlegendentry{$\mathit{XS^{rdf}_{nl}}$}
+\addplot[smooth,dashed, color=blue, every mark/.append style={solid},mark=diamond,] coordinates {
+(1.0000000000, 3.9787500000)
+(2.0000000000, 4.9937500000)
+(5.0000000000, 7.4737500000)
+(10.0000000000, 10.7587500000)
+(20.0000000000, 16.7037500000)
+(50.0000000000, 31.0375000000)
+(100.0000000000, NaN)
+};
+\addlegendentry{$\mathit{XS^{rdf}_{ng}}$}
+\addplot[smooth,dashdotted, color=green!60!black, every mark/.append style={solid},mark=x,] coordinates {
+(1.0000000000, 442.3050000000)
+(2.0000000000, inf)
+(5.0000000000, inf)
+(10.0000000000, inf)
+(20.0000000000, inf)
+(50.0000000000, inf)
+(100.0000000000, NaN)
+};
+\addlegendentry{$\mathit{S2XQ}$}
+\addplot[smooth,dashdotted, color=green!60!black, every mark/.append style={solid},mark=triangle,] coordinates {
+(1.0000000000, 3.3537500000)
+(2.0000000000, 9.8337500000)
+(5.0000000000, 48.7112500000)
+(10.0000000000, 200.8325000000)
+(20.0000000000, inf)
+(50.0000000000, inf)
+(100.0000000000, NaN)
+};
+\addlegendentry{$\mathit{S2XQ_{nl}}$}
+\end{loglogaxis}\end{tikzpicture}

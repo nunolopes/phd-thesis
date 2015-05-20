@@ -1,0 +1,36 @@
+\begin{tikzpicture}
+  \begin{loglogaxis}[xlabel={Dataset sizes},ylabel={Time in seconds (log scale)},%
+    scaled x ticks = false, x tick label style = {/pgf/number format/fixed},scaled y ticks = false,%
+    y tick label style = {/pgf/number format/fixed},enlargelimits=true,xtick={1,2,4,8},%
+    xticklabels={$DS_{1}$,$DS_{2}$,$DS_{3}$,$DS_{4}$},log basis x=10,log basis y=10,unbounded coords=jump,xminorticks=false,%
+    yminorticks=false,height=6cm,width=8cm,filter discard warning=false,%
+    legend style={inner sep=0,legend columns=1,draw=none,font=\tiny,at={(0,0)},anchor=south east,legend pos=north west,anchor=north west,legend cell align=left}]
+\addplot[smooth,dashed, color=green!60!black, every mark/.append style={solid},mark=x,] coordinates {
+(1, 2.69)
+(2, 4.74)
+(4, 9.17)
+(8, 18.94)
+};
+\addlegendentry{Load}
+\addplot[smooth,dashed, color=blue, every mark/.append style={solid},mark=triangle,] coordinates {
+(1, 150)
+(2, 906)
+(4, 2281)
+(8, 5322)
+};
+\addlegendentry{Inference}
+\addplot[smooth,densely dotted, color=orange!60!black, every mark/.append style={solid},mark=x,] coordinates {
+(1, 26)
+(2, 42)
+(4, 82)
+(8, 153)
+};
+\addlegendentry{RDB2RDF}
+\end{loglogaxis}\end{tikzpicture}
+
+%%% Local Variables:
+%%% mode: latex
+%%% mode: flyspell
+%%% mode: reftex
+%%% TeX-master: "../../thesis"
+%%% End:

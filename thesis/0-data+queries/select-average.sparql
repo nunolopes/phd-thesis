@@ -1,0 +1,4 @@
+SELECT $x $avgL WHERE {
+    $y foaf:member $x $l .
+    GROUPBY($x)
+    AVG(length($l)) AS $avgL }

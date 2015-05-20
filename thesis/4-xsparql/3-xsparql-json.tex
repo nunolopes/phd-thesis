@@ -1,0 +1,94 @@
+
+\section{Consuming JSON Data}
+\label{sec:xsparql-json}
+
+Due to the similarity between \ac{JSON} and \ac{XML}, in XSPARQL we incorporate \ac{JSON} data by translating the
+\ac{JSON} objects into \ac{XML} data.
+%
+Furthermore \ac{JSON} does not specify a query language (this representation format is meant to be incorporated directly
+into the JavaScript scripting language).
+%
+As presented in \cref{sec:json}, \ac{XML} is more flexible than \ac{JSON} and it is possible to convert \ac{JSON} into
+\ac{XML} but not so easy in the opposite direction.  
+
+
+This translation of \ac{JSON} to \ac{XML} enables access to the \ac{JSON} data using standard \ac{XPath}.  The following
+definition presents the translation we use in XSPARQL.
+% 
+\begin{definition}[Translation from JSON to XML]
+  % 
+  \label{def:json2xml}
+  %
+  Let~$J$ be a \ac{JSON} object.  The translation of~$J$ to \ac{XML}, denoted \funcCall{translateXML}{J}, is an \ac{XML}
+  document \xml{jsonObject}{\funcCall{translateMembers}{J}}, where \funcCall{translateMembers}{J} is defined as follows:
+  % 
+  \begin{itemize}[noitemsep]
+  \item if~$J$ is an empty \ac{JSON} object or empty array, then \seq{};
+  \item if~$J$ is a \ac{JSON} object, then for each~$K_i: V_i \in J$, \xml{K_i}{\funcCall{translateMembers}{V_i}};
+  \item if~$J$ is a \ac{JSON} array, then for each~$E_i \in J$, \newline ~~~~~~\xml{arrayElement}{\funcCall{translateMembers}{E_i}};
+  \item otherwise~$J$.
+  \end{itemize}
+\end{definition}
+% 
+\noindent For example the \ac{JSON} from \cref{fig:bands-json} translated into \ac{XML} according to
+\cref{def:json2xml} is presented in \cref{fig:bands-json-xml}.
+%
+\begin{data}[t]
+  \centering
+  \lstinputlisting[language=XML,basicstyle=\small\ttfamily]{0-data+queries/usecaseData-json.xml}
+  \caption{XML representation of JSON data}
+  \label{fig:bands-json-xml}
+\end{data}
+
+
+\subsection*{Querying the XML representation of JSON}
+\label{sec:query-jsonxml-repr}
+
+\begin{query}[t]
+  \centering
+  \lstinputlisting[language=XSPARQL,basicstyle=\small\ttfamily]{0-data+queries/xsparql-json.xsparql}
+  \caption{Querying JSON using XSPARQL}
+  \label{qr:xsparql-json-xml}
+\end{query}
+%
+\ac{JSON} data can be manipulated directly in JavaScript, where accessing members of objects can be done using the
+\lit{.} separator, while accessing array elements is done using the standard bracket notation:~\lit{[} and~\lit{]}.
+%
+For example, if the \ac{JSON} object in \cref{fig:bands-json} is assigned to a JavaScript variable named \lit{b}, we
+can access the member \lit{bands} by using \lit{b.bands} and accessing the second member of the Nightwish band can be
+done with \lit{b.bands.Nightwish.members[1]}.\footnote{Please note that in JavaScript the first element of an array is
+  at position 0, while the first element of XPath sequences is 1.}
+%
+In XSPARQL, querying the \ac{XML} representation of \ac{JSON} data can be done using an XPath expression, where,
+assuming \funcCall{translateXML}{b} is assigned to an XSPARQL variable~\var{b}:
+%
+\begin{enumerate}[(i),noitemsep]
+\item accessing members of an object can is done using the \lit{child} XPath axis, for example to access the
+  representation of member \lit{bands} we write \lit{\var{b}/bands}; and
+\item accessing specific elements of an array can be done using XPath predicates, \eg~to access the second member of the
+  Nightwish band can be done with \lit{\var{b}/bands/Nightwish/members/*[2]}.\footnote{We can also use
+    \lit{arrayElement} instead of \lit{*} in the XPath expression.}
+\end{enumerate}
+%
+\begin{example}[Querying JSON using XSPARQL]
+  %
+  \cref{qr:xsparql-json-xml} presents the XSPARQL query that returns all members of the \stringValue{Nightwish}
+  band from the (translated) \ac{JSON} \cref{fig:bands-json}.
+  %
+  In an XSPARQL query the transformation from \ac{JSON} into \ac{XML} is implemented using the
+  \funcName{\qname{xsparql}{json\text{-}doc}} function (as shown in \cref{qr:xsparql-json-xml-line1} of
+  \cref{qr:xsparql-json-xml}).
+\end{example}
+%
+The implementation of the translation in \cref{def:json2xml} currently translates the complete \ac{JSON}
+provided as input.  One possible optimisation for this implementation is to make it aware of the \ac{XPath} expression
+and perform a selective translation of the input \ac{JSON} data.
+
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% mode: flyspell
+%%% mode: reftex
+%%% TeX-master: "../thesis"
+%%% End:

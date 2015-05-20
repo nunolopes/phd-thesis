@@ -1,0 +1,118 @@
+\section{AnQL Issues and Pitfalls}
+\label{sec:twists-asparql}
+
+
+In this section we discuss some practical issues related to
+\begin{enumerate*}[label=(\roman*),noitemsep]
+\item the use of filters (\cref{sec:constr-vs-filt});
+\item union of annotation values in the query (\cref{sec:union-annotations}); and
+\item the representation of the temporal domain (\cref{sec:doma-spec-issu}).
+\end{enumerate*}
+
+
+\subsection{Constraints vs Filters}\label{sec:constr-vs-filt}
+Please note that~$\FILTER{s}$ do not act as \emph{constraints} over the query.  Consider the following example:
+%
+\begin{example}[Constraints in AnQL]
+  Given the data from our dataset example and the following query:
+  % 
+  \lstinputlisting[frame=none,numbers=none]{0-data+queries/select-constraint.sparql}
+  % 
+  with an additional \emph{constraint} that requires~$\var{l1}$ to be ``before''~$\var{l2}$, we could expect the answer
+  \[
+  \{\var{l1}/[1996, 2005], \var{l2}/[2006, 2012]\} \enspace .
+  \] 
+  %
+  This answer matches the following triples of our dataset:
+  % 
+    \[
+    \begin{array}{l}
+      \fuzzyg{\triple{\qname{dbpedia}{Nightwish}, \qname{foaf}{member}, \qname{dbpedia}{Marco\mathunderscore{}Hietala}}}{[2001,2012]} \\
+      \fuzzyg{\triple{\qname{dbpedia}{Nightwish}, \qname{foaf}{member}, \qname{dbpedia}{Tarja\mathunderscore{}Turunen}}}{[1996,2005]} \\
+    \end{array}
+    \]
+  % 
+  \nd and satisfies the proposed \emph{constraint}.  
+  % 
+\end{example}
+%
+However, we require maximality of the annotation values in the answers, which in general do not exist in presence of
+\emph{constraints}. For this reason, we do not allow general \emph{constraints}.
+
+
+\subsection{Union of Annotations}
+\label{sec:union-annotations}
+
+The SPARQL~\UNION operator may also introduce some discussion when considering shared annotations between graph
+patterns. 
+%
+\begin{example}[Union of temporal annotations]
+  Take for example the following query and our dataset from \cref{fig:dataset-example} as input.
+  % 
+  \lstinputlisting[frame=none,numbers=none]{0-data+queries/select-union1.sparql}
+  % 
+  Considering the temporal domain, the intuitive meaning of the query is ``retrieve all time periods when
+  Marco Hietala was a member of Nightwish or Tarot''.  
+  %
+  In the case of~\UNION patterns the two instances of the variable~$\var{l}$ are treated as two different variables.  If
+  the intended query would rather require treating both instances of the variable~$\var{l}$ as the same, for instance to
+  retrieve the time periods when Marco was a member of either Nightwish or Tarot but assuming we may not have
+  information for one of the patterns, the query should rather look like:
+  % 
+  \lstinputlisting[frame=none,numbers=none,,escapechar=\%]{0-data+queries/select-union2.sparql}
+  % 
+  where~$\lor$ represents the domain specific built-in predicate for union of annotations.
+  % 
+\end{example}
+
+
+
+\subsection{Temporal Issues}
+\label{sec:doma-spec-issu}
+
+Let us highlight some specific issues inherent to the temporal domain.  Considering queries using Allen's temporal
+relations~\cite{Allen:1983aa} (before, after, overlaps, etc.) as allowed by~\citet{TappoletBernstein:2009aa}, we can
+pose queries like ``find persons who were members of Nightwish before Troy''.  This query raises some ambiguity when
+considering that persons may have been members of the same band at different time intervals.
+% 
+\begin{example}[$\tau$SPARQL query]
+  % 
+  Consider our dataset triples from \cref{fig:dataset-example} extended with the following triple:
+  \[
+  \fuzzyg{\triple{\qname{dbpedia}{Nightwish},\qname{foaf}{member},\qname{dbpedia}{Troy\mathunderscore{}Donockley}}}{\{[1996,1999],[2006,2008]\}}
+  \]
+  % 
+  \citet{TappoletBernstein:2009aa} consider this triple as two triples with disjoint intervals as annotations. For the
+  following query in their language $\tau$SPARQL:
+  % 
+  \lstinputlisting[frame=none,numbers=none]{0-data+queries/select-tauSPARQL.sparql}
+  % 
+  we would get \qname{dbpedia}{Tarja\mathunderscore{}Turunen} as an answer although Troy was also a member of Nightwish
+  when Tarja started.  This is one possible interpretation of ``before'' over a set of intervals.
+  %
+  In AnQL we could add different domain specific built-in predicates, representing different interpretations of
+  ``before''.
+  % 
+  For instance, we could define binary built-ins:
+  \begin{enumerate}[noitemsep,label=(\roman*)]
+  \item \funcCall{\mathsf{beforeAny}}{\var{A1}, \var{A2}}, which is true if there exists \emph{any} interval in
+    annotation~$\var{A1}$ before an interval in~$\var{A2}$; or
+  \item respectively, a different built-in~\funcCall{\mathsf{beforeAll}}{\var{A1}, \var{A2}}, which is only true if
+    \emph{all} intervals in annotation~$\var{A1}$ are before any interval in~$\var{A2}$.
+  \end{enumerate}
+  % 
+  Using the latter, an AnQL query would look as follows:
+  % 
+  \lstinputlisting[frame=none,numbers=none]{0-data+queries/select-beforeAll.sparql}
+  % 
+  This latter query gives no result, which might comply with people's understanding of ``before'' in some cases, while
+  we also have the choice to adopt the behaviour of~\citet{TappoletBernstein:2009aa} by use of $\mathsf{beforeAny}$
+  instead.
+  % 
+\end{example}
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "../thesis"
+%%% End:

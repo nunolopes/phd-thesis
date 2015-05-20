@@ -1,0 +1,63 @@
+\chapter*{Abstract\markboth{Abstract}{Abstract}}
+\vspace{-10pt}
+
+
+In enterprises different software applications are used to manage specific functions: customer relations, human
+resources, and manufacturing, each requiring specialised software.
+%
+Relational databases are commonly used as the underlying storage mechanism for most of these software applications,
+often causing the same entities to be replicated in independent databases.
+%
+In order to obtain an accurate overview of an enterprise, these independent data sources need to be combined.
+%
+This hard task is commonly known as data integration and becomes even more difficult if we consider that the original
+data sources can be stored according to heterogeneous models.  The Extensible Markup Language (XML) has become widely
+used on the World Wide Web (WWW) and in order to reuse Web data, XML needs to be included into the data integration
+process along side relational databases.
+
+The Linking Open Data (LOD) initiative has also increased focus on another data model: the Resource Description Format
+(RDF).  With the increasing availability of structured information on the Web, exposed following the Linked Data
+principles, RDF has also become an attractive format for representing integrated data, allowing existing enterprise data
+to be enriched, by connecting it to other data on the WWW.
+
+
+Established approaches for data integration involve the development of custom applications that bridge the different
+sources and data formats.
+%
+In this thesis we propose to make this bridge via a query and transformation language and propose optimisations for such
+a language that aim at reducing the execution times of the transformation queries.
+
+
+RDF is already regarded as a useful format for representing integrated data but we argue that an extension of the RDF
+data model is necessary.  This extension, which we call Annotated RDFS, allows us to represent domain-specific
+meta-information about the integrated data.
+%
+For instance, defined Annotated RDFS domains allow temporal or provenance information to be maintained.  Temporal
+information can help to determine the most up-to-date data, while provenance information can help to track information
+back to their original sources.
+
+
+The language introduced in this thesis, called XSPARQL, combines different standard query languages -- SQL, XQuery, and
+SPARQL -- for accessing the heterogeneous data sources -- relational, XML, and RDF data, respectively -- and
+transforming between the different formats.
+%
+The XSPARQL language also extends the SPARQL query language to allow for easily writing RDF transformations that can
+otherwise be cumbersome to write in SPARQL.
+
+
+By further extending XSPARQL to support querying and creating Annotated RDFS, XSPARQL also allows meta-information to be
+extracted and attached to RDF triples.
+%
+We illustrate this approach by introducing a \usecase where enterprise data from different systems is integrated and
+annotated with data from a novel Annotated RDFS domain: access control.  
+%
+This new domain maintains information regarding which agents are allowed to access the integrated information by
+replicating any access control information present in the original sources.
+%
+We also propose a framework based on this new annotation domain that can enforce the access restrictions attached to
+each triple.
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "thesis"
+%%% End:

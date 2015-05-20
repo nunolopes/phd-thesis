@@ -1,0 +1,3 @@
+SELECT $l1 $l2 WHERE {
+    dbpedia:Nightwish foaf:member $p $l1 .
+    dbpedia:Nightwish foaf:member dbpedia:Marco_Hietala $l2 . }

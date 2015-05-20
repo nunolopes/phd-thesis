@@ -1,0 +1,28 @@
+declare namespace rdf = "http://www.w3.org/1999/02/22-rdf-syntax-ns#" ;
+declare namespace foaf = "http://xmlns.com/foaf/0.1/" ;
+declare namespace mo = "http://purl.org/ontology/mo/" ;
+declare namespace dc = "http://purl.org/dc/elements/1.1/" ;
+
+<user><bands>{
+  for * from <bands.ttl>                       (:@\label{qr:lowering_xsparql_bands_start}@:)
+  where { $band a mo:MusicGroup ; foaf:name $bandName . }
+  return <band name="{$bandName}">
+           <members>{
+             for $memberName from <bands.ttl>   (:@\label{qr:lowering_xsparql_members_start}@:)
+             where { $band foaf:member $bandMember . 
+                     $bandMember foaf:name $memberName . }   (:@\label{qr:lowering_xsparql_members_end}@:)
+             return <member>{$memberName}</member>
+           }</members>
+           <albums>{
+             for * from <bands.ttl>             (:@\label{qr:lowering_xsparql_albums_start}@:)
+             where { $album foaf:maker $band . 
+                     $album mo:title $albumName . }
+             return <album name="{$albumName}">{
+               for * from <bands.ttl>           (:@\label{qr:lowering_xsparql_songs_start}@:)
+               where { $album mo:track $song . 
+                       $song dc:title $songName . }
+               return <song>{$songName}</song>               (:@\label{qr:lowering_xsparql_songs_end}@:)
+             }</album>
+           }</albums>                                        (:@\label{qr:lowering_xsparql_albums_end}@:)
+         </band>
+}</bands></user>

@@ -1,0 +1,4 @@
+SELECT $l WHERE {
+    { dbpedia:Nightwish foaf:member dbpedia:Marco_Hietala $l . }
+    UNION
+    { dbpedia:Tarot_(band) foaf:member dbpedia:Marco_Hietala $l . } }

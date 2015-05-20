@@ -1,0 +1,199 @@
+
+\begin{proof} 
+  % 
+  We present here only the proof for \SparqlForClause{s} of form~\eqref{eq:expr_tr}, the proof for \SQLForClause{s} is
+  analogous.
+  
+  \noindent ($\Leftarrow$) 
+  % 
+  Let us show that if~$\dynEnv \funcCall{tr}{\envElem{Q}{}} \Rightarrow \envElem{Val}{}$ then~$\dynEnv \envElem{Q}{}
+  \Rightarrow \envElem{Val}{}$.
+  % 
+  The evaluation of~$\envElem{Q}{}$ consists of the application of Rule~\eqref{eq:sparqlForClause} as 
+  % 
+    \begin{prooftreefunction}
+      \AxiomC{$\dyn.\ecomp{globalPosition} = \seq{ \envElem{Pos}{1}, \cdots, \envElem{Pos}{j} } $}
+      % 
+      \UnaryInfC{$ \dynEnv{
+          \funcCall{fs{:}dataset}{\DatasetClause}
+          \Rightarrow \envElem{Dataset}{}
+        }$}
+      \UnaryInfC{$\dynEnv{
+            \funcCall{fs{:}sparql}{
+              \begin{array}{l}
+                \envElem{Dataset}{}, \SparqlWhereClause, \\
+                \SolutionModifier 
+              \end{array}}
+            \Rightarrow \sm{i}{xs}
+        } $}
+      \UnaryInfC{$\dynEnvX{1}{xs}{\gsup{ExprSingle}{} \Rightarrow \envElem{Value}{i}}$}
+
+      \AxiomC{$\Ddots$}
+
+      \BinaryInfC{$\dynEnv{\begin{array}{l}
+            \FOR~\envElem{\var{Var}}{1}\dotsb\envElem{\var{Var}}{n}~\DatasetClause\\ 
+            \SparqlWhereClause~\SolutionModifier\\
+            \ReturnExpr
+          \end{array} \Rightarrow \envElem{Value}{1} \dotsb \envElem{Value}{m}
+        }$}
+    \end{prooftreefunction}%
+  % 
+  where, for each~$\sm{i}{xs}$,
+  %
+  \begin{tree}
+    \begin{tabular}{r@{\hspace{-0.1em}}l@{\hspace{-0.1em}}}
+      \dynX{1}{xs} &~= \dyn\envExtend{activeDataset}{\envElem{Dataset}{}} \envExtend{globalPosition}{\seq{ \envElem{Pos}{1}, \cdots, \envElem{Pos}{j}, i }}\\
+      &\envExtend{varValue}{\begin{array}{l}
+          \envElem{Var}{1} \Rightarrow \funcCall{fs{:}value}{\sm{i}{xs}, \envElem{Var}{1}}; \\
+          \dotsb;\\
+          \envElem{Var}{n} \Rightarrow \funcCall{fs{:}value}{\sm{i}{xs},\envElem{Var}{n}}
+        \end{array}
+      }  \enspace .
+    \end{tabular}
+    \label{proof:sparqlForClause_dynenv_i}
+  \end{tree}%
+  %
+  Let~$\sm{C}{}$ be the XSPARQL instance mapping of the expression context that includes \dyn and~$\omg{tr}{}$ the pattern
+  solution resulting from the evaluation of the \funcNameR{sparqlCall} function, \ie~$\omg{tr}{} =
+  \evalS{\DatasetClause}{P}$, where~$P$ is the rewriting of~$\SparqlWhereClause$ according to~$\sm{C}{}$.
+  % 
+  Furthermore, let~$\sm{i}{} \in \omg{tr}{}$ be the solution mapping from which~$\envElem{Val}{}$ is generated,
+  \ie~there exists some dynamic environment~$\dynX{}{tr}$ based on \dyn and extended with the variable bindings
+  from~$\sm{i}{}$ such that~$\dynEnvX{}{tr}{\ExprSingle} \Rightarrow \envElem{Val}{}$.
+
+  Consider~$\omg{xs}{} = \evalXS{\DatasetClause}{\SparqlWhereClause}{\sm{C}{}}$ as the solution sequence resulting from
+  the evaluation of the~$\funcName{fs{:}sparql}$ function.  As we know from
+  \cref{lem:replacement-equivalence},~$\omg{xs}{} = \omg{tr}{} \bowtie \set{\sm{C}{}}$ and thus there must exist a
+  solution mapping~$\sm{xs}{} \in \omg{xs}{}$ such that~$\sm{xs}{} = \sm{i}{} \bowtie \sm{C}{}$.
+  % 
+  From~\eqref{proof:sparqlForClause_dynenv_i} we know that there exists a dynamic environment~$\dynX{}{xs}$ that results
+  from extending~$\dyn$ with the variable bindings from~$\sm{xs}{}$ and thus this environment will also contain all the
+  variable mappings from~$\sm{i}{}$ (and from~\dynX{}{tr},  respectively).  Since we know that~$\dynEnvX{}{tr}{\ExprSingle
+    \Rightarrow \envElem{Val}{}}$, we also have that~$\dynEnvX{}{xs}{\ExprSingle \Rightarrow \envElem{Val}{}}$ and
+  thus~$\dynEnv{\envElem{Q}{} \Rightarrow \envElem{Val}{}}$. 
+
+
+  \medskip
+  % 
+  \noindent ($\Rightarrow$) 
+  % 
+  Next we will show that if~$\dynEnv \envElem{Q}{} \Rightarrow \envElem{Val}{}$ then~$\dynEnv
+  \funcCall{tr}{\envElem{Q}{}} \Rightarrow \envElem{Val}{}$.
+  % 
+  We present the proof tree for each of the XQuery core expressions in the~$\funcCall{tr}{\envElem{Q}{}}$
+  rewriting.  The proof trees are presented for each line of the~$\funcCall{tr}{\envElem{Q}{}}$ rewriting and, in each
+  proof tree, \grammarRule{Expr} corresponds to the XQuery expressions of the following lines.
+  %
+  \begin{description}
+  \item[\LET expression of line (1):]~
+      \begin{prooftreefunction}
+        \AxiomC{$\dynEnv{\funcCallR{sparqlCall}{\begin{array}{l}
+                \SELECT~\Vars~\DatasetClause\\
+                \SparqlWhereClause~\SolutionModifier
+              \end{array}
+            }} \Rightarrow \omg{tr}{}
+          $}
+        
+        \UnaryInfC{$\dynEnvX{1}{tr}{\grammarRule{Expr}} \Rightarrow \envElem{Res}{}$}
+        
+        \UnaryInfC{$\dynEnv{\begin{array}{l}
+              \LET~\varR{results}~\keyword{:=}\\ 
+              \qquad\funcCallR{sparqlCall}{\begin{array}{l}
+                  \SELECT~\Vars~\DatasetClause\\
+                  \SparqlWhereClause~\SolutionModifier
+                \end{array}
+              } \\ 
+              \RETURN~\grammarRule{Expr}
+            \end{array} \Rightarrow \envElem{Res}{}
+          }$}
+      \end{prooftreefunction}%
+    \noindent where 
+    \begin{small}
+      \begin{tree}
+        \ \ \dynX{1}{tr} = \dyn \envExtend{varValue}{\varNameR{results} \Rightarrow \omg{tr}{}} \enspace .
+        \label{tree:dynEvn1}
+      \end{tree}%
+    \end{small}%
+
+    \pagebreak[3]
+  \item[\FOR expression of line (2):]~
+      \begin{prooftreefunction}
+        \AxiomC{$\dynEnvX{1}{tr}{\varR{results//sr{:}result}} \Rightarrow \sm{i}{}$}
+        \UnaryInfC{$\dynEnvX{2}{tr}{\grammarRule{Expr}} \Rightarrow \envElem{Res}{i}$}
+
+        \AxiomC{$\Ddots$}
+        
+        \BinaryInfC{$\dynEnvX{1}{tr}{
+            \begin{array}{l}
+              \FOR~\varR{result}~\AT~\varR{posvar} \\ \quad\IN~\varR{results//sr{:}result}\\
+              \RETURN~\grammarRule{Expr}
+            \end{array} \Rightarrow \envElem{Res}{1},\dotsb,\envElem{Res}{n}
+          }$}
+      \end{prooftreefunction}%
+    where 
+    % 
+    \begin{small}
+      \dynX{2}{tr} = \dynX{1}{tr} \envExtend{varValue}{
+        \begin{array}{l}
+          \varNameR{result} \Rightarrow \sm{i}{};\\
+          \varNameR{posvar} \Rightarrow i      
+        \end{array}
+      }
+    \end{small}%
+    
+  \item[\LET expressions of lines (3)--(4).] Here we consider all the \LET expressions represented by line~(3),
+    where~$\var{v} \in \Vars$, \ie~this rule is repeated for each~$\var{v} \in \Vars$:
+      \begin{prooftreefunction}
+        \AxiomC{$\dynEnvX{2}{tr}{\varR{result/sr{:}binding[@name = \varName{v}]/*}} \Rightarrow V$}
+
+        \UnaryInfC{$\dynEnvX{3}{tr}{\grammarRule{ExprSingle}} \Rightarrow \envElem{Res}{}$}
+
+        \UnaryInfC{$\dynEnvX{2}{tr}{\begin{array}{l}%
+              \LET~\var{v} := \varR{result/sr{:}binding[@name = \varName{v}]/*}\\
+              \RETURN~\grammarRule{ExprSingle}
+            \end{array} \Rightarrow \envElem{Res}{}
+          }$}
+
+      \end{prooftreefunction}%
+    where~$\dynX{3}{tr} = \dynX{2}{tr} \envExtend{varValue}{\varName{v} \Rightarrow V}$
+  \end{description}
+
+
+  
+
+  Consider the dynamic environment \dynX{i}{xs} such that \dynEnvX{i}{xs}{\grammarRule{ExprSingle} \Rightarrow
+    \envElem{Val}{}} where, as we know from~\eqref{proof:sparqlForClause_dynenv_i}, \dynX{i}{xs} extends \dyn with the
+  bindings from a solution mapping~\sm{i}{xs}.
+  % 
+  Furthermore, consider~$\sm{C}{}$,~$\omg{xs}{}$, and~$\omg{tr}{}$ as per the ($\Leftarrow$) part of the proof.
+  
+  From the proof trees of~$\funcCall{tr}{\envElem{Q}{}}$ we can see that the \LET expression from line~(1) extends \dyn
+  with the value for the reserved variable \varR{results}, which cannot be included in~$Q$. 
+  %
+  The \FOR expression from line~(2) iterates over all the solution mappings~$\sm{tr}{} \in \omg{tr}{}$
+  %
+  and, as we know from \cref{lem:replacement-equivalence},~$\omg{xs}{} = \omg{tr}{} \bowtie \set{\sm{C}}$.
+  Since~$\sm{C}{}$ is created based on~$\dyn$.\ecomp{var\-Value}, all the variable bindings from~$\sm{C}{}$ are already
+  included in \dyn and all solution mappings~$\sm{tr}{} \in \omg{tr}{}$ are guaranteed to be compatible with~\sm{C}{}
+  and thus we have that~$\sm{i}{xs} \in \omg{tr}{}$.
+
+  Finally, the \LET expressions from lines~(3) and~(4) ensure that there exists a \dynX{2}{tr} such
+  that~$\dynX{2}{tr}$.\ecomp{varValue} contains all the variable bindings from~$\sm{i}{xs}$, and we have
+  that~$\dynX{2}{tr} \proofs \mathit{Expr\-Single} \Rightarrow \envElem{Val}{}$ and~$\dyn \proofs
+  \funcCall{tr}{\envElem{Q}{}} \Rightarrow \envElem{Val}{}$.
+  %
+\end{proof}
+
+
+
+
+
+%%% Local Variables:
+%%% fill-column: 120
+%%% TeX-master: "../thesis" 
+%%% TeX-PDF-mode: t
+%%% TeX-debug-bad-boxes: t
+%%% TeX-parse-self: t
+%%% TeX-auto-save: t
+%%% reftex-plug-into-AUCTeX: t
+%%% End:

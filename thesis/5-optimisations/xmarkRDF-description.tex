@@ -1,0 +1,221 @@
+\section{The XMarkRDF benchmark}
+\label{sec:benchm-descr}
+
+For the evaluation of our implementation we created a benchmark suite based on the XMark benchmark
+suite~\cite{SchmidtWaasKersten:2002aa}, which according to~\citet{AfanasievMarx:2008aa} is the most widely used
+benchmark suite for XQuery.  It provides a data generator that produces \ac{XML} data simulating an auction website
+(including information about persons and items they bid for) and includes 20 XQuery queries, henceforth referred to
+as~$q_{1}$ to $q_{20}$, over this generated data.
+
+
+In order to benchmark the XSPARQL language we also require data in the relational and \ac{RDF} formats, hence we provide
+transformations (in fact, using XSPARQL queries) from the XMark \ac{XML} datasets into \ac{RDF} triples and a relational
+instance, following a manually created schema for representing the XMark data.
+%
+These transformations replicate all the data in the original XMark datasets as \ac{RDF} triples and relational tuples.
+% 
+Next, we converted the XMark queries into corresponding XSPARQL queries using \SparqlForClause{s} and \SQLForClause{s}
+to access the \ac{RDF} data and the relational database, respectively.
+%
+We call this new benchmark suite the XMarkRDF benchmark. 
+
+We have made two changes to the original XMark queries:
+\begin{inparaenum}[(1)]
+\item SPARQL queries do not guarantee any default ordering, hence all original XMark queries were declared
+  unordered -- as a consequence the XQuery engine is not required to follow document order when executing the query; and
+\item we added the external variables \var{xml} and \var{rdf} in the XQuery and XSPARQL queries as parameters used to
+  specify the URI identifying the input benchmark instance.
+\end{inparaenum}
+
+
+We also included in our own comparisons the SPAR\-QL2\-XQuery system~\cite{GroppeGroppeLinnemann:2008aa}, which is
+similar in spirit to XSPARQL.  While the SPARQL2XQuery language allows to perform similar queries to the \ac{RDF} and
+\ac{XML} fragment of the XSPARQL language, the implementation follows a different approach to integrate the \ac{XML} and
+\ac{RDF} data: rather than performing interleaved calls to a SPARQL engine, the SPARQL2XQuery system relies on
+translating the \ac{RDF} data into a pre-defined \ac{XML} format and transforming SPARQL queries into equivalent XQuery
+over this pre-defined \ac{XML} format.  The translated queries can be directly executed using a native XQuery engine.
+%
+We focussed our experimental evaluation on query response time rather than on data transformation time, and as
+SPARQL2XQuery requires an additional translation step from \ac{RDF} to a custom RDF/XML format, we converted the
+XMarkRDF \ac{RDF} data into the format required by the SPAR\-QL2\-XQuery system.  We denote these new datasets,
+containing the RDF/XML format required for the SPARQL2XQuery, by~$\textrm{XMarkRDF}_{\mathit{S2XQ}}$.
+
+
+\begin{table}[t]
+\caption{XMark (and variants) benchmark dataset description}
+\label{tab:iterations}
+\centering
+\begin{tabular}{p{1.5cm}rr|r|rr|rr}
+ \toprule
+  Scaling                  &         &            & \multicolumn{1}{c|}{XMark}      & \multicolumn{2}{c|}{XMarkRDF}  & \multicolumn{2}{c}{XMarkRDB} \tabularnewline
+   factor & Persons & Categories & Size (MB)  & Size (MB) & \# Triples & Size (MB) & \# Tuples \tabularnewline
+ \midrule
+  0.01 &   255 &   10 &   1.1 &   1.2 & 14745 & 1 & 4112 \tabularnewline
+  0.02 &   510 &   20 &   2.3 &   2.3 & 27519 & 2 & 7799 \tabularnewline
+  0.05 &  1275 &   50 &   5.8 &   5.8 & 70859 & 5 & 20190 \tabularnewline
+  0.10 &  2550 &  100 &  11.7 &  12.4 & 142721 & 10 & 40183 \tabularnewline
+  0.20 &  5100 &  200 &  23.5 &  24.9 & 283639 & 20 & 80622 \tabularnewline
+  0.50 & 12750 &  500 &  58.0 &  61.7 & 706723 & 50 & 200496 \tabularnewline
+  1.00 & 25500 & 1000 & 116.5 & 124.8 & 1414469 & 101 & 400620\tabularnewline
+ \bottomrule
+\end{tabular}
+\end{table}
+
+
+Using the data generators and translators, provided by the XMark benchmark and the XSPARQL translation to \ac{RDF} (as
+presented in \cref{sec:optimisation}), we created datasets with scaling factors of 0.01, 0.02, 0.05, 0.1, 0.2,
+0.5, and~1.0 and translated them into XMarkRDF and XMarkSQL.  An overview of the generated data is presented in
+\cref{tab:iterations}, including the number of persons and item categories modelled, dataset sizes,\footnote{For
+  the dataset sizes we determined the dataset size based on a Turtle representation of the \ac{RDF} graph and the
+  \ac{SQL} \textsf{INSERT} statements that populate the database.}, the number of relational tuples and \ac{RDF}
+triples.
+
+
+
+\begin{table}[t]
+\caption{$\textrm{XMarkRDF}_{\mathit{S2XQ}}$ dataset and translation times}
+\label{tab:XMarkRDF-groppe}
+\centering
+\begin{tabular}{rrr}
+ \toprule
+  Scaling factor & Dataset size (MB) & Translation times (sec)\tabularnewline
+ \midrule
+  0.01 &   3.3 & 18.94\tabularnewline
+  0.02 &   6.4 & 18.30\tabularnewline
+  0.05 &  16.1 & 26.08\tabularnewline
+  0.10 &  32.7 & 39.01\tabularnewline
+  0.20 &  65.3 & 62.35\tabularnewline
+  0.50 & 162.3 & 143.35\tabularnewline
+  1.00 & 326.2 & 329.93\tabularnewline
+ \bottomrule
+\end{tabular}
+\end{table}
+
+
+Furthermore, we converted the XMarkRDF datasets into the RDF/XML format required by the SPAR\-QL2\-XQuery system. The
+resulting dataset sizes and translation times for the different scaling factors of the XMarkRDF dataset are presented in
+\cref{tab:XMarkRDF-groppe}.
+
+
+
+\subsection{Experimental Setup}
+\label{sec:experimental_setup}
+
+
+
+The benchmark system consists of a dual core Intel XEON E5606 2.13GHz, 64GB memory running a 64 bit installation of
+Debian 6.0.3 (stable distribution).
+%
+For the XQuery engine, we rely on Saxon version 9.4 Home Edition and Java version 1.6.0 64 bit. For evaluating SPARQL
+queries we used ARQ 2.8.7.  We ran each query with a timeout of 10 minutes per query and with the Java Heap size set to
+1GB.  Each query was run 10 times and the response time was measured using GNU time~1.7.  For each query we discard the
+fastest and slowest response time and calculate the average of the remaining times.  From this result we deduce the
+process startup time, determined by following the same procedure and executing an empty query.
+
+
+For the evaluation we defined the following run configurations:
+\begin{description}[noitemsep]
+\item[$\mathit{XQ}$:] original XQuery queries, evaluated using the Saxon engine;
+\item[$\mathit{XS^{rdf}}$:] using the XSPARQL implementation over the XMarkRDF datasets (translated data and queries);
+\item[$\mathit{XS^{rdb}}$:] using the XSPARQL implementation over the XMarkRDB datasets stored on a PostgreSQL 8.4.11
+  relational database management system (translated data and queries); and
+\item[$\mathit{S2XQ}$:] using the SPARQL2XQuery implementation over the translation of the XMarkRDF datasets into the
+  required \ac{XML} format ($\textrm{XMarkRDF}_{\mathit{S2XQ}}$).
+\end{description}
+
+
+\subsection{Base System Results}
+\label{sec:results}
+
+In this section we present an experimental evaluation of our prototype presented in \cref{sec:implementation}
+using the novel XMarkRDF and XMarkRDB benchmark suites.
+%
+We also compare our XSPARQL prototype with the SPARQL2XQuery engine, an implementation of the direct translation of
+SPARQL to XQuery presented by~\citet{GroppeGroppeLinnemann:2008aa}.
+
+
+\begin{table*}[t]
+  \caption[Query response times (in seconds) of the 2MB dataset.]{Query response times (in seconds) of the 2MB dataset.  Query rewriting error (\textit{err}).}
+  \label{tab:results-2mb}
+  \centering
+  \import{\plotsDir}{table-2a.tex}
+
+  \vspace{5pt}  
+
+  \import{\plotsDir}{table-2b.tex}
+\end{table*}
+
+
+
+The response times of the~$\mathit{XQ}$,~$\mathit{XS^{rdb}}$,~$\mathit{XS^{rdf}}$, and~$\mathit{S2XQ}$ runs for the
+benchmark queries over the 2MB dataset size are shown in \cref{tab:results-2mb}.\footnote{Queries~$q_{15}$ and~$q_{16}$
+  involve applying an XPath expression to data that is stored in \ac{RDF} or in the relational database as a string.
+  %
+  Since parsing this string representation back into an \ac{XML} element is not available to the Saxon HE engine we are
+  using for benchmarking, these queries were considered as errors (\textit{err}) for the~$\mathit{XS^{rdf}}$
+  and~$\mathit{XS^{rdb}}$ configurations.
+  %
+    The errors in~$\mathit{S2XQ}$ were due to translation errors from the application that was provided to us.} We present
+the 2MB dataset as it is the largest dataset our $\mathit{XS^{rdf}}$ implementation can process within the time limit of
+10 minutes.
+%
+Both the data and query translation times for the~$\mathit{S2XQ}$ configuration are not included in the presented
+results since this process can be done a priori.
+%
+The~$\mathit{XQ}$ response times are presented as a baseline measure, however it is noteworthy that these queries do not
+cater for our heterogeneous data sources scenario.
+%
+The~$\mathit{XS^{rdb}}$ configuration often presents the best response times undoubtably due to the underlying
+relational database system.  Since the inner queries in nested queries access the primary keys of relations, their
+response time is fast.  \cref{tab:results-100mb} presents the results for our largest dataset, where we can see that
+the~$\mathit{XS^{rdb}}$ approach is able to evaluate most of the queries (except~$q_{11}$) within the time limit.
+%
+\begin{table*}[t]
+  \caption[Query response times (in seconds) of the 100MB dataset.]{Query response times (in seconds) of the 100MB dataset.  Query rewriting error (\textit{err}).}
+  \label{tab:results-100mb}
+  \centering
+  \import{\plotsDir}{table-100a.tex}
+
+  \vspace{5pt}  
+
+  \import{\plotsDir}{table-100b.tex}
+\end{table*}
+
+
+\cref{tab:results-2mb} shows that for most of the queries in the~$\mathit{S2XQ}$ runs are faster than the
+interleaved calls to a SPARQL engine in the~$\mathit{XS^{rdf}}$ runs.
+%
+Even considering that the response times do not include the data translation times (presented in
+\cref{tab:XMarkRDF-groppe}), this suggests that an implementation of XSPARQL where the SPARQL queries are translated
+into native XQuery is a viable alternative to interleaving calls to a SPARQL engine.  However, for such translations to
+be possible we need access to the full \ac{RDF} dataset to perform the query translation, which is not possible for
+example in the case where we are querying data behind a SPARQL endpoint.
+%
+Another issue related to the implementation of the SPARQL2XQuery system is that response times deteriorate
+considerably for larger datasets.  This was observed for all the queries in the benchmark and can be seen in the graphs
+of \cref{fig:evaluation-times-q8-q9,fig:evaluation-times-q10-q11}.
+
+Queries~$q_{8}$--$q_{12}$ have the highest execution times of all the benchmark queries (especially noticeable in
+the~$\mathit{XS^{rdf}}$ configuration) since they contain nested expressions.  For these nested queries, our interleaved
+\SparqlForClause{s} XSPARQL implementation can only handle small datasets: the 2MB dataset is the largest for which all
+queries finish within the time limit and for the 20MB dataset all queries result in a \emph{timeout}.
+
+Based on these results, we propose a set of different rewritings that aim at reducing the response times of nested
+queries.
+
+
+
+
+%%% Local Variables:
+%%% fill-column: 120
+%%% TeX-master: t
+%%% TeX-PDF-mode: t
+%%% TeX-debug-bad-boxes: t
+%%% TeX-parse-self: t
+%%% TeX-auto-save: t
+%%% reftex-plug-into-AUCTeX: t
+%%% mode: latex
+%%% mode: flyspell
+%%% mode: reftex
+%%% TeX-master: "../thesis"
+%%% End:

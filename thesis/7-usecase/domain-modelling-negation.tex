@@ -1,0 +1,214 @@
+
+For the modelling of the access control domain consider, in addition to the previously presented sets of URIs \AU, blank
+nodes \AB, and literals \AL, a set of credential elements~\AC.
+%
+The elements of~\AC are used to represent \emph{users}, \emph{roles}, and \emph{groups}.
+%
+To cater for \emph{attribute based access control}, we consider a set~\AT of pairs of form $k=v$, to be considered as
+attribute-value pairs, where $k,v \in \AL$.  For example ``$age=30$'' or ``$institute=DERI$'' are elements
+of~$\aset{T}$.  We allow shortcuts to represent intervals of integers, for example ``$age=[25,30]$'' to indicate that
+all entities with attribute~$age$ between~$25$ and~$30$ are allowed access to the triple.
+
+Considering an element $e \in \ACT$, $e$ and $\neg e$ are \emph{access control elements}, where~$e$ is called a
+\emph{positive} element and~$\neg e$ is called a \emph{negative} element.\footnote{Here we are using $\neg e$ to
+  represent strong negation.  In our access control domain representation, $\neg e$ indicates that $e$ will be
+  specifically \emph{denied} access.}
+%
+An \emph{access control statement}~$S$ consists of a set of access control elements and we further consider that~$S$ is
+in \emph{consistent} iff for any element~$e \in \ACT$, only one among $e$ and~$\neg e$ may appear in~$S$.  This
+restriction avoids \emph{conflicts}, where a statement is attempting to both \emph{grant} and \emph{deny} access to a
+triple.
+%
+Furthermore, we can define a partial order between statements as~$S_{1} \leq S_{2} \mbox{ iff\ } S_{1} \subseteq S_{2}$
+that can be used to eliminate \emph{redundant} access permissions: if a user is granted access by statement~$S_{2}$, he
+will also be granted access by statement~$S_{1}$ (and thus $S_{2}$ can be removed). 
+%
+Finally, an \emph{\ac{ACL}} consists of a set of access control statements and an \ac{ACL} is considered
+\emph{consistent} iff each statement it contains is consistent and not redundant.  In our domain representation, only
+consistent \acp{ACL} are considered as annotation values.
+%
+Intuitively, an annotation value specifies which entities have read permission to the triple, or are denied access when
+the annotation is preceded by~$\neg$.
+%
+\begin{example}[Access Control List]
+  %
+  \label{ex:ann-value}
+  We are considering the following set of entities~$\AC = \{ jb,js,st,it \}$, where $jb$ and $js$ are employee usernames
+  and~$st$ and~$it$ are shorthand for~$\mathit{softwareTester}$ and~$\mathit{informationTechnology}$, respectively.
+  % 
+  The following annotated triple:
+  $$\fuzzyg{\tau}{[[it],[st, \neg js]]}$$
+  % 
+  states that the entities identified with $it$ or $st$ (except if the $js$ credential is also present) have read access
+  to the triple $\tau$.
+\end{example}
+%
+An \ac{ACL}~$A$ can be considered as a non-recursive Datalog with negation (\nrdn) program, where access control
+statement~$s \in A$ corresponds to the body of a rule in the Datalog program.
+%
+The head of the Datalog rules is a reserved literal $access \not\in\ACT$ and the evaluation of the Datalog program
+determines the access permission to a triple for a specific set of credentials.
+
+The set of user credentials is assumed to be provided by an external authentication service and consists of elements
+of~\ACT, which equate to a non-empty \ac{ACL} representing the entities associated with the user.  We further assume
+that this \ac{ACL} consists of only one positive statement, \ie~the \ac{ACL} will contain only one statement with all
+the entities associated with the user and does not contain any negative elements.
+%
+\vspace{-10pt}
+%
+\begin{example}[Datalog Representation of an ACL]
+  %
+  \label{ex:datalog-program}
+  Consider the annotation example presented in \cref{ex:ann-value}. The \nrdn program corresponding to the
+  \ac{ACL}~$[[it],[st, \neg js]]$ is:
+  %
+  \begin{align*}
+    access \leftarrow &~it .\\
+    access \leftarrow &~st, \neg js .  
+  \end{align*}
+  % 
+  The set of credentials of the user \emph{session}, provided by the external authentication system eg.~$[[jb,it]]$, are
+  considered the facts in the \nrdn program.
+\end{example}
+%
+Further domain specific information, for example hierarchies between the access control entities, can be encoded as
+extra rules within the \nrdn program.  These extra rules can be used to provide \emph{implicit} credentials to a user,
+allowing the access control to be specified based on credentials that the authentication system does not necessarily
+assign to a user.
+%
+\begin{example}[Credential Hierarchies]
+  Considering that the entity~$emp$ represents all the employees within a specific company, and that~$jb$ and~$js$
+  correspond to employee usernames (as presented in \cref{ex:ann-value}), the following rules can be added to the
+  \nrdn program from \cref{ex:datalog-program}:
+  %
+  \begin{align*}
+    emp \leftarrow &~ js .\\
+    emp \leftarrow &~ jb .  
+  \end{align*}
+  % 
+  These rules ensure that both~$jb$ and~$js$ are given access when the credential~$emp$ is required in an annotation
+  value.
+\end{example}
+
+
+\subsection{Annotation Domain}
+\label{sec:access-contr-annot}
+%
+We now turn to the annotation domain operations~$\otimes$ and~$\oplus$ that, as presented in \cref{sec:annotated-rdfs},
+allow for the combination of annotation values when performing \ac{RDFS} inference.
+%
+A naive implementation of these domain operations may produce \acp{ACL} that are not consistent (and would not be
+considered valid annotation values).  To avoid such invalid \acp{ACL}, we rely on a normalisation step that ensures the
+result is a valid annotation value by checking for redundant statements and applying a conflict resolution policy
+(described below) if necessary.
+%
+\begin{definition}[Normalise]
+  Let~$A$ be an \ac{ACL}. We define the reduction of~$A$ into its consistent form, denoted~$\fc{norm}{A}$, as:
+  \[
+  \fc{norm}{A} = \set{ \fc{normalise}{s_{i}} \mid s_{i} \in A \mbox{ and } {\not{\exists}} s_{j} \in A, i \neq j \mbox{ such that } s_{i} \leq
+  s_{j}}
+  \]
+  %
+  where the normalisation of a statement~$s$, denoted~$\fc{normalise}{s}$ consists of applying the conflict resolution policy
+  described below.
+\end{definition}
+%
+We say that an access statement contains a \emph{conflict} if it contains a positive and negative access control element
+of the same entity, \eg~$[jb, \neg jb]$.
+%
+There are different ways to resolve conflicts in the annotation statements: apply a
+\begin{inparaenum}[(i)]
+\item \emph{brave conflict resolution} (allow access); or
+\item \emph{safe conflict resolution} (deny access).
+\end{inparaenum}
+%
+This is achieved during the normalisation step, represented by the $normalise$ function, by removing the appropriate
+element:~$\neg jb$ for brave or $jb$ for safe conflict resolution.  In our current modelling, we are assuming safe
+conflict resolution.
+
+
+The~$\oplus$ operation for the access control domain consists of the union of the annotations and then performing the
+normalisation operation.  The intuitive behaviour is that of creating a new \nrdn program that consists of the union of
+the rules of the programs of both original annotations. Formally,
+\[
+A_{1} \oplus_{ac} A_{2} = \fc{norm}{A_{1} \cup A_{2} } \enspace .
+\]
+%
+In turn, the~$\otimes$ operation consists of merging the rules belonging to both annotation programs and then performing
+the normalisation and conflict resolution.
+%
+This corresponds to further restricting the statements from both annotations to only those entities that are provided access
+by both annotations. Formally, the~$\otimes$ operations corresponds to:
+\[
+A_{1} \otimes_{ac} A_{2} = \fc{norm}{\set{ s_{1} \cup s_{2} \mid s_{1} \in A_{1} \mbox{ and } s_{2} \in A_{2}}}
+\enspace,
+\]
+%
+where~$s_1 \cup s_2$ represents the set theoretical union.
+%
+Unlike the~$\oplus_{ac}$ operation, the~$\otimes_{ac}$ may produce conflicts in the annotation statements.
+
+\begin{example}[Domain Operations]
+  Consider the annotations~$A_{1} = [[jb],[js],[\neg it]]$ and~$A_{2} = [[it]]$.  
+  % 
+  The~$\otimes$ operation is used when inferring new triples, and thus the resulting annotation should provide access to
+  the resulting triple only to entities that are allowed to access all the premisses:
+  % 
+  $$A_{1} \otimes_{ac} A_{2} = [[jb,it],[js,it], [\neg it]] \enspace . $$
+  %   
+  Please note that the aforementioned conflict resolution mechanism has simplified~$[\neg it,it]$ into~$[\neg it]$.
+  %
+  On the other hand the~$\oplus$ operation is used to combine annotations when the same triple is deduced from different
+  inference steps.  Thus, combining annotations with the~$\oplus$ operations should result in providing access to all
+  the entities with are allowed to access the premises:
+  % 
+  \[
+  A_{1} \oplus_{ac} A_{2} = [[jb],[js],[\neg it],[it]] \enspace . 
+  \]
+  % 
+\end{example}
+%
+Lastly, the smallest and largest annotation value in the access control domain~$\bot_{ac}$ and~$\top_{ac}$, respectively
+correspond to an empty \nrdn program and another that provides access to all entities~$e\in\ACT$:~$\bot_{ac} = []$
+and~$\top_{ac} = \set{ [e], [\neg e] \mid e \in \ACT }$.
+%
+The~$\bot_{ac}$ annotation value element indicates that the annotated triple is not accessible to any entity, since no
+annotation statements will provide access to the triple, and an annotation value of~$\top_{ac}$ states that the triple
+is considered \emph{public}, since any credential contained in the user session will provide access to the triple.
+%
+\begin{definition}[Access Control Annotation Domain]
+  Let~$\aset{F}$ be the set of annotation values over~\ACT, \ie~consistent \acp{ACL}. The access control annotation
+  domain is formally defined as:
+  %
+  $$D_{ac} = \tuple{\aset{F}, \oplus_{ac}, \otimes_{ac}, \bot_{ac}, \top_{ac}} \enspace .$$
+  %
+\end{definition}
+%
+For our access control domain model, the~$\bot_{ac}$ is considered the \emph{default} annotation for any non-annotated
+triple, which implicitly denies access to the triple.
+
+
+
+This modelling of the access control domain can be extended to consider other permissions, like $\mathit{update}$, and
+$\mathit{delete}$ simply by extending the annotation to an $n$-tuple of propositional formul\ae\footnote{One formula,
+  two formul\ae.}~$\tuple{P,Q,\dots}$, where $P$ specifies the formula for $\mathit{read}$ permission, $Q$ for
+$\mathit{update}$ permission, etc.  This extension allows to use the defined domain operations simply extended to
+operate over the corresponding components of the tuple.
+%
+A $\mathit{create}$ permission has a different behaviour as it would not be attached to any specific triple but rather
+as a graph-wide permission and thus is not considered in this modelling.
+%
+In this chapter, we are focusing only on $\mathit{read}$ permissions in the description of the domain and thus restrict
+the modelling to a single propositional formula.
+%
+It is worth noting that the support for $\mathit{create}$ and $\mathit{update}$ of \ac{RDF} is only included in the
+forthcoming W3C SPARQL 1.1 Recommendation~\cite{HarrisSeaborne:2012aa}.
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% mode: flyspell
+%%% mode: reftex
+%%% mode: visual-line
+%%% TeX-master: "../thesis"
+%%% End:

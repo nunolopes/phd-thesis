@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rdf:RDF
+   xmlns:dbpedia="http://dbpedia.org/resource/"
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:ex="http://example.org/bands#"
+   xmlns:foaf="http://xmlns.com/foaf/0.1/"
+   xmlns:mo="http://purl.org/ontology/mo/"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <mo:MusicArtist rdf:about="http://dbpedia.org/resource/Marco_Hietala">
+    <foaf:name xml:lang="en">Marco Hietala</foaf:name>
+  </mo:MusicArtist>
+  <mo:MusicGroup rdf:about="http://dbpedia.org/resource/Nightwish" foaf:name="Nightwish">
+    <foaf:member rdf:resource="http://dbpedia.org/resource/Marco_Hietala"/>
+    <foaf:member rdf:resource="http://dbpedia.org/resource/Tarja_Turunen"/>
+  </mo:MusicGroup>
+  <mo:MusicArtist rdf:about="http://dbpedia.org/resource/Tarja_Turunen">
+    <foaf:name xml:lang="en">Tarja Turunen</foaf:name>
+  </mo:MusicArtist>
+  <mo:Record rdf:about="http://example.org/bands#album208">
+    <mo:title>Wishmaster</mo:title>
+    <mo:track rdf:nodeID="song506"/>
+    <mo:track rdf:nodeID="song566"/>
+    <foaf:maker rdf:resource="http://dbpedia.org/resource/Nightwish"/>
+  </mo:Record>
+  <mo:Track rdf:nodeID="song506">
+    <dc:title>FantasMic</dc:title>
+  </mo:Track>
+  <mo:Track rdf:nodeID="song566">
+    <dc:title>Wishmaster</dc:title>
+  </mo:Track>
+</rdf:RDF>

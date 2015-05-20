@@ -1,0 +1,336 @@
+\section{Extensible Markup Language (XML)}
+\label{sec:xml}
+
+
+As we have highlighted in \cref{cha:introduction}, with the growing success of the \ac{WWW}, where data exposed as
+\ac{HTML} is often extracted from relational databases, the need to query Web Data in a structured way and thus consider
+the Web as a \emph{global database} increased~\cite{SilberschatzKorthSudarshan:2005aa,AbiteboulBunemanSuciu:1999aa}.
+%
+Also powered by several data integration projects, research began to focus on the representation and querying of
+\sd data following a \emph{graph} or \emph{tree} structure.
+%
+\Sd data models were devised as the required formats for representing data available on the Web and as a
+representation-independent way to transfer data between different database management
+systems~\cite{Abiteboul:1997aa,Buneman:1997aa}.
+
+The \acf{XML}~\cite{BrayPaoliSperberg-Mcqueen:2008aa} is a \sd representation format and, with the support of the
+\ac{W3C}, it has become the \emph{de facto} standard for data exchange on the
+Web~\cite{Suciu:1998aa,AbiteboulBunemanSuciu:1999aa}.  XML is a subset of the Standard Generalized Markup Language
+(SGML) ISO standard~\cite{ISO:1986:SGML} and is designed to be compatible with SGML and \ac{HTML}.
+%
+\ac{XML} represents data in a tree-like format that, when compared to the relational format, is a more flexible data
+representation format and is also considered easier to read and write for both humans and machines.
+
+
+\ac{XML} has also brought forward a new class of databases: \emph{XML databases}.  Although currently most databases
+provide easy creation of \ac{XML} data, for example by exporting the data they contain as an \ac{XML} document, \ac{XML}
+databases refer to a database management system that manage collections of \ac{XML}
+data~\cite{KatzChamberlinKay:2003aa}.  Even though the data may be internally represented in another format, access and
+manipulation is based on \ac{XML} formats and languages.
+
+
+\cref{fig:bands-xml} contains the representation of the \usecase data from \cref{ex:usecase-data} in \ac{XML}.  This
+document starts by representing a user and the top bands they listen to, where each band includes information regarding
+its members and albums, and for each album, the songs listened to by the user.
+%
+As per~\citet{BrayPaoliSperberg-Mcqueen:2008aa}, the \acl{XML} describes what are called \emph{\ac{XML} documents},
+which are composed primarily of \ac{XML} \emph{elements}.
+%
+In turn, \ac{XML} elements consist of a \emph{start-tag}, the \emph{element content}, and an \emph{end-tag}. 
+%
+\begin{data}[t]
+  \centering
+  \lstinputlisting[language=XML,basicstyle=\small\ttfamily]{0-data+queries/usecaseData.xml}
+  \caption{Bands in XML (\fname{bands.xml})}
+\label{fig:bands-xml}
+\end{data}
+%
+Consider the following \ac{XML} element: 
+%
+\begin{lstlisting}[language=XML,basicstyle=\small\ttfamily,frame=none,numbers=none]
+<song>Wishmaster</song>
+\end{lstlisting}
+%
+Start- and end-tags are indicated by \stringValue{<song>} and \stringValue{</song>}, respectively, where
+\stringValue{song} is called the \emph{element name}, and the element content may consist of text (any string of
+characters), other (nested) \ac{XML} elements, CDATA sections, processing instructions or comments.
+%
+CDATA sections can be used to include text that contains markup characters (such as the start- and end-delimiters) and
+processing instructions contain data that is to be sent to the application consuming the document.
+%
+Comments can be present anywhere in the document and, similar to any programming language, can be ignored by the
+\ac{XML} processor.
+%
+Furthermore, \ac{XML} elements may contain \emph{attributes} enclosed in their start-tags, in this case the
+\stringValue{album} element has the \stringValue{name} attribute with value \stringValue{Wishmaster}:
+%
+\begin{lstlisting}[language=XML,basicstyle=\small\ttfamily,frame=none,numbers=none]
+<album name="Wishmaster">
+\end{lstlisting}
+%
+In \ac{XML} text, elements, CDATA, processing instructions, comments, and attributes are collectively referred to as
+\emph{\ac{XML} nodes}.
+
+\subsection{XML Namespaces}
+\label{sec:xml-namespaces}
+
+\ac{XML} provides a way to disambiguate entities such as element and attribute names by using \ac{XML}
+namespaces~\cite{BrayHollanderLayman:2009aa}, where each \ac{XML} namespace is identified by a URI
+reference~\cite{Berners-LeeFieldingMasinter:2005aa}.
+%
+\ac{XML} allows, by means of reserved attributes, to associate partial \acp{URI} with a \emph{prefix name} and/or to
+declare a \emph{default namespace}.
+%
+\emph{Qualified names} (or QNames) provide a convenient form of naming element and attribute names in \ac{XML} and can
+be composed of prefixed or unprefixed names.  Prefixed names make use of the previously declared prefixes and are
+combined with the \emph{local part} to specify the \ac{URI} reference.
+%
+For unprefixed names, if a default namespace declaration exists it is taken as the namespace value, otherwise there will
+be no namespace value.
+%
+For example, including the ``\verb+xmlns+'' attribute in an \ac{XML} element declares the default namespace to be used
+within that element:
+%
+\begin{lstlisting}[language=XML,basicstyle=\small\ttfamily,frame=none,numbers=none]
+<user xmlns="http://example.org/bands/">
+\end{lstlisting}
+%
+while \acp{URI} can be associated with a prefix in the following manner:
+%
+\begin{lstlisting}[language=XML,basicstyle=\small\ttfamily,frame=none,numbers=none]
+<members xmlns:foaf="http://xmlns.com/foaf/0.1/">
+\end{lstlisting} 
+%
+\ac{XML} namespaces are scoped to the element in which they are declared, including any child elements.
+
+
+\subsection{XML Validation}
+\label{sec:xml-validation}
+
+
+The \ac{XML} \ac{W3C} specification~\cite{BrayPaoliSperberg-Mcqueen:2008aa} defines two levels of conformance for
+\ac{XML} documents: \emph{well-formed} documents and \emph{valid} documents.  \emph{Well-formedness} constraints
+primarily ensure that the \ac{XML} document follows syntactic specifications, such as (to name but a few):
+\begin{inparaenum}[(i)]
+\item they must contain at least one element;
+\item a distinct element, called the \emph{root}, is not included in the content of any other element;
+\item for all non-root elements, its start- and end-tags must be included within the content of the same element,
+  \ie~opening and closing tags must not overlap; and
+\item attribute names must be unique within the same element.
+\end{inparaenum}
+
+On the other hand, \emph{valid} documents rely on a \emph{schema} that, similar to relational databases, specifies the
+structure of a particular class of \ac{XML} documents. Such schemas can be specified using two different formats:
+\ac{DTD} or \ac{XML} Schema, both of which are detailed below.\footnote{There are other schema languages for \ac{XML},
+  such as the Relax NG language, but for the scope of this thesis we will focus on \ac{W3C} specifications.}
+%
+In \cref{cha:xsparql} we will define \ac{XML} Schema datatypes for representing \ac{RDF} concepts and thus
+incorporating them into XQuery.
+
+\subsubsection{Document Type Definition}
+\label{sec:dtd}
+
+
+\begin{figure}[t]
+  \centering
+  \lstinputlisting[language=XML,basicstyle=\small\ttfamily]{0-data+queries/usecaseData.dtd}
+  \caption{\ac{DTD} definition for the bands XML data}
+\label{fig:bands-xml-dtd}
+\end{figure}
+
+\ac{DTD} specifications are mostly referenced here for historical reasons, since \ac{XML} Schema is more widely used (as
+detailed in the next section).
+%
+\ac{DTD} specifications consist of \emph{markup declarations}, such as \emph{element type}, \emph{attribute list},
+\emph{entity} or \emph{notation} declarations.  
+% 
+Element type declarations are defined using the \character{ELEMENT} keyword, for instance:
+%
+\begin{lstlisting}[language=XML,basicstyle=\normalfont\ttfamily,frame=none,numbers=none]
+<!ELEMENT album (song*)>
+\end{lstlisting}
+%
+specifies an \stringValue{album} element that is constituted by any number of \stringValue{song} elements. The
+\stringValue{album} element is required to have an attribute named \stringValue{name} by the following attribute list
+declaration:
+%
+\begin{lstlisting}[language=XML,basicstyle=\normalfont\ttfamily,frame=none,numbers=none]
+<!ATTLIST album name CDATA #REQUIRED>
+\end{lstlisting}
+%
+The complete \ac{DTD} definition for the \usecase \ac{XML} structure is presented in \cref{fig:bands-xml-dtd}.  An
+attribute declared as \texttt{CDATA} indicates that its value must be a sequence of characters and/or \ac{XML} markup.
+%
+On the other hand, \texttt{PCDATA} (meaning ``parsed character data'') indicates that only one text element, and no
+other nodes are allowed in the content.
+%
+Adding this \ac{DTD} definition to the \ac{XML} document from \cref{fig:bands-xml} would ensure that any
+validating \emph{\ac{XML} processor} checks the structure of the \ac{XML} data against the provided schema definition.
+%
+
+
+\subsubsection{XML Schema}
+\label{sec:xml-schema}
+
+While \acp{DTD} are included in the \ac{W3C} \ac{XML} specification and therefore are widely available, there are some
+drawbacks to their use, most noticeably the lack of namespace support.
+%
+To overcome such drawbacks, the \ac{W3C} has defined the \ac{XML} Schema specification, composed of two parts:
+%
+\begin{inparaenum}[(i)]
+\item an \ac{XML}-based syntax for validating \ac{XML} documents~\cite{ThompsonBeechMaloney:2004aa}; and
+\item a specification of \ac{XML} datatypes~\cite{BironMalhotra:2004aa}.
+\end{inparaenum}
+
+
+\begin{figure}[p]
+  \centering
+  \lstinputlisting[language=XML]{0-data+queries/usecaseData.xsd}
+  \caption{XML Schema definition for Bands XML data (partial)}
+\label{fig:bands-xml-xsd}
+\end{figure}
+%
+The \ac{XML} Schema definition of the \usecase \ac{XML} data is presented in \cref{fig:bands-xml-xsd}, which has the
+same effect as the \ac{DTD} presented in \cref{fig:bands-xml-dtd}: validating the \ac{XML} document from
+\cref{fig:bands-xml}.
+%
+In \ac{XML} Schema, \ac{XML} elements and attributes are declared using an \ac{XML} element named \stringValue{element}
+and \stringValue{attribute}, respectively, contained in the \stringValue{\url{http://www.w3.org/2001/XMLSchema}}
+namespace.
+%
+For example, the \stringValue{album}, along with its \stringValue{name} attribute and \stringValue{song} elements, are
+defined in lines 41--48 of \cref{fig:bands-xml-xsd}.
+
+
+The specification of datatypes in \ac{XML}~\cite{ThompsonBeechMaloney:2004aa} introduces a datatype system that is also
+used by other \ac{W3C} specifications, such as the \ac{RDF} specification~\cite{ManolaMiller:2004aa}.
+%
+A datatype is defined by
+%
+\begin{inparaenum}[(a)]
+\item the \emph{value space}: a set of values for a datatype; 
+\item the \emph{lexical space}: a set of valid character strings for the datatype; and
+\item a \emph{lexical-to-value mapping} linking elements of these two sets.
+\end{inparaenum}
+%
+A datatype is identified by a \ac{URI} and a \emph{datatype map} associates the \ac{URI} with the specific datatype.
+%
+The defined datatype system allows for the creation of user-defined datatypes, where such datatypes are \emph{derived}
+from existing datatypes (called the \emph{base type}) by restricting or extending its value space and lexical space.
+
+
+The formalisation of \ac{XML} Schema was proposed by~\citet{SimeonWadler:2003aa}, where the authors also describe a more
+human readable notation for both \ac{XML} elements and \ac{XML} schema types.  This notation was later adopted by the
+XQuery semantics specification~\cite{DraperFankhauserFernandez:2010aa}.
+%
+Following this notation, the \ac{XML} element
+%
+\lstinline[basicstyle=\small\ttfamily]{<song>Wishmaster</song>}
+%
+is represented as
+%
+\lstinline[basicstyle=\small\ttfamily]+element song { "Wishmaster" }+.
+%
+The \stringValue{song} and \stringValue{album} elements from the~\ac{XML} Schema in \cref{fig:bands-xml-xsd} can
+be represented in the shorthand notation as:
+%
+\begin{lstlisting}[language=XML,basicstyle=\small\ttfamily,frame=none,numbers=none]
+define element song of type xs:string
+define element album of type albumType
+define type albumType {
+  element song*,
+  attribute name of type xs:string  }
+\end{lstlisting}
+%
+After performing validation with the presented \ac{XML} Schema, the \ac{XML} element is represented as:
+\lstinline[basicstyle=\small\ttfamily]+element song of type xs:string { "Wishmaster" }+.
+%
+In \cref{cha:xsparql} we specify the types introduced by the XSPARQL language following this notation.
+
+
+\subsection{XML Abstract Representations}
+\label{sec:xml-data-models}
+
+The \ac{W3C} specifications are defined over abstract representations of \ac{XML} documents, with the objective of
+omitting the concrete syntax of \ac{XML} documents, namely the \ac{Infoset} and the \ac{XDM}.
+%
+The \ac{Infoset} provides the basic definitions for describing well-formed \ac{XML} documents, with the purpose of
+serving as a reference for other \ac{XML} specifications.
+%
+On the other hand, the more complex \ac{XDM} is meant to act as a data model for the XPath, XSLT and XQuery languages:
+describing their input documents and the values for expressions.  These query languages will be the focus of
+\cref{sec:prelim-xquery}.
+%
+The \ac{Infoset} describes only the basic information contained in an \ac{XML} document, while the XQuery and XPath Data
+Model is used mostly for the \ac{XML} Query languages (described in \cref{sec:prelim-xquery}).
+
+\subsubsection{XML Infoset}
+\label{sec:xml-infoset}
+
+The \acl{Infoset}, described by~\citet{CowanTobin:2004aa}, provides definitions referring to a well-formed \ac{XML} document
+and as such, any well-formed \ac{XML} document, although not necessarily a valid document, will have an \ac{Infoset}.
+%
+The \ac{Infoset} consists of a set of \emph{information items}, where each information item describes a part of the \ac{XML}
+document by means of \emph{properties} that refer to other information items.
+%
+
+An \ac{Infoset} contains exactly one document information item that, directly or indirectly, refers to all of the other
+information items in the set.  Other information items are used to represent \ac{XML} nodes such as elements,
+attributes, processing instructions, or comments.
+
+
+\subsubsection{XQuery 1.0 and XPath 2.0 Data Model (XDM)}
+\label{sec:xpath-data-model}
+%
+The XPath, XSLT, and XQuery languages use the \emph{\acf{XDM}}~\cite{FernandezMalhotraMarsh:2010aa} for describing their
+input \ac{XML} documents.  \ac{XDM} is based on the \ac{XML} \ac{Infoset} and extends it with support for:
+%
+\begin{inparaenum}[(i)]
+\item \ac{XML} Schema types~\cite{ThompsonBeechMaloney:2004aa,BironMalhotra:2004aa};
+\item typed atomic values; 
+\item collections of documents and complex values; and
+\item ordered, heterogeneous sequences.
+\end{inparaenum}
+
+The basic element of the data model is called an \emph{item}, which has a type (either an \ac{XML} \emph{node} or an
+atomic type) and an associated value.
+%
+Types in the data model are uniquely represented using (expanded) QNames %, in this case after expansion,
+and the pre-defined atomic types include the built-in types presented in~\citet{BironMalhotra:2004aa}, extended with the
+following additional types:
+%
+\begin{inparaenum}[(i)]
+\item \qname{xs}{anyAtomicType};
+\item \qname{xs}{untyped};
+\item \qname{xs}{untypedAtomic};
+\item \qname{xs}{dayTimeDuration}; and
+\item \qname{xs}{yearMonthDuration}.
+\end{inparaenum}
+
+
+The data model defines seven types of \ac{XML} nodes, namely: document, element, text, attribute, namespace, processing
+instruction, and comment.  Each item that represents an \ac{XML} node is associated with the corresponding type and for
+every type of node, it is possible to compute a string value.
+%
+In the data model, each \ac{XML} node has a unique identity, which is equal only to itself.  On the other hand, all
+instances of the same atomic values are considered equal, \ie~they do not have a unique identity.
+%
+XDM defines a total order among all available nodes, called \emph{document order}, which consists of the order that
+nodes appear in the original document.
+
+In comparison to the \ac{Infoset}, another addition of the \ac{XDM} is the support for sequences.  A \emph{sequence}
+consists of any number of items (\ac{XML} nodes and/or atomic values) and are represented as a
+comma-separated~\character{,} list of items, delimited by the~\character{(} and~\character{)} characters.
+%
+Each item is considered equal to a singleton sequence containing that item and furthermore sequences are not allowed to
+include any other sequences and are thus always considered as a flattened sequence.
+%
+For example, the sequence \inlineExpr{\lstinline{(1,(<a/>), "3")}} is translated to \inlineExpr{\lstinline{(1,<a/>, "3")}}.
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% mode: flyspell
+%%% mode: reftex
+%%% TeX-master: "../thesis"
+%%% End:

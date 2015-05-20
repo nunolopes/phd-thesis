@@ -1,0 +1,77 @@
+\subsubsection*{Running example}
+\label{sec:example}
+
+In this thesis we will use examples from the music domain, where we are interested in representing \emph{persons},
+\emph{bands}, \emph{albums}, and \emph{songs}.
+%
+In our simplified model, persons can be members of bands and can listen to specific songs.  Bands release albums, which
+in turn include songs.
+%
+For presentation purposes and conciseness of examples, we will use a reduced set of entities, included in
+\cref{ex:usecase-data}.
+
+We chose to use the music domain, as opposed to more enterprise oriented examples, due to the availability of
+information.
+%
+We note that data required for this \usecase is available in the \ac{WWW}, for instance, information regarding bands can
+be found in Wikipedia (\url{http://www.wikipedia.org/}) or MusicBrainz~\cite{Swartz:2002aa}, while personalised
+information about the songs individuals listen to can be found in Last.fm (\url{http://last.fm/}).
+
+
+\paragraph*{Wikipedia/DBpedia.} The widely known online encyclopaedia Wikipedia relies on user contributions for its
+contents.
+%
+DBpedia~\cite{BizerLehmannKobilarov:2009aa} consists of a partial export of the information from Wikipedia into the RDF
+format, accessible using standard query languages such as SPARQL.
+%
+For our running example, we are interested in extracting information regarding artists, bands, and albums and we often
+use DBpedia \acp{URI} as identifiers for entities.
+
+
+\paragraph*{Last.fm.} The online Web service Last.fm allows users to submit the songs and artists they listen to.
+%
+These songs are aggregated in order to create a user profile containing the top artists, lists of songs from each user,
+and provide personalised recommendations of new artists.
+%
+The data presented in this thesis was extracted from this author's Last.fm website.\footnote{Last.fm user profile
+  available at~\url{http://last.fm/user/jacktrades/}, retrieved on 2012/04/10.}
+%
+The data retrievable via the Last.fm API contains information such as the five most played bands from a user profile
+and, for each band, the most played tracks by the user and the albums they are included in.
+
+\begin{example}[\Usecase data]
+  % 
+  \label{ex:usecase-data}
+  % 
+  This example presents the data we are using in the examples of this thesis:\footnote{For the sake of conciseness of
+    examples, we restrict the presented data to one band, two members and one album of the band.}
+  % 
+  \begin{description}[nosep,labelindent=!]
+  \item[persons:] Marco Hietala, Tarja Turunen
+  \item[bands:] Nightwish
+  \item[albums:] Wishmaster
+  \item[songs:] FantasMic, Wishmaster%, Deep Silent Complete
+  \end{description}
+  %
+  In this thesis, we are interested in representing this data in four different formats:
+  % 
+  \begin{inparaenum}[(i)]
+  \item a relational database,
+  \item XML,
+  \item RDF, and
+  \item JSON.
+  \end{inparaenum}
+  % 
+  The representation of this data in each specific syntax is accompanied by the description of each data model
+  throughout this chapter.
+  %
+\end{example}
+
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% mode: flyspell
+%%% mode: reftex
+%%% TeX-master: "../thesis"
+%%% End:

@@ -1,0 +1,352 @@
+\section{Syntax}
+\label{sec:syntax}
+
+
+\input{4-xsparql/xsparql-syntax-overview}
+%
+Conceptually, XSPARQL is a merge of XQuery, SPARQL \CONSTRUCT and \SELECT queries, and \ac{SQL} \SELECT queries, as
+presented schematically in \cref{fig:XSPARQL}.
+%
+This re-use of different query languages allows us to benefit from their facilities for retrieving data in the different
+models, while also allowing us to use Turtle-like syntax for constructing RDF graphs (inherited from the SPARQL
+language).
+%
+Since XSPARQL is based on XQuery, we allow any native XQuery expression and further extend XQuery's syntax with the following
+expressions:
+%
+\begin{enumerate}[label=(\roman*),noitemsep]
+\item XQuery and SPARQL namespace declarations in the Prolog may be used interchangeably;
+\item in the Body, we allow the existing XQuery \ForClause{s} and also
+  SPARQL \SELECT queries (\SparqlForClause) and
+  SQL \SELECT queries (\SQLForClause); and
+
+\item in addition to XQuery's native \ReturnClause, in the head we allow RDF graphs to be created directly using
+  \CONSTRUCT templates (\ConstructClause).
+\end{enumerate}
+%
+In XSPARQL we also allow different forms of nesting:
+%
+\begin{inparaenum}[(i)]
+\item \LET assignments can contain the result of subqueries that construct \ac{RDF} graphs, and the assigned variable
+  can later be used in SPARQL-style \FROM clauses, or
+\item nesting can also be used for value construction within SPARQL-style \CONSTRUCT templates.
+\end{inparaenum}
+%
+Since the new \SQLForClause and \SparqlForClause expressions stand at the same level as XQuery's \FOR and \LET
+expressions, such clauses are allowed to start new \synt{\XSPARQLFLWORExpr} expressions and may also occur inside deeply
+nested XSPARQL queries.
+%
+The main difference between these new expressions and \ac{SQL} and SPARQL \SELECT expressions is that while the latter
+expressions return bindings for variables (as described in \cref{sec:sql,sec:sparql-preliminaries}), the new expressions
+follow an approach similar to XQuery's \ForClause by adding new variables to the scope of query and as such we choose a
+syntax also inspired by the XQuery \ForClause.
+
+
+An overview of the grammar productions for these newly introduced expressions (\SQLForClause, \SparqlForClause, and
+\ConstructClause) is presented in \cref{fig:xsparql-flwor}.  Notably, when compared to the XQuery grammar, we
+introduced a new production (\synt{\XSPARQLFLWORExpr}) that changes the XQuery \FLWORExpr to include the new
+expressions.
+%
+\setlength{\grammarindent}{90pt}%
+
+\begin{figure}[t]
+  \centering
+  \begin{boxedminipage}{0.935\linewidth}
+    {\scriptsize
+      \vspace{-\grammarparsep}
+      \begin{grammar}
+        <\textbf{\XSPARQLFLWORExpr}>       ::= ( <FLWOExpr> | <\SQLForClause> | <\SparqlForClause> ) \\
+        ( <\ReturnClause> | <\ConstructClause> )
+        
+        <FLWOExpr>        ::=  ( <\ForClause> | <LetClause> )+ <XQWhereClause>? <OrderByClause>? 
+        
+        <\ReturnClause>     ::=  `return' <ExprSingle> 
+        
+        <\textbf{\SQLForClause}>    ::=  `for' <SelectSpec> <RelationList> <SQLWhereClause>?
+        
+        <\textbf{\SparqlForClause}>  ::=  `for' ( <VarName>+ | `*' ) <DatasetClause>? <WhereClause>? <SolutionModifier>
+        
+        <\textbf{\ConstructClause}>  ::=  `construct' <ConstructTemplate'>
+      \end{grammar}
+    }
+    \end{boxedminipage}
+  \caption{\XSPARQLFLWORExpr syntax overview}
+  \label{fig:xsparql-flwor}
+\end{figure}
+
+
+We next look at the syntax of each newly introduced expression in more detail while presenting some XSPARQL query
+examples that allow us to perform the lifting and lowering tasks in a straightforward fashion.
+
+
+\subsection{\SparqlForClause}
+\label{sec:sparqlforclause}
+%
+{\scriptsize 
+  \begin{grammar}
+    <\textbf{\SparqlForClause}> ::= `for' (<VarRef>+ | `*') <DatasetClause>? <WhereClause>? <SolutionModifier>
+  \end{grammar}
+  \vspace{-.5\grammarparsep}
+}
+
+\noindent The newly introduced \SparqlForClause is similar to an XQuery \FOR expression that returns a sequence of
+SPARQL results.
+%
+In this grammar production, the \SparqlWhereClause and \SolutionModifier correspond to rules~[13] and~[14] from the
+SPARQL grammar, respectively \cf~\citet[Appendix~A.8]{PrudhommeauxSeaborne:2008aa}.
+%
+Similar to SPARQL's and \ac{SQL}'s \lit{\SELECT *} shortcut, we allow to write \lit{\FOR *} in place of \lit{\FOR
+  [\emph{\it list of all unbound variables appearing in the \grammarRule{WhereClause}}]} in \SparqlForClause{s}, which
+effectively avoids listing the distinguished variables of the query.
+
+We also extended the rules for the SPARQL \stt{SourceSelector} grammar expression (rule~[12] of the SPARQL grammar) in
+order to allow graphs in a dataset to be specified by a variable:
+
+{\scriptsize
+  \begin{grammar}
+    <SourceSelector>   ::=  <IRIref> | <VarRef>
+  \end{grammar}
+}
+
+
+The variables used here must contain an \ac{RDF} graph, resulting from a \ConstructClause (as described in the next
+section and further detailed in \cref{sec:semantics}).
+
+
+
+
+Regarding the syntax for variables in XQuery and SPARQL, we restrict the use of SPARQL \lit{?}-prefixed variables and
+allow only \lit{\var{}}-prefixed variables that are compatible with XQuery's variable specifications.
+%
+On the other hand, as mentioned in \cref{sec:xquery}, XQuery also allows to specify variables as QNames, allowing the
+disambiguation of variables based on their namespace.  However, since such variable names are not allowed in SPARQL we
+further assume that only unprefixed variables are shared between the XQuery and SPARQL expressions of XSPARQL.
+
+\begin{query}[t]
+  \lstinputlisting[language=XSPARQL]{0-data+queries/lowering-bands.xsparql}%
+  \caption{Lowering using XSPARQL}%
+  \label{qr:lowering_xsparql}%
+\end{query}
+%
+The lowering transformation can also be rewritten using XSPARQL.  These are the kind of transformations that present
+extra problems for the \ac{XSLT} and XQuery languages and where we can see the advantages of using XSPARQL.  By using the
+introduced \SparqlForClause{s} for accessing the \ac{RDF} graph, XSPARQL avoids handling \ac{RDF} as \ac{XML} data,
+along with all the encapsulated issues.
+%
+\begin{example}[Lowering RDF data with XSPARQL]
+  % 
+  The lowering XSPARQL query for our running example is shown in \cref{qr:lowering_xsparql}. Here we can note the
+  inclusion of \SparqlForClause{s}, for instance in \cref{qr:lowering_xsparql_bands_start}, to retrieve all the
+  bands (\qname{mo}{Band}) contained in the \ac{RDF} data.
+  %
+  Furthermore, nested \SparqlForClause{s} can be used for further processing of the input data: the \SparqlForClause in
+  \crefrange{qr:lowering_xsparql_members_start}{qr:lowering_xsparql_members_end} is responsible for retrieving all
+  the members of the respective band, where the \litVar{band} variable is instantiated with the band identifier
+  currently being processed.
+  % 
+  A similar structure is repeated for converting the corresponding albums of the band
+  (\crefrange{qr:lowering_xsparql_albums_start}{qr:lowering_xsparql_albums_end}) and songs of each album
+  (\crefrange{qr:lowering_xsparql_songs_start}{qr:lowering_xsparql_songs_end}).
+  % 
+\end{example}
+
+
+
+
+\subsection{\ConstructClause}
+\label{sec:constructclause-syntax}
+%
+{\scriptsize 
+  \begin{grammar}
+    <\textbf{\ConstructClause}> ::= `construct' <ConstructTemplate>
+  \end{grammar}
+  \vspace{-.5\grammarparsep}%
+}
+%
+\noindent The \ConstructClause allows XSPARQL to produce \ac{RDF} graphs and, by following SPARQL's restrictions on the
+generated \ac{RDF} triples (\cf~\cref{sec:sparql-syntax}), we also ensure that the resulting graph is valid
+\ac{RDF}.
+%
+The XSPARQL \synt{\ConstructTemplate} expression is defined in the same way as the production \synt{\ConstructTemplate}
+in SPARQL~\cite{PrudhommeauxSeaborne:2008aa}, but we additionally allow nested \synt{\XSPARQLFLWORExpr} expressions in
+subject, predicate, and object positions.
+%
+\noindent We allow three types of nested expressions, identified by the shortcuts
+\lit{\textbraceleft}~\synt{\XSPARQLFLWORExpr}~\lit{\textbraceright},
+\lit{<\textbraceleft}~\synt{\XSPARQLFLWORExpr}~\lit{\textbraceright>}, and
+\lit{\_:\textbraceleft}~\synt{\XSPARQLFLWORExpr}~\lit{\textbraceright} that construct \emph{literals}, \emph{URIs}, and
+\emph{blank nodes}, respectively.
+%
+This syntax is used during static analysis to correctly determine the type of each element:~\type{lit\-eral},
+\type{uri}, and \type{bnode} (\cf~\cref{sec:xsparql-types} below).
+
+Additionally, we also allow SPARQL-style \ConstructClause{s} to appear before the body part of queries, and as such
+XSPARQL becomes a syntactic superset of native SPARQL \CONSTRUCT queries (with the minor exception being the restriction
+on \lit{?}-prefixed variables).
+
+
+\begin{query}
+  \lstinputlisting[language=XSPARQL]{0-data+queries/lifting-bands.xsparql}%
+  \caption{Lifting in XSPARQL}%
+  \label{qr:lifting_xs}%
+\end{query}
+%
+The following lifting query shows the use of the \ConstructClause expression.
+%
+\begin{example}[Lifting XML data with XSPARQL]
+  \cref{qr:lifting_xq} can be reformulated into its slightly more concise XSPARQL version in \cref{qr:lifting_xs}.
+  %
+  This query behaves in a similar way to \cref{qr:lifting_xq}, creating the \ac{RDF} triples for each entity in the
+  input \ac{XML} data.  The difference is that we are using nested SPARQL-like \CONSTRUCT clauses for creating the
+  \ac{RDF} triples (\cf~\crefrange{lift-xs-construct-bands-start}{lift-xs-bands-end}).
+  %
+  In \cref{lift-xs-songs-end} we use the different XSPARQL shortcuts, in this case to create \acp{URI} and literals.
+  %
+  The result of this query is also guaranteed to be valid \ac{RDF} as explained in \cref{sec:constructsem}.
+\end{example}
+
+
+\subsection{\SQLForClause}
+\label{sec:syntax-rdb}
+%
+{\scriptsize 
+  \begin{grammar}
+    <\textbf{\SQLForClause}>    ::=  `for' <SelectSpec> <RelationList> <SQLWhereClause>?
+  \end{grammar}
+  \vspace{-.5\grammarparsep}%
+}
+
+
+\noindent The \SQLForClause element represents an \ac{SQL} \SELECT query that can be evaluated against the underlying
+database.  Similar to XQuery's \FOR clause, the \SQLForClause expression represents the results of the execution of a
+SQL query and exposes the result values to other subsequent expressions in the query.
+%
+\noindent The additional \SQLForClause syntax rules are presented next, where \synt{VarRef} corresponds to an XSPARQL
+variable (\lit{\var{}}-prefixed), \synt{TableAlias} represents a string used as an alternative name for the relation,
+and \synt{Constant} represents an integer or string:
+
+{\scriptsize
+  \begin{grammar}
+    <SelectSpec>      ::=  <AttrSpecList> | `*'  | `row' <VarRef>
+
+    <AttrSpecList>    ::=  <AttrSpec> <AttrNameSpec>? (`,' <AttrSpec> <AttrNameSpec>?)*
+
+    <AttrSpec>        ::=       <attrName> 
+                           \alt <relationName> `.' <attrName> 
+                           \alt <VarRef> 
+
+    <AttrNameSpec>    ::=  `as' <VarRef>
+
+    <RelationList>    ::=  `from' <RelationSelector> (`,' <RelationSelector>)*
+
+    <RelationSelector> ::=      <RelationName> (`as' <RelationAlias>)? 
+                           \alt <VarRef> (`as' <RelationAlias>)?
+
+    <SQLWhereClause>  ::=  `where' <WhereSpecList>
+
+    <WhereSpecList>   ::=  `(' <WhereSpecList> <BooleanOp> <WhereSpecList> `)' 
+                            \alt <WhereSpec> 
+
+    <WhereSpec>       ::=        <WhereAttrSpec> <ComparisonOp> <WhereAttrSpec> 
+                            \alt <WhereAttrSpec> <ComparisonOp> <Constant>
+                            \alt <Constant> <ComparisonOp> <WhereAttrSpec>
+
+    <WhereAttrSpec>   ::=        <AttrSpec> 
+                            \alt `\textbraceleft' <VarRef> `\textbraceright'
+
+    <BooleanOp>       ::=  `and' | `or'
+
+    <ComparisonOp>    ::=  `=' | `!=' | `!=' | `<' | `<=' | `>' | `=>'
+  \end{grammar}
+}%
+%
+When comparing the XQuery and \ac{SQL} languages we find a syntactical mismatch between the representation
+of variables: while \ac{SQL} considers the relation names specified in \synt{RelationSelector} as variables (as
+described in \cref{sec:sql}), XQuery assumes \lit{\$}-prefixed variable names.
+%
+XSPARQL provides ways of overcoming this mismatch, allowing to specify variable names for the results of an
+\SQLForClause, by:
+%
+\begin{enumerate}[label=(\roman*), noitemsep]
+\item explicitly specifying a variable name for each attribute -- represented by the syntax rule \synt{AttrNameSpec},
+  where \synt{VarRef} is the variable name to which the attribute value is assigned: \eg~\lit{for bands.bandId as
+    \$bandId};
+\item \label{forStar} implicitly by omitting the variable name or using \lit{\FOR *}; and
+\item \label{forRow} using the \lit{row} keyword instantiates the specified variable with each \emph{result row} the
+  query produces.
+\end{enumerate}
+%
+For~\ref{forStar}, each attribute in the result set is assigned a variable name automatically with the same name as the
+attribute name, of the format: \litVar{relationName.attributeName}.
+%
+\begin{example}[Variable Name Generation]
+  %
+  Consider the relational schema presented in \cref{ex:bands-schema}.
+  %
+  If we specify a \SQLForClause in the form of \lit{for * from person}, the variable names that will be available for
+  the query will be \litVar{person.personId}, \litVar{person.personName}, and \litVar{person.bandId}.
+  % 
+\end{example}
+
+If the relation attributes are not known beforehand, \eg~if the relation is specified as a variable, it is not possible
+to generate the variable names as described in~\ref{forStar}.
+%
+In this case, we can use \lit{row \$r} in place of the variable names specification, and at execution time, \lit{\$r}
+will be instantiated with an \ac{XML} representation containing all the attributes in the queried relations.
+%
+It is then possible to access all the attributes or to retrieve (if known) a specific attribute.
+%
+This form of selecting attributes is necessary for processing RDB2RDF mappings (presented in \cref{sec:r2rml-xsparql})
+since the queried relations and attributes are read from a user-specified \ac{RDF} graph and thus the attributes of the
+relation cannot be determined during syntactical analysis of the query.
+
+In \ac{SQL}, \WHERE clauses indicate specific values of an attribute to be matched or that the value of two attributes
+must be the same.  When we introduce the extended XSPARQL syntax (which allows to use \var{}-prefixed variables) we need
+a way to specify if the variable represents an attribute name or an attribute value.  We make this distinction in the
+syntax of XSPARQL: a \var{}-prefixed variable represents an attribute value, in case we want a variable to represent an
+attribute name of a relation we use the \lit{\textbraceleft} \synt{VarRef} \lit{\textbraceright} syntax.  Further
+details on how XSPARQL handles this distinction are presented in \cref{sec:semantics}.
+
+In a similar fashion to the lifting query from \ac{XML} data (\cref{qr:lifting_xs}), we can use \SQLForClause{s} to
+access relational data and convert it to \ac{RDF}, as presented in the following example.
+%
+\begin{query}[t]
+  \centering
+  \lstinputlisting{0-data+queries/xsparql-rdb-bands.xsparql}%
+  \caption{Lifting from relational database}%
+  \label{qr:xsparql-db-example}%
+\end{query}
+%
+\begin{example}[Lifting Relational data with XSPARQL]
+  \label{ex:xsparql-rdb}
+  %
+  \cref{qr:xsparql-db-example} shows an XSPARQL query that performs the lifting task over the relational schema
+  described in \cref{ex:bands-schema}.
+  %
+  In this query we are using the primary key (generated identifier) of each relation for generating the blank node label
+  of each entity (\cf~\cref{qr:xsparql-db-band-end}).
+  %
+  The rest of the query consists of creating the respective \ac{RDF} triples for the other relations: person
+  (\crefrange{qr:xsparql-db-person-start}{qr:xsparql-db-person-end}), album
+  (\crefrange{qr:xsparql-db-album-start}{qr:xsparql-db-album-end}), and song
+  (\crefrange{qr:xsparql-db-song-start}{qr:xsparql-db-song-end}).
+\end{example}
+
+
+
+
+
+
+%%% Local Variables:
+%%% fill-column: 120
+%%% TeX-master: t
+%%% TeX-PDF-mode: t
+%%% TeX-debug-bad-boxes: t
+%%% TeX-parse-self: t
+%%% TeX-auto-save: t
+%%% reftex-plug-into-AUCTeX: t
+%%% mode: latex
+%%% mode: flyspell
+%%% mode: reftex
+%%% TeX-master: "../thesis"
+%%% End:

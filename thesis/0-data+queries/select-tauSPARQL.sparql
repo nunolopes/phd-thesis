@@ -1,0 +1,4 @@
+SELECT ?p WHERE {
+    [?s1,?e1] dbpedia:Nightwish foaf:member ?p .
+    [?s2,?e2] dbpedia:Nightwish foaf:member dbpedia:Troy_Donockley .
+    [?s1,?e1] time:intervalBefore [?s2,?e2] }

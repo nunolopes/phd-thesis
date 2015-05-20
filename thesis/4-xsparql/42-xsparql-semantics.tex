@@ -1,0 +1,871 @@
+\section{Semantics}
+\label{sec:semantics}
+
+Next we define the semantics of XSPARQL by reusing the semantics of \ac{SQL} and SPARQL. 
+%
+We start by defining how we ensure that the semantics of \ac{SQL} and SPARQL queries respects any existing XSPARQL
+variable bindings.
+%
+In \cref{sec:chang-xquerys-semant}, we present the extensions to the \ac{W3C} XQuery's
+semantics~\cite{DraperFankhauserFernandez:2010aa}, namely the new types we use, an extension to the normalisation rules
+of XQuery \ForClause{s}, and necessary additional environment components.
+%
+\cref{sec:sparqlforclause-sem} presents the semantics of the newly introduced expressions: \SparqlForClause,
+\ConstructClause, and \SQLForClause, based on XQuery's formal semantics~\cite{DraperFankhauserFernandez:2010aa}, by
+defining normalisation, static type and dynamic evaluation rules for each of the new expressions.
+
+
+\input{4-xsparql/xsparql-bgp-matching}
+
+
+
+\subsection{Extensions to the XQuery Semantics}
+\label{sec:chang-xquerys-semant}
+
+In order to define the XSPARQL semantics according to XQuery's semantics we need to introduce new environment components
+and extend the dynamic evaluation rules of XQuery \ForClause{s} to populate these new components.
+%
+We also introduce the functions that we will use in the dynamic evaluation rules presented in the next section.
+
+
+\subsubsection{New Environment Components}
+\label{sec:new-envir-comp}
+
+For the definition of the XSPARQL semantics we add the following components to the dynamic environment:
+%
+\begin{itemize}[(i),noitemsep]
+\item \ecomp{activeDataset}; and
+\item \ecomp{globalPosition}.
+\end{itemize}
+
+The \dyn.\ecomp{activeDataset} is used to store the dataset over which \SparqlForClause{s} are evaluated in order to be
+accessible when a nested \SparqlForClause without a \DatasetClause is specified.
+
+The other introduced environment component, \dyn.\ecomp{globalPosition}, stores all the positions in the tuple streams.
+%
+The standard XQuery dynamic evaluation rules can only access the position of the current tuple stream, however, in order
+to generate distinct blank node labels for each \ConstructClause, we need to guarantee that the labels are also distinct
+in case of nested queries.
+%
+To ensure this, we store not only the position in the current tuple stream but also the positions of all previous ones.
+
+
+Both environment components are populated in the dynamic evaluation rules introduced in
+\cref{sec:new-semantics-rules}.  For the \dyn.\ecomp{globalPosition} we also need to adapt the evaluation rules
+of XQuery \ForClause{s} to correctly populate this component.  These updated rules are presented next.
+
+
+% using globalPosition
+\input{4-xsparql/xquery-dynamic-changes}
+
+
+
+\subsubsection{New Formal Semantics Functions}
+\label{sec:form-semant-funct}
+
+Next we will introduce the new XQuery formal semantics functions that we use in the static and dynamic evaluation rules
+presented in the next section.  These functions are specified in an informal style, in a similar fashion to formal
+semantics functions presented in~\citet[Section~7.1]{DraperFankhauserFernandez:2010aa} and the XQuery~1.0 and XPath~2.0
+Functions and Operators specifications~\cite{MalhotraMeltonWalsh:2010aa}.  For each function, we present its signature,
+consisting of the function name, the function parameters, and the return type, and include a textual description of the
+semantics of the function.
+
+The first introduced functions, \funcName{fs{:}sql} and \funcName{fs{:}sparql}, represent the extended \ac{SQL} and
+SPARQL querying facilities implemented in XSPARQL (described in \cref{sec:query-heter-data}).
+%
+We further introduce two auxiliary functions~$\funcName{fs{:}value}$,~$\funcName{fs{:}dataset}$,
+and~$\funcName{fs{:}evalCT}$.  These functions are used to access the value of a variable in a \type{PatternSolution},
+to determine the dataset over which a \SparqlForClause is evaluated, and to evaluate a \CONSTRUCT query, \ie~a
+\ConstructTemplate, respectively.
+%
+
+
+\paragraph{\funcName{\bf fs{:}sql}}
+%
+This function is responsible for executing the extended XSPARQL \ac{SQL} querying presented in
+\cref{sec:extending-sql}.
+%
+In our semantics this function also implements the normalisation of $\grammarRule{SQLWhereClauses}$ (presented in
+\cref{def:normalisation-where}) by receiving two parameters:~$\grammarRule{RelationList}$ and
+$\grammarRule{SQLWhereClause}$ representing the list of relations involved in the query and the \ac{SQL} \emph{pattern}
+to be executed, respectively.
+%
+The static type signature of this function is defined as:
+%
+{\small
+\begin{verbatim}
+fs:sql($SparqlWhere as xs:string)
+  as PatternSolution*
+\end{verbatim}
+}%
+%
+The replacement of variables in \texttt{SQLWhereClauses} represented by \cref{def:normalisation-where} (that this
+function implements), produces a valid \ac{SQL} query, that can be evaluated directly by the relational engine.
+%
+The results of this query are then translated into an instance of \type{PatternSolution} (according to
+\cref{lem:relation2types}).
+
+
+\paragraph{\funcName{\bf fs{:}sparql}.}
+\label{sec:fs:sparql}
+%
+The \funcName{fs{:}sparql} function corresponds to the implementation of the \funcName{\e{eval}{xs}{}} function, that
+evaluates SPARQL graph patterns and implements the extended notion of BGP Matching presented
+in~\cref{def:xsparql-bgp-matching}.
+%
+The static type signature of this function is defined as:
+%
+{\small
+\begin{verbatim}
+fs:sparql($dataset as RDFDataset, $SparqlWhere as xs:string, $solutionModifiers as xs:string)
+  as PatternSolution*
+\end{verbatim}
+}%
+% 
+\noindent The result of this function consists of a solution sequence, which can be translated directly into an XQuery
+sequence of elements of type~\type{PatternSolution} by applying the~$\funcName{serialise}$ function
+(\cf~\cref{lem:solution2types}).
+
+
+
+
+
+\paragraph{\funcName{\bf fs{:}value}.}
+\label{sec:fs:value}
+%
+The $\funcCall{fs{:}value}{PS, var}$ function returns the value of the specified variable $var$ in a
+\type{Pattern\-Solution} specified by~$PS$.  If $var$ is not present in $PS$, the empty sequence is returned. 
+%
+The static type signature of this function is:
+%
+{\small
+\begin{verbatim}
+fs:value($ps as PatternSolution, $variable as xs:string)
+  as (RDFTerm | SQLTerm)?
+\end{verbatim}
+}%
+%
+\noindent This function returns the respective \type{Binding} for the variable, which is an element of type
+\type{SQLTerm} or \type{RDFTerm}, depending on whether the pattern solution was the result of a \SQLForClause or a
+\SparqlForClause.
+
+
+\paragraph{\funcName{\bf fs{:}dataset}.}
+\label{sec:fs:dataset}
+%
+The $\funcCall{fs{:}dataset}{\DatasetClause}$ auxiliary function returns an element of type \type{RDFData\-set} based on
+the evaluation of its argument.  
+%
+This conversion is performed according to the SPARQL semantics presented in \cref{sec:sparql-preliminaries}.  The result
+of this function is stored (by dynamic evaluation rules) in the newly introduced \ecomp{activeDataset} dynamic
+environment component and can be retrieved when a \SparqlForClause without an explicit \DatasetClause is found.
+%
+The static type signature of this function is:
+%
+\begin{center}
+\begin{minipage}{0.9\linewidth}
+{\small\centering
+\begin{verbatim}
+fs:dataset($datasetClause as xs:string)
+  as RDFDataset
+\end{verbatim}
+}
+\end{minipage}
+\end{center}
+%
+
+\paragraph{\funcName{\bf fs{:}evalCT}.}
+\label{sec:fs:evalCT}
+%
+The $\funcName{fs{:}evalCT}$ function ensures the created RDF graph is valid and rewrites any blank nodes inside of
+\ConstructTemplate{s} to comply with the SPARQL semantics (as described in \cref{sec:bgpmatch}).  The auxiliary
+$\funcName{fs{:}validTriple}$ function checks if each triple is valid according to the RDF semantics and is defined by
+rules~\eqref{validTriple1} and~\eqref{validTriple2} presented in the next section.
+%
+The \funcName{fs{:}evalCT} function is further detailed in the following section by presenting specific rules that
+ensure the generated \ac{RDF} graph is valid and to guarantee the generation of new blank node labels for each pattern
+solution.
+%
+The static type signatures of these functions are defined as:
+%
+{\small
+\begin{verbatim}
+fs:evalCT($template as RDFTerm*)
+  as RDFGraph
+
+fs:validTriple($subject as RDFTerm, $predicate as RDFTerm,  $object as RDFTerm)
+  as RDFTriple?
+\end{verbatim}
+}
+%
+\noindent The \funcName{fs{:}evalCT} function, and hence \CONSTRUCT expressions, return elements of type
+\type{RDFGraph}, thus allowing the result of \CONSTRUCT expressions to be used in a \DatasetClause of a subsequent
+\SparqlForClause.
+
+\subsection{Semantics Rules for XSPARQL Expressions}
+\label{sec:new-semantics-rules}
+
+We are now ready to present the normalisation, static, and dynamic evaluation rules for the newly defined XSPARQL
+expressions.
+%
+As presented in \cref{sec:syntax}, XQuery and SPARQL namespace declarations can be used interchangeably in the
+prolog of an XSPARQL query and thus we start by presenting the translation of the query prolog into XQuery namespace
+declarations via normalisations rules.
+%
+We then present the necessary normalisation, static, and dynamic evaluation rules for \SQLForClause{s},
+\SparqlForClause{s}, and \ConstructClause{s}.
+%
+Please note that, since the variables included in \SQLForClause{s} and \SparqlForClause{s} are not allowed to contain a
+namespace prefix, we omit the rules handling the namespace expansion for the respective variables.
+
+
+\subsubsection{Query Prolog Normalisation}
+\label{sec:query-prol-norm}
+
+%
+In order to follow the XQuery semantics, we convert any SPARQL syntax prefix declaration into XQuery namespace
+declarations by the following normalisation rules: %
+%
+\begin{normalisationrule}
+  \mapping{%
+    \sem{\PREFIX~\grammarRule{NCName} \keyword{:}~\keyword{<}\grammarRule{IRI}\keyword{>}}{Expr}%
+  }{%
+    \sem{\keyword{declare~namespace}~\grammarRule{NCName} \keyword{ = "} \grammarRule{IRI} \keyword{" ;}}{Expr}%
+  }
+  \label{eq:2}
+\end{normalisationrule}%
+%
+The empty \PREFIX declaration is converted into the default namespace for \ac{XML} elements: 
+%
+\begin{normalisationrule}
+  \mapping{%
+    \sem{\PREFIX ~ \keyword{:}~\keyword{<}\grammarRule{IRI}\keyword{>}}{Expr}%
+  }{%
+    \sem{\keyword{declare~default~element~namespace} \keyword{ = "} \grammarRule{IRI} \keyword{" ;}}{Expr}%
+  }
+  \label{eq:3}
+\end{normalisationrule}%
+%
+Furthermore the SPARQL \keyword{base} declaration is considered equivalent to the XQuery~\keyword{base-uri} declaration:
+%
+\begin{normalisationrule}
+  \mapping{%
+    \sem{%
+      \keyword{base} ~ \keyword{<}\grammarRule{IRI}\keyword{>}}{Expr}%
+  }{%
+    \sem{\keyword{declare~base{-}uri "}\grammarRule{IRI} \keyword{" ;}}{Expr}%
+  }
+  \label{eq:4}
+\end{normalisationrule}%
+
+
+
+
+\subsubsection{\SQLForClause}
+\label{sec:semantics-rdb}
+
+In this section we define the semantics of the newly introduced \SQLForClause by means of the normalisation rules,
+static type analysis rules, and dynamic evaluation rules.
+
+\paragraph{Normalisation rules.}
+%
+Let us start by presenting the normalisation rule that handles the syntactic shortcut~\lit{\FOR *}.
+%
+\begin{normalisationrule}%
+  \mapping{%
+    \sem{%
+      \FOR~*~\envElem{RelationList}{}~\grammarRule{SQLWhereClause}~\grammarRule{ReturnClause}%
+    }{\grammarRule{Expr}}%
+  }{%
+    \sema{%
+      \FOR~\sem{%
+        \envElem{RelationList}{}~\envElem{SQLWhereClause}{}
+      }{attrs}~\envElem{RelationList}{}\\
+      \grammarRule{SQLWhereClause}~\grammarRule{ReturnClause}%
+    }{Expr}%
+  }%
+  \label{for_star-rdb}%
+\end{normalisationrule}%
+% 
+The normalisation rule $\sem{\cdot}{attrs}$ returns a comma separated list of variables representing all the attributes
+from each relation from $\envElem{RelationList}{}$.  As described in \cref{sec:syntax-rdb}, these generated
+variables are of the form: $\var{\grammarRule{relationName}.\grammarRule{attributeName}}$.
+%
+Furthermore, the next normalisation rule guarantees that each variable in a \SQLForClause contains a variable alias:
+%
+\begin{normalisationrule}
+  \mapping{%
+    \sema{%
+      \FOR~\envElem{AttrSpec}{1}, \dotsb, \envElem{AttrSpec}{n} \\
+      \grammarRule{RelationList}~\grammarRule{SQLWhereClause}\\
+      \grammarRule{ReturnClause}%
+    }{\grammarRule{Expr}}
+  }{%
+    \begin{array}{l}
+      \FOR~\sem{\envElem{AttrSpec}{1}}{Alias}, \dotsb, \sem{\envElem{AttrSpec}{n}}{Alias} \\
+      \grammarRule{RelationList}~\grammarRule{SQLWhereClause}\\
+      \sem{\grammarRule{ReturnClause}}{\grammarRule{Expr}}
+    \end{array}}%
+  \label{posvar-sql-normalisation1}%
+\end{normalisationrule}%
+%
+A new normalisation rule~$\sem{\cdot}{\envElem{Alias}{}}$ takes care of introducing the variable alias when necessary,
+where the variable alias will be the same as the attribute specification.
+%
+{\small
+  \[
+  \sem{\envElem{AttrSpec}{}}{\envElem{Alias}{}} == \envElem{AttrSpec}{}~\keyword{as}~\envElem{\var{AttrSpec}}{} \enspace
+  .
+\]}%
+%
+In case a variable alias is already present it is reused: 
+%
+{\small
+  \[
+  \sem{\envElem{AttrSpec}{}~\keyword{as}~\envElem{\var{VarRef}}{}}{\envElem{Alias}{}} ==
+  \envElem{AttrSpec}{}~\keyword{as}~\envElem{\var{VarRef}}{} \enspace .
+  \]}%
+
+
+\paragraph{Static type analysis.}
+\label{sec:static-type-analysis-rdb}
+
+The following static type rule defines the type of each variable in an \SQLForClause as \type{SQLTerm} and infers the
+static type of whole expression.
+%
+%
+This rule, based on the static environment~$\stat$, creates a new environment with the added information that each of
+the variables in the \SQLForClause ($\envElem{\var{Var}}{1} \dots \envElem{\var{Var}}{n}$) is of type
+$\type{\qname{xs}{anySimpleType}}$.
+%
+Given this new extended environment the type of $\envElem{ReturnExpr}{}$ can be inferred to be $\envElem{Type}{}$,
+making the type of the overall \SQLForClause a sequence of elements of inferred type $\envElem{Type}{}$.
+%
+\begin{staticrule}
+  \begin{prooftree}
+    \def\ScoreOverhang{1pt}%
+    \def\extraVskip{1pt}%
+    \alwaysNoLine%
+    %
+    \AxiomC{$\stat\envExtend{varType}{
+          \begin{array}{l}
+            \envElem{Var}{1} \Rightarrow \type{SQLTerm};\\
+            \dots;\\
+            \envElem{Var}{n} \Rightarrow \type{SQLTerm}
+          \end{array}
+        } 
+      \proofs \grammarRule{ReturnExpr} \colon \envElem{Type}{}
+      $}
+    %
+    \singleLine
+    %
+    \UnaryInfC{$\statEnv{
+        \begin{array}{l}
+          \FOR~\envElem{AttrSpec}{1}~\keyword{as}~\envElem{\var{Var}}{1}, \dotsb, \envElem{AttrSpec}{n} \texttt{ as } \envElem{\var{Var}}{n}\\
+          \grammarRule{RelationList}~\grammarRule{SQLWhereClause}~
+          \RETURN~\grammarRule{ReturnExpr} 
+        \end{array} : \envElem{Type}{}*
+      }$}
+  \end{prooftree}
+  \label{eq:static-type-rdb}
+\end{staticrule}%
+
+
+
+\paragraph{Dynamic Evaluation.}
+\label{sec:dynamic-evaluation-rdb}
+
+The dynamic evaluation rules for \SQLForClause{s} ensures that the return expression~($\grammarRule{ReturnExpr}$) is
+executed for each \type{SQLResult} that is returned by the evaluation of the \ac{SQL} expression.
+%
+If the evaluation of the SQL expression does not yield any solutions, \ie~evaluates to an empty sequence, then the
+overall result will also be the empty sequence:
+%
+\begin{dynamicrule}
+  \AxiomC{$\dynEnv \funcCall{fs{:}sql}{\envElem{RelationList}{}, \grammarRule{SQLWhereClause}} \Rightarrow \seq{}$}
+  % 
+  \singleLine
+  % 
+  \UnaryInfC{$\dynEnv{\begin{array}{l}
+        \FOR~\envElem{\var{Var}}{1}~\envElem{OptVarAlias}{1},  \dots, \envElem{\var{Var}}{n}~\envElem{OptVarAlias}{n}\\
+        \grammarRule{RelationList}~\grammarRule{SQLWhereClause}~
+        \RETURN~\grammarRule{ReturnExpr}
+      \end{array}} \Rightarrow \seq{}
+    $}%
+  % 
+\end{dynamicrule}%
+%
+Otherwise, for each solution, the respective value in the pattern solution is accessed and assigned to the respective
+variable name in the \dyn.\ecomp{varValue} component.  The results of evaluating~$\grammarRule{ReturnExpr}$ in this
+extended environment are then collected into the final sequence.  Please note that this rule also populates the
+\dyn.\ecomp{globalPosition} environment.
+%
+\begin{dynamicrule}
+  % 
+  \AxiomC{$\dyn.\ecomp{globalPosition} = \seq{ \envElem{Pos}{1}, \cdots, \envElem{Pos}{j} } $}
+  % 
+  \UnaryInfC{$\dynEnv{\funcCall{fs{:}sql}{\envElem{RelationList}{}, \grammarRule{SQLWhereClause}} \Rightarrow \envElem{SR}{1}, \dots, \envElem{SR}{m}}$}
+  % 
+  \UnaryInfC{$        
+    \begin{array}{r@{\hspace{-1pt}}l}
+      \dyn & \envExtend{globalPosition}{\seq{ \envElem{Pos}{1}, \cdots, \envElem{Pos}{j}, 1 }} \\
+      & \envExtend{varValue}{
+        \begin{array}{l}
+          \envElem{Var}{1} \Rightarrow \funcCall{fs{:}value}{\envElem{SR}{1}, \envElem{Var}{1}};\\
+          \dots;\\
+          \envElem{Var}{n} \Rightarrow \funcCall{fs{:}value}{\envElem{SR}{1},\envElem{Var}{n}}
+        \end{array}
+      } \proofs \grammarRule{ReturnExpr} \Rightarrow \envElem{Value}{1}
+    \end{array}
+    $}
+  % 
+  \UnaryInfC{$\vdots$}
+  % 
+  \UnaryInfC{$
+    \begin{array}{r@{\hspace{-1pt}}l}
+      \dyn & \envExtend{globalPosition}{\seq{ \envElem{Pos}{1}, \cdots, \envElem{Pos}{j}, m }} \\
+      &  \envExtend{varValue}{
+        \begin{array}{l}
+          \envElem{Var}{1} \Rightarrow \funcCall{fs{:}value}{\envElem{SR}{m}, \envElem{Var}{1}};\\
+          \dots;\\
+          \envElem{Var}{n} \Rightarrow \funcCall{fs{:}value}{\envElem{SR}{m},\envElem{Var}{n}} \\
+        \end{array}} \proofs \grammarRule{ReturnExpr} \Rightarrow \envElem{Value}{m}
+    \end{array}
+    $}
+  % 
+  \singleLine
+  % 
+  \UnaryInfC{$\dynEnv{\begin{array}{l}%
+        \FOR~\envElem{AttrSpec}{1} \texttt{ as } \envElem{\var{Var}}{1} \dots \envElem{AttrSpec}{n} \texttt{ as } \envElem{\var{Var}}{n}\\
+        \grammarRule{RelationList}~\grammarRule{SQLWhereClause}~
+        \RETURN~\grammarRule{ReturnExpr} 
+      \end{array}  \Rightarrow \envElem{Value}{1}, \dots, \envElem{Value}{m}
+    }$}
+  % 
+\end{dynamicrule}%
+
+
+
+\subsubsection{\SparqlForClause}
+\label{sec:sparqlforclause-sem}
+%
+The semantics of the \SparqlForClause expression (\cref{fig:xsparql-flwor}) is defined by the following normalisation
+rules, static type analysis rules and dynamic evaluation rules.
+%
+Again, we start by presenting the normalisation rules for \SparqlForClause{s} with implicit variable selection (by means
+of ``\FOR~*''), which are translated into explicitly stated variables:
+%
+\begin{normalisationrule}
+  \mapping{%
+    \sema{%
+      \FOR~\keyword{*}~\OptDatasetClause~\SparqlWhereClause\\
+      \SolutionModifier~\ReturnExpr }{ \grammarRule{Expr} }%
+  }%
+  {%
+    \sema{%
+      \FOR~\sem{\SparqlWhereClause}{vars}\\
+      \OptDatasetClause~\SparqlWhereClause\\
+      \SolutionModifier~\ReturnExpr }{Expr}%
+  }%
+  \label{for_star}%
+\end{normalisationrule}%
+%
+The normalisation rule $\sem{\grammarRule{WhereClause}}{vars}$ determines all statically \emph{unbound variables}
+present in the \SparqlWhereClause, \ie~returns a whitespace separated list of all variables in the \SparqlWhereClause
+that are not present in the $\stat{}.\ecomp{varType}$ environment component.
+
+
+\paragraph{Static type analysis.}
+\label{sec:static-type-analysis}
+%
+The following static rule takes care of defining the types of variables present in a \FOR expression as \type{RDFTerm}
+and infers the static type of the \SparqlForClause expression:\footnote{Similar to the XQuery Core
+  \grammarRule{OptPositionalVar}, the \grammarRule{OptDatasetClause} covers both cases when a \SparqlForClause contains
+  (or does not contain) a \DatasetClause.}
+%
+\begin{staticrule}
+  \begin{prooftree}
+    \def\ScoreOverhang{1pt}%
+    \def\extraVskip{1pt}%
+    \alwaysNoLine%
+    %
+    \AxiomC{$\stat\envExtend{varType}{\begin{array}{l}
+          \envElem{Var}{1} \Rightarrow \type{RDFTerm};\\
+            \dotsb; \\
+            \envElem{Var}{n} \Rightarrow \type{RDFTerm}  
+          \end{array}}~\proofs  \grammarRule{ExprSingle} \colon \envElem{Type}{}
+      $}
+    %
+    \singleLine
+    %
+    \UnaryInfC{$\statEnv{
+        \begin{array}{l}
+          \FOR~\envElem{\var{Var}}{1} \dotsb \envElem{\var{Var}}{n}~\grammarRule{OptDatasetClause}\\
+          \SparqlWhereClause~\SolutionModifier ~
+          \RETURN~\grammarRule{ExprSingle}  \colon \envElem{Type}{}*
+        \end{array}
+      }$}
+  \end{prooftree}%
+  \label{eq:static-type}
+\end{staticrule}%
+
+
+
+\paragraph{Dynamic Evaluation.}
+\label{sec:dynamic-evaluation}
+
+
+We can now define the dynamic evaluation rules for the \SparqlForClause expression.  Intuitively these rules state that
+the return expression \grammarRule{ExprSingle} will be executed for each \type{Pattern\-Solution} that is returned from
+the evaluation of the \funcName{fs{:}sparql} function. The following two dynamic rules specify the evaluation of the
+\SparqlForClause with an explicit \DatasetClause.  These rules use the \funcName{fs{:}dataset} function to parse the
+\DatasetClause into an element of type \type{RDFDataset}, which will be stored in the \dyn.\ecomp{activeDataset}
+component: If the evaluation of the \funcName{fs{:}sparql} function does not yield any solutions, \ie~evaluates to an
+empty sequence, the overall result will also be the empty sequence:
+%
+\begin{dynamicrule}
+  % 
+  \AxiomC{$\dynEnv{\funcCall{fs{:}dataset}{\DatasetClause} \Rightarrow \envElem{Dataset}{}}$}
+  % 
+  \UnaryInfC{$\dynEnv{%
+      \funcCall{fs{:}sparql}{%
+        \begin{array}{l}
+          \envElem{Dataset}{},\SparqlWhereClause,\\
+          \SolutionModifier
+        \end{array}
+      }%
+    } \Rightarrow \seq{}$}
+  % 
+  \singleLine
+  % 
+  \UnaryInfC{$\dynEnv{\begin{array}{l}
+        \FOR~\envElem{\var{Var}}{1}\dotsb\envElem{\var{Var}}{n}~\DatasetClause\\
+        \SparqlWhereClause~\SolutionModifier\\
+        \ReturnExpr
+      \end{array} \Rightarrow \seq{} }$}
+  \label{dyn:empty-sparqlfor}
+\end{dynamicrule}%
+%
+Otherwise, \grammarRule{ExprSingle} is evaluated for each solution in the results of the SPARQL query:
+%
+\begin{dynamicrule}
+    %
+    \AxiomC{$\dyn.\ecomp{globalPosition} = \seq{ \envElem{Pos}{1}, \cdots, \envElem{Pos}{j} } $}
+    % 
+    \UnaryInfC{$\dynEnv{\funcCall{fs{:}dataset}{\DatasetClause} \Rightarrow \envElem{Dataset}{}}$}
+    % 
+    \UnaryInfC{$\begin{array}{r@{\hspace{-1pt}}l}%
+        \dyn &~\proofs \funcCall{fs{:}sparql}{%
+          \begin{array}{l}%
+            \envElem{Dataset}{}, \SparqlWhereClause,\\
+            \SolutionModifier
+            \end{array}
+          } \Rightarrow \sm{1}{}, \dots, \sm{m}{}
+      \end{array}
+      $}
+    %
+    \UnaryInfC{$\begin{array}{r@{\hspace{-1pt}}l}%
+        \dyn & \envExtend{globalPosition}{\seq{ \envElem{Pos}{1}, \cdots, \envElem{Pos}{j}, 1 }} ~\envExtend{activeDataset}{\grammarRule{Dataset}}\\
+        &\envExtend{varValue}{%
+          \begin{array}{l}%
+            \envElem{Var}{1} \Rightarrow \funcCall{fs{:}value}{\sm{1}{},\envElem{Var}{1}};\\
+            \dotsc;\\
+            \envElem{Var}{n} \Rightarrow \funcCall{fs{:}value}{\sm{1}{},\envElem{Var}{n}}
+          \end{array}%
+        }~\proofs \grammarRule{ExprSingle} \Rightarrow
+        \envElem{Value}{1}
+      \end{array}$}
+    %
+    \UnaryInfC{$\vdots$}
+    %
+    \UnaryInfC{$\begin{array}{r@{\hspace{-1pt}}l}
+        \dyn & \envExtend{globalPosition}{\seq{ \envElem{Pos}{1}, \cdots, \envElem{Pos}{j}, m }} ~\envExtend{activeDataset}{\grammarRule{Dataset}}\\
+        &\envExtend{varValue}{\begin{array}{l}
+            \envElem{Var}{1} \Rightarrow \funcCall{fs{:}value}{\sm{m}{},\envElem{Var}{1}}; \\
+            \dotsc; \\
+            \envElem{Var}{n} \Rightarrow \funcCall{fs{:}value}{\sm{m}{},\envElem{Var}{n}} 
+          \end{array}%
+        }~\proofs \grammarRule{ExprSingle} \Rightarrow \envElem{Value}{m}
+      \end{array}$}
+    %
+    \singleLine
+    %
+    \UnaryInfC{$\dynEnv{\begin{array}{l}
+          \FOR~\envElem{\var{Var}}{1}\dotsb\envElem{\var{Var}}{n}~\DatasetClause\\
+          \SparqlWhereClause~\SolutionModifier\\
+          \RETURN~\grammarRule{ExprSingle}
+        \end{array}} \Rightarrow \envElem{Value}{1}, \dots, \envElem{Value}{m}$}
+  \label{eq:sparqlForClause}
+\end{dynamicrule}%
+%
+This rule ensures that the \ecomp{activeDataset} component of the dynamic environment is updated to reflect the explicit
+\DatasetClause of the \SparqlForClause and that the \ecomp{globalPosition} environment contains all the positions in the
+previous tuple streams.
+
+The rule that handles the \SparqlForClause without an explicit \DatasetClause is presented next.  These rules are very
+similar, with the exception that in following rules, the dataset over which the \SparqlForClause is evaluated is read
+from the \dyn.\ecomp{activeDataset} component.
+%
+\begin{dynamicrule}
+    % 
+    \AxiomC{$\dyn.\ecomp{globalPosition} = \seq{ \envElem{Pos}{1}, \cdots, \envElem{Pos}{j} } $}
+    %
+    \UnaryInfC{$\dyn.\ecomp{activeDataset} \Rightarrow \envElem{Dataset}{}$}
+    % 
+    \UnaryInfC{$\dynEnv{%
+        \funcCall{fs{:}sparql}{%
+          \begin{array}{l}
+            \envElem{Dataset}{},\SparqlWhereClause,\\
+            \SolutionModifier
+          \end{array}
+        } \Rightarrow \sm{1}{}, \dots, \sm{m}{}%
+      } $}
+    % 
+    \UnaryInfC{$\begin{array}{r@{\hspace{-1pt}}l}
+        \dyn & \envExtend{globalPosition}{\seq{ \envElem{Pos}{1}, \cdots, \envElem{Pos}{j}, 1 }}\\
+        &\envExtend{varValue}{\begin{array}{l}
+            \envElem{Var}{1} \Rightarrow \funcCall{fs{:}value}{\sm{1}{},\envElem{Var}{1}}; \\
+            \dotsc; \\
+            \envElem{Var}{n} \Rightarrow \funcCall{fs{:}value}{\sm{1}{},\envElem{Var}{n}} 
+          \end{array}%
+        }~\proofs \grammarRule{ExprSingle} \Rightarrow \envElem{Value}{1}
+      \end{array}$}
+    % 
+    \UnaryInfC{$\vdots$}
+    % 
+    \UnaryInfC{$\begin{array}{r@{\hspace{-1pt}}l}
+        \dyn & \envExtend{globalPosition}{\seq{ \envElem{Pos}{1}, \cdots, \envElem{Pos}{j}, m }}\\
+        &\envExtend{varValue}{%
+        \begin{array}{l}
+          \envElem{Var}{1} \Rightarrow \funcCall{fs{:}value}{\sm{m}{}, \envElem{Var}{1}};\\
+          \dots;\\
+          \envElem{Var}{n} \Rightarrow \funcCall{fs{:}value}{\sm{m}{},\envElem{Var}{n}} 
+        \end{array}}~\proofs \grammarRule{ExprSingle} \Rightarrow \envElem{Value}{m}
+    \end{array}
+    $}
+    % 
+    \singleLine
+    % 
+    \UnaryInfC{$\dynEnv{
+        \begin{array}{l}
+          \FOR~\envElem{\var{Var}}{1}\dotsb\envElem{\var{Var}}{n}\\
+          \SparqlWhereClause~\SolutionModifier\\
+          \ReturnExpr 
+        \end{array}}  \Rightarrow \envElem{Value}{1}, \dots, \envElem{Value}{m}$}
+\label{xsparql.new.fssparql}
+\end{dynamicrule}%
+%
+Analogously to the \SparqlForClause with an explicit dataset (Rule~\ref{dyn:empty-sparqlfor}), whenever the
+$\funcName{fs{:}sparql}$ function evaluates to an empty sequence, the result will also be an empty sequence.
+
+
+
+\subsubsection{\ConstructClause}
+\label{sec:constructsem}
+%
+XSPARQL normalises \ConstructClause{s} into standard XQuery \RETURN expressions with the necessary mechanisms for
+validation of the returned \ac{RDF} graph and as such, we define the semantics of \ConstructClause{s}
+(\cref{fig:xsparql-flwor}) by means of normalisation rules.
+%
+One valid syntax for XSPARQL is a SPARQL stand-alone \CONSTRUCT query (as described in \cref{sec:syntax}).  These
+queries are normalised into \CONSTRUCT queries with a surrounding \SparqlForClause by the following rule:
+%
+\begin{normalisationrule}
+  \mapping{%
+    \sema{%
+      \CONSTRUCT~\ConstructTemplate\\
+      \DatasetClause~\SparqlWhereClause\\
+      \SolutionModifier%
+    }{Expr}%
+  }{%
+    \sema{%
+      \FOR~*~\DatasetClause\\
+      \SparqlWhereClause~\SolutionModifier\\
+      \CONSTRUCT~\ConstructTemplate%
+    }{Expr}}
+\label{eq:construct2forclause}
+\end{normalisationrule}%
+%
+The recursive call to \sem{\cdot}{Expr} ensures that the resulting query will be further rewritten according to
+normalisation Rule~\eqref{for_star} presented above, in order to explicitly state the variables present in the
+\SparqlWhereClause.
+%
+
+Similar to the normalisation rule for stand-alone \textit{ReturnClauses} presented in~\citet[Section
+4.8.1]{DraperFankhauserFernandez:2010aa}, the following normalisation rule transforms \CONSTRUCT clauses into XQuery
+\ReturnClause{s}.
+%
+\begin{normalisationrule}%
+  \mapping{%
+    \sem{\mathtt{construct}~\ConstructTemplate}{Expr}%
+  }{%
+    \RETURN~\funcCall{fs{:}evalCT}{\sem{\ConstructTemplate}{normCT}}%
+  }
+  \label{eq:construct2forclause2}
+\end{normalisationrule}%
+%
+In the following we assume that \ConstructTemplate is a simple \character{.} separated list of \grammarRule{Subject},
+\grammarRule{Predicate} and \grammarRule{Object}. The~$\sem{\cdot}{normCT}$ rule transforms any Turtle shortcut notation
+used in \ConstructTemplate to these simple lists.
+%
+As an example of this rule, we present the rule for normalising Turtle~\character{;} abbreviations (previously described
+in \cref{sec:turtle}):
+%
+\begin{normalisationrule}%
+  \mapping{%
+    \sem{\grammarRule{Subject}~\envElem{Pred}{1}~\envElem{Obj}{1};~\dotsb;
+      ~\envElem{Pred}{n}~\envElem{Obj}{n}~.}{normCT}%
+  } {%
+    \grammarRule{Subject}~\envElem{Pred}{1}~\envElem{Obj}{1}~.~\dotsb~
+    \grammarRule{Subject}~\envElem{Pred}{n}~\envElem{Obj}{n}~.%
+  }
+  \label{eq:flatten-triples}
+\end{normalisationrule}%
+%
+The normalisation rules for the other Turtle shortcuts that are allowed in the SPARQL \ConstructTemplate syntax are
+similar to this one and are not presented here. 
+
+Since anonymous blank nodes can be written in numerous ways in Turtle, the~$\sem{\cdot}{normCT}$ normalisation rule also
+transforms each anonymous blank node into a labelled blank node where the identifier/label is distinct from any other
+blank node labels present in the \ConstructTemplate.  This label will then be used by the skolemisation function to
+generate the distinct blank node label for each position in the tuple stream.
+
+
+In more detail, the \funcName{fs{:}evalCT} function checks the constructed RDF graph for validity (according to the
+conditions described in \cref{sec:sparql-syntax}), filtering out any non-valid RDF triples where \emph{subjects} are
+literals or \emph{predicates} are literals or blank nodes.  This is illustrated by the following dynamic evaluation
+rules.
+%
+\begin{dynamicrule}
+    %
+    \AxiomC{$\dynEnv{\funcCall{fs{:}validTriple}{\mathit{Subj_1}, \mathit{Pred_1}, \mathit{Obj_1}}} \Rightarrow \envElem{Triple}{1}$}
+    %
+    \UnaryInfC{$\vdots$}
+    %
+    \UnaryInfC{$\dynEnv{\funcCall{fs{:}validTriple}{\envElem{Subj}{n}, \envElem{Pred}{n}, \envElem{Obj}{n}}} \Rightarrow \envElem{Triple}{n}$}
+    %
+    \singleLine
+    %
+    \UnaryInfC{$\begin{array}{r@{\hspace{-1pt}}l}
+        \dyn &~\proofs \funcCall{fs{:}evalCT}{\begin{array}{c}
+            Subj_1~Pred_1~Obj_1\\
+            \dots\\
+            Subj_n~Pred_n~Obj_n
+          \end{array}}~\Rightarrow  \envElem{Triple}{1}, ~ \dotsb, ~ \envElem{Triple}{n}
+      \end{array}
+      $}
+\end{dynamicrule}%
+%
+The following dynamic evaluation rule for the $\funcName{fs{:}validTriple}$ function checks, relying on the
+\funcName{fs{:}bnode} function defined below, if a triple is valid according to the RDF semantics.
+%
+\begin{dynamicrule}
+    % 
+    \AxiomC{$\dynEnv{\funcCall{fs{:}bnode}{\grammarRule{Subject}} \Rightarrow \envElem{ValS}{}}$}
+    % 
+    \UnaryInfC{$\statEnv{\envElem{ValS}{}\ \mathbf{matches}\ (\type{uri} \mid \type{bnode})}$}
+    % 
+    \UnaryInfC{$\dynEnv{\grammarRule{Predicate} \Rightarrow \envElem{ValP}{}}$}
+    % 
+    \UnaryInfC{$\statEnv{\envElem{ValP}{}\ \mathbf{matches}\ \type{uri}}$}
+    % 
+    \UnaryInfC{$\dynEnv{\funcCall{fs{:}bnode}{\envElem{Object}{}} \Rightarrow \envElem{ValO}{}}$}
+    % 
+    \UnaryInfC{$\dynEnv{\envElem{ValO}{}\ \mathbf{matches}\ (\type{uri} \mid \type{bnode} \mid \type{literal})}$}
+    % 
+    \singleLine
+    % 
+    \UnaryInfC{$\begin{array}{r@{\hspace{-1pt}}l} \dyn &~\proofs
+        \funcCall{fs{:}validTriple}{\begin{array}{l}
+            \grammarRule{Subject},\\
+            \grammarRule{Predicate},\\
+            \grammarRule{Object}
+          \end{array}}~\Rightarrow \begin{array}{l} 
+          \keyword{element}~\stt{triple}~\keyword{of}~\keyword{type}~\stt{RDFTriple}~\{ \\
+          \qquad\keyword{element}~\stt{subject}~\keyword{of}~\keyword{type}~\stt{RDFTerm}~\{ \envElem{ValS}{} \}\\
+          \qquad\keyword{element}~\stt{predicate}~\keyword{of}~\keyword{type}~\stt{RDFTerm}~\{ \envElem{ValP}{} \}\\
+          \qquad\keyword{element}~\stt{object}~\keyword{of}~\keyword{type}~\stt{RDFTerm}~\{ \envElem{ValO}{} \}\\
+          \}\!\!
+        \end{array}\\
+        \end{array}
+    $}%
+\label{validTriple1}
+\end{dynamicrule}%
+%
+In case any of the subject, predicate or object do not match an allowed type, the empty sequence is
+returned. Effectively this suppresses any invalid RDF triples from the output graph.
+%
+\begin{dynamicrule}
+  % 
+    \AxiomC{$\dynEnv{\funcCall{fs{:}bnode}{\grammarRule{Subject}} \Rightarrow \mathit{ValueS}}$}
+    \UnaryInfC{$\dynEnv{\grammarRule{Predicate} \Rightarrow \envElem{ValueP}{}}$}
+    \UnaryInfC{$\dynEnv{\funcCall{fs{:}bnode}{\envElem{Object}{}} \Rightarrow \envElem{ValueO}{}}$}
+    \UnaryInfC{$\dynEnv{\textbf{not}\left(\begin{array}{@{}l@{}}
+              \envElem{ValueS}{}\ \mathbf{matches}\ \left(\type{uri} \mid \type{bnode}\right)\ \textbf{and}\\
+              \envElem{ValueP}{}\ \mathbf{matches}\ \type{uri}\ \textbf{and}\\
+              \envElem{ValueO}{}\ \mathbf{matches}~\left(\begin{array}{l}\type{uri} \mid \type{bnode} \mid  \type{literal}\end{array}\right)
+            \end{array}\right)}$}
+    \singleLine
+    \UnaryInfC{$\dynEnv{\funcCall{fs{:}validTriple}{\grammarRule{Subject},\grammarRule{Predicate},\grammarRule{Object}}} \Rightarrow \left(\right)$}
+\label{validTriple2}
+\end{dynamicrule}%
+
+\paragraph{Blank Node Skolemisation.}
+%
+In order to comply with the SPARQL \CONSTRUCT semantics, all blank nodes inside a \ConstructTemplate need
+to be \emph{skolemised}, \ie~for each solution a new distinct blank node identifier needs to be generated.
+%
+Since we keep all the positions in the tuple streams, we can rely on the blank node label and these position values to
+generate a unique blank node label (represented by the~$\funcName{fs{:}skolemConstant}$ function).
+%
+This skolemisation of blank nodes is performed by the \funcName{fs{:}bnode} function.  If the argument of this function
+is of type \type{bnode} the skolemised label is calculated.  
+%
+\begin{dynamicrule}%
+    % 
+    \AxiomC{$\dynEnv{\envElem{ValueR}{}\ \mathbf{matches}\ \type{bnode}}$}
+    % 
+    \UnaryInfC{$\dyn.\ecomp{globalPosition} = \seq{ \envElem{PosValue}{1}, \dotsb, \envElem{PosValue}{n} }$}
+    % 
+    \UnaryInfC{$\begin{array}{r@{\hspace{-1pt}}l}
+        \dyn &~\proofs \funcCall{fs{:}skolemConstant}{
+          \begin{array}{l}ValueR, \\
+            \envElem{PosValue}{1},\\
+            \dotsc,\\
+            \envElem{PosValue}{n}
+          \end{array}}~\Rightarrow \envElem{ValueRS}{}\\
+      \end{array}$}
+    % 
+    \singleLine
+    % 
+    \UnaryInfC{$\dyn~\proofs\funcCall{fs{:}bnode}{\envElem{ValueR}{}}~\Rightarrow~\keyword{element}~\stt{bnode}~\keyword{of}~\keyword{type}~\stt{xs:string}~\{ \envElem{ValueRS}{} \}$}
+  \label{eq:bnode-skolem}
+\end{dynamicrule}%
+%
+Otherwise, \funcName{fs{:}bnode} returns its argument unchanged:
+%
+\begin{dynamicrule}
+  %
+  \AxiomC{$\dynEnv{\envElem{Value}{}\ \mathbf{matches}\ (\type{uri} \mid \type{literal})}$}
+  %
+  \singleLine
+  % 
+  \UnaryInfC{$\dynEnv{\funcCall{fs{:}bnode}{\envElem{Value}{}} \Rightarrow \envElem{Value}{}}$}
+  \label{eq:bnode-skolem-default}
+\end{dynamicrule}%
+
+
+
+%%% Local Variables:
+%%% fill-column: 120
+%%% TeX-master: t
+%%% TeX-PDF-mode: t
+%%% TeX-debug-bad-boxes: t
+%%% TeX-parse-self: t
+%%% TeX-auto-save: t
+%%% reftex-plug-into-AUCTeX: t
+%%% mode: latex
+%%% mode: flyspell
+%%% mode: reftex
+%%% TeX-master: "../thesis"
+%%% End:

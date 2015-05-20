@@ -1,0 +1,476 @@
+
+\section{Querying XML}
+\label{sec:prelim-xquery}
+
+As for querying \ac{XML} data, there are different alternatives, most notably \ac{XSLT} and XQuery.
+%
+Although these languages are very similar and both tackle similar problems, their fundamental difference is that XSLT
+was designed to perform transformations between different \ac{XML} formats, mostly considered for styling and display of
+information on the Web, while XQuery is focused on querying parts of an \ac{XML} document or
+tree~\cite{KatzChamberlinKay:2003aa}.  Notably, XSLT uses an \ac{XML} syntax for specifying the transformations while
+XQuery provides a non-\ac{XML} syntax that aims to be familiar for SQL users.
+%
+Both of these languages rely on a common core, the \ac{XPath}, that allows nodes of an \ac{XML} document to be selected.
+Although \ac{XPath} was being designed at the same time as the XSLT language, it was published as a separate standard by
+the \ac{W3C}, who envisioned its use in other languages or even as a single standalone language.
+%
+
+In this section, we start by explaining the \ac{XPath} language, followed by an high-level overview of the XSLT language.
+Finally we present the XQuery language, that is used as a basis for the syntax and semantics of XSPARQL.
+
+
+
+\subsection{XPath}
+\label{sec:xpath}
+
+\ac{XPath}~\cite{BerglundBoagChamberlin:2010aa} consists of a common core language that is reused by both \ac{XSLT} and
+XQuery.  The main purpose of \ac{XPath} is to access specific nodes of an \ac{XML} document, which it does by providing
+a non-\ac{XML} syntax for navigating though the structure of an \ac{XML} document and selecting the relevant nodes.
+%
+In \ac{XPath}, an \emph{expression} is the basic construct of the language and may consist, among other elements, of
+variable references, function calls, or location paths.
+%
+Such expressions are evaluated with respect to an \emph{expression context}, which contains the necessary information to
+determine the output of an expression, most notably the \emph{context node}: the \ac{XML} element over which the
+expression will be evaluated.  The evaluation of an \ac{XPath} expression results in an \emph{object} that can consist
+of a node-set, boolean, number, or a string.
+%
+
+\paragraph*{Location paths.} Location paths are an especially important form of \ac{XPath} expressions since they
+specify how to navigate through the \ac{XML} document.  A location path consists of a sequence of \emph{location steps}
+that are separated by the \character{/} character.
+%
+The result of the evaluation of each location step is the set of nodes and each step in the location path is applied to
+the set of nodes resulting from the previous step.
+% 
+A location step can be composed of three parts: an \emph{axis}, a \emph{node test}, and any number of \emph{predicates},
+which are described next.
+%
+\begin{description}
+\item[Axis:] The axis is used to select nodes by specifying the relation that the selected nodes should have from the
+  context node.
+  % 
+  Some of the available axes allow the \texttt{child}, \texttt{parent}, \texttt{following-sibling}, or
+  \texttt{preceding-sibling} of the context node to be selected.  These axes correspond to selecting, relative to the
+  context node, all the nodes that are one level below (\texttt{child}), one level up (\texttt{parent}), at the same
+  level after (\texttt{following-sibling}) or before (\texttt{preceding-sibling}) the context node.
+  % 
+  Furthermore, the \texttt{attribute} axis can be used to select all the attributes of the context node,
+  \stringValue{self} refers to the context node and \stringValue{descendant-or-self} to the context node and its
+  descendants.
+  % 
+
+\item[Node Tests:] Node tests can be combined with axes to further restrict the selected set of nodes.  For example
+  \stringValue{child::band} will select all the children of the context node with \stringValue{band} name.  Similarly,
+  \character{*} can be used to select all elements: \stringValue{attribute::*} selects all the attributes of the context
+  node.
+  % 
+  
+\item[Predicates:] Predicates can be used to further filter a node-set and produce a new node-set: given a node-set, the predicate
+  expression is evaluated by using each node in the node set as the new context node.  If the evaluation of the predicate
+  yields true, then the node is included in the newly created node set.
+  % 
+\end{description}
+
+The \ac{XPath} specification also defines an abbreviated syntax for representing location steps, where the expression
+can be specified by either assuming a default axis or by specifying shortcuts.  For example, the \stringValue{child} axis
+is the default and can thus be omitted.
+%
+The \character{@} abbreviation can be used for selecting the \emph{attribute} axis, thus, \stringValue{@name="Nightwish"}
+is short for \stringValue{attribute::name="Nightwish"}.
+%
+Other available abbreviations are \character{//} for \stringValue{/descendant-or-self::node()/}, \character{.} for
+\stringValue{self::node()} and \character{..} for \stringValue{parent::node()}.  
+%
+
+
+\begin{example}[XPath expression]
+  The following XPath expression:
+
+  \lstinline{//band[@name="Nightwish"]/members}
+  
+  \noindent which is an abbreviated form of the expression:
+
+  \lstinline{/descendant-or-self::node()/child::band[attribute::name="Nightwish"]/child::members}
+  %
+  
+  \noindent when executed over the \ac{XML} document presented in \cref{fig:bands-xml}, returns the
+  \stringValue{band} \ac{XML} element whose value of the \stringValue{name} attribute is \stringValue{Nightwish}.
+  %
+\end{example}
+%
+Further expressions available in the XPath language include \FOR expressions that, in a somewhat similar fashion to
+imperative programming languages,\footnote{We say somewhat similar since the evaluation order of the return expression
+  is not imposed by XPath.} allow to repeat an expression (called \emph{return expression}) for different values of the
+\emph{range variable} (detailed in \cref{sec:xquery}), conditional expressions and quantified expressions.
+%
+Conditional expressions allow to execute different expressions (\emph{then expression} or \emph{else expression})
+depending on the result of the \emph{if expression} and quantified expressions can be used to test whether an expression
+is true for all (\keyword{every}) or at least one (\keyword{some}) members of a sequence.
+
+
+\subsection{XSLT}
+\label{sec:xslt}
+
+\acf{XSLT}~\cite{Kay:2007aa} is a transformation language for \ac{XML} that allows to manipulate \ac{XML}
+documents by matching subsets of the \ac{XML} structure and specifying transformation rules for the matched elements.  
+%
+The syntax of \ac{XSLT} is \ac{XML}-based and defines a set of \ac{XML} elements that are interpreted as \ac{XSLT}
+instructions, distinguished by using the namespace \stringValue{\url{http://www.w3.org/1999/XSL/Transform}}, commonly
+abbreviated by the \qname{xsl}{} prefix.
+%
+As previously noted, \ac{XSLT} relies on the \ac{XPath} language to navigate and access the elements in the
+\ac{XML} document.
+%
+
+\ac{XSLT} transformations are called \emph{stylesheets}, referring to the origins of the language, mostly used for
+defining the style of an \ac{XML} or XHTML document for presentation in a web browser.
+%
+\ac{XSLT} follows the functional programming paradigm, where the stylesheet defines a set of rules that produce the output
+tree as a function of the input tree.  
+%
+Such rules, called \emph{template rules}, are applied to the source or input tree in order to produce the result (or
+output) tree.  The part of the rule that is matched against the \ac{XML} elements in the source is called the
+\emph{pattern}, while the \emph{sequence constructor} part is instantiated by elements matched from the source tree in
+order to produce the result tree.
+%
+Recalling the logic programming approach for querying relational databases (\cref{sec:querying-rdb}), the pattern
+can be considered the body of the query, while the sequence constructor can be considered the head.
+%
+
+
+Template rules are defined using \ac{XML} elements named \qname{xsl}{template} (as presented in
+\cref{ex:xslt-templates}).  
+%
+The \stringValue{match} attribute is used to specify the \ac{XML} elements to which the template will be applied, while
+the body of the template defines the output.  The recursive application of template rules is selected by the
+\stringValue{\qname{xsl}{apply{\mbox{-}}templates}} element, possibly specifying which \ac{XML} elements from the input
+should be matched by providing an \ac{XPath} expression as the value of the \stringValue{select} attribute.  Whenever
+this attribute is omitted, the default is to select all children of the context node.
+%
+\begin{example}[\acs{XSLT} template rules]
+  %
+  \label{ex:xslt-templates}
+  %
+  The following template rule selects the band element whose value for the name attribute is
+  \stringValue{Nightwish}:
+  % 
+  \lstinputlisting[frame=none,numbers=none,firstline=7,lastline=9]{0-data+queries/members-therion.xsl}
+  %
+  \noindent While the next template rule simply outputs all members of the selected bands:
+  \lstinputlisting[frame=none,numbers=none,firstline=3,lastline=5]{0-data+queries/members-therion.xsl}
+  %
+  \noindent Combining these two template rules in an \ac{XSLT} stylesheet will make the stylesheet output the names of
+  members of the \stringValue{Nightwish} band, when applied to \cref{fig:bands-xml}.
+  %
+\end{example}
+%
+Similar to \ac{XPath}, an \ac{XSLT} stylesheet is evaluated with regards to an \emph{expression context} and relies on
+the \ac{XPath} specification for defining the contents of each expression context.
+%
+Each template rule is evaluated by specifying the matched input \ac{XML} element as the context node.
+
+The \ac{XSLT} specification further defines instructions for specifying repetition (\texttt{xsl:for-each}), conditional
+processing (\texttt{xsl:if} and \texttt{xsl:choose}), variable declaration (\texttt{xsl:variable}), and function
+declaration (\texttt{xsl:function}).  
+%
+
+
+
+
+
+\subsection{XQuery}
+\label{sec:xquery}
+
+XQuery~\cite{ChamberlinRobieBoag:2010aa} has been the \ac{W3C} recommended query language for \ac{XML} since early 2007.
+%
+There are several similarities between XQuery and \ac{XSLT} and both query languages can address the same \usecases.
+Some of the most evident similarities include
+\begin{enumerate*}[nosep,label=(\roman*), before=\unskip{: }, after=\unskip{.}, itemjoin={{; }}, itemjoin*={{; and }}]
+\item declarative semantics supporting single-assignment variables
+\item the use of \ac{XPath} for selecting input \ac{XML} elements
+\item the construction of new \ac{XML} elements explicitly and at runtime
+\item support for user-defined functions
+\end{enumerate*}
+
+
+
+As we have seen, \ac{XSLT} was designed as a transformation language for \ac{XML} documents, focusing on transformations
+that facilitate displaying data for the user.  On the other hand, XQuery behaves more like a query language, aiming at
+extracting data from collections or large individual \ac{XML} documents.
+% 
+These design choices are apparent even in the syntax of the languages, where XQuery follows a non-\ac{XML} syntax.
+% 
+However, XQuery reuses other \ac{XML}-based specifications such as the \ac{XDM} data model and \ac{XSD}.
+%
+Any input document for an XQuery query, commonly specified using the \funcName{\qname{fn}{doc}} function, is translated
+into an \ac{XDM} instance and the respective query is executed over this abstract structure.
+%
+
+As in \ac{XPath} and \ac{XSLT}, also in XQuery the basic construct of a query is called an \emph{expression}.  In
+XQuery, expressions are mostly composed of \FLWOR expressions.
+%
+This name stems from the available expressions: \FOR, \LET, \WHERE, \ORDERBY, and \RETURN.
+%
+\begin{definition}[Tuple Stream]
+  In a \FLWOR expression, the result of the evaluation of ``\FOR~\var{v}'' and ``\LET~\var{v}'' clauses
+  consists of an ordered sequence of elements that~\var{v} is bound to.  Following the XQuery specification, we refer to
+  this sequence as \emph{tuple stream}.
+\end{definition}
+%
+Optionally, this produced sequence can be filtered using the \WHERE clause or ordered with the \ORDERBY clause.
+%
+Finally, the \RETURN clause is evaluated for every element of the resulting sequence and each result is included in the
+sequence produced by the \FLWOR expression.
+%
+Any XQuery variable is represented by using an expanded QName also making it possible to disambiguate variables based on
+declared prefixes. Further details are available in~\citet[Section 3.1.1.1]{DraperFankhauserFernandez:2010aa}.
+%
+Another important feature is that \FOR clauses may optionally include a positional variable in the form of ``\FOR
+\var{Var} \AT \var{PosVar}''.  In this case, for each evaluation of the \RETURN expression, \var{PosVar} is assigned an
+integer corresponding to the position of \var{Var} in the tuple stream.
+%
+
+
+\begin{definition}[Expression Context]
+  Similar to \ac{XPath} and \ac{XSLT}, any XQuery expression~$E$ is evaluated with regards to an \emph{Expression
+    Context} that holds the static environment (\stat) and the dynamic environment (\dyn) up until the evaluation
+  of~$E$.
+\end{definition}
+%
+Environments include different components that hold the necessary information for the evaluation of any XQuery
+expression: \stat{} holds the information available during static analysis, for example the \ecomp{varType} component
+holds variable type information.
+%
+The \dyn{} environment contains information available during expression evaluation, like the value for variables, stored
+in the \ecomp{varValue} component.
+%
+Given an expression context~$C$, we refer to the static environment of~$C$ as~$\funcCall{\stat}{C}$ and to the dynamic
+environment as~$\funcCall{\dyn}{C}$.  Different components can be accessed via their
+name:~$\funcCall{\stat}{C}.\ecomp{varType}$ and the specific value of the environment element~$var$ can be accessed
+using~$\funcCall{\stat}{C}.\ecomp{varType}(var)$.  If the expression context~$C$ is not explicitly presented, \stat and
+\dyn can be used in place of \funcCall{\stat}{C} and \funcCall{\dyn}{C}.
+
+
+
+\begin{example}[XQuery query]
+  %
+  \label{ex:xquery-query}
+  %
+  The slightly verbose XQuery equivalent to the XSLT presented in \cref{ex:xslt-templates} is the following
+  query:
+  %
+  \lstinputlisting[frame=none,numbers=none]{0-data+queries/members-therion.xquery}
+  % 
+  Executing this query over the \ac{XML} document presented in \cref{fig:bands-xml}, again returns the members of the
+  \stringValue{band} \ac{XML} element whose value of the \stringValue{name} attribute is \stringValue{Nightwish}.
+\end{example}
+%
+XQuery allows to write arbitrary queries, it is actually a Turing complete language~\cite{Kepser:2004aa}, for instance
+the \RETURN part of a \FLWOR expression may contain other (nested) \FLWOR expressions.  
+%
+In such cases we commonly refer to the first \FLWOR expression as the \emph{outer} query, while the \FLWOR expression
+that is containted inside the \RETURN is refered to as the \emph{inner} query.
+
+
+\subsubsection*{Semantics}
+%
+The semantics of XQuery~\cite{DraperFankhauserFernandez:2010aa} is defined in terms of
+%
+\begin{inparaenum}[(i)]
+\item \emph{normalisation rules},
+\item \emph{static typing rules}, and
+\item \emph{dynamic evaluation rules}.
+\end{inparaenum}
+%
+Normalisation rules reduce the syntax of XQuery to an abstract syntax denoted XQuery Core: a subset of XQuery that,
+while semantically equivalent, aims to be easier to define, implement and optimise~\cite{KatzChamberlinKay:2003aa}.
+%
+Static typing rules are applied over the XQuery Core language and are used to assign a type to each XQuery expression.
+The dynamic evaluation rules are responsible for producing the results of each expression while guaranteeing that its
+input is consistent with the previously determined typing information.
+
+In this thesis we will use the term \emph{bound variable} to refer to a variable that has been previously declared in an
+query, for example, \var{v} is considered bound if it has been previously declared by a \stringValue{\FOR \var{v}} or
+\stringValue{\LET \var{v}} expression.
+
+
+The complete semantics of XQuery is defined by specifying \emph{normalisation}, \emph{static} and \emph{dynamic
+  evaluation} rules for each expression of the language and, as an example, we next present the rules of the XQuery \FOR
+expression.
+
+\paragraph*{Normalisation Rules.}
+\emph{Normalisation rules} are represented using mapping rules, where \sem{\cdot}{Expr} represents the XQuery expression
+to be matched, while the resulting XQuery Core expression is included after the~$==$ separator.
+%
+Furthermore, fixed-width font (like \FOR and \IN) refer to specific keywords, and \emph{italic} font refers to
+productions in the XQuery Core grammar~\cite[Appendix~A]{DraperFankhauserFernandez:2010aa}.
+%
+The following example shows the application of the normalisation rules over consecutive \ForClause{s} -- considered a
+shorthand syntax -- into nested \ForClause{s} in XQuery Core:
+%
+\begin{normalisationrule}
+  \begin{prooftree}
+    \alwaysNoLine \AxiomC{$\sem{\begin{array}{l}
+          \FOR~\envElem{\var{VarName}}{1}~\envElem{OptTypeDeclaration}{1}~\envElem{OptPositionalVar}{1}~\IN~\envElem{Expr}{1} \\
+          \quad,\cdots, \\
+          \quad\var{VarName}_n~\envElem{OptTypeDeclaration}{n}~\envElem{OptPositionalVar}{n}~\IN~\envElem{Expr}{n}\\
+          \quad\grammarRule{ReturnClause}
+        \end{array}
+      }{Expr}$}
+    \UnaryInfC{$==$}
+    \UnaryInfC{$\begin{array}{l}
+        \FOR~\envElem{\var{VarName}}{1}~\envElem{OptTypeDeclaration}{1}~\envElem{OptPositionalVar}{1}~\IN~\sem{\envElem{Expr}{1}}{Expr}~\RETURN \\
+        \quad\cdots \\
+        \quad\FOR~\envElem{\var{VarName}}{n}~\envElem{OptTypeDeclaration}{n}~\envElem{OptPositionalVar}{n}~\IN~\sem{\envElem{Expr}{n}}{Expr}\\
+        \quad\sem{\grammarRule{ReturnClause}}{Expr}
+      \end{array}$}
+    \label{for-normalisation}
+  \end{prooftree}%
+\end{normalisationrule}%
+%
+The normalisation process consists of the recursive application of the defined rules over each expression in the
+language.
+%
+
+\paragraph*{Static and Dynamic Evaluation Rules.}
+On the other hand, \emph{static type rules} and \emph{dynamic evaluation rules} are represented using inference rules
+of the form:
+%
+\begin{prooftree}
+  \AxiomC{$\textit{premise}_{1}~\dotsb~\textit{premise}_{n}$}
+  \UnaryInfC{$\textit{conclusion}$}
+\end{prooftree} 
+%
+Rule premises are composed of the so-called \emph{judgements} and such judgements are said to \emph{hold} if they are
+considered true.  Some judgments used in this thesis are:
+%
+\begin{description}
+\setlength\abovedisplayshortskip{1pt plus 2pt minus 0pt}
+\setlength\belowdisplayshortskip{1pt plus 2pt minus 0pt}
+\setlength\abovedisplayskip{1pt plus 2pt minus 0pt}
+\setlength\belowdisplayskip{1pt plus 2pt minus 0pt}
+\item[Type.] The judgment:
+  %
+  \[\statEnv{\envElem{Expr}{} \colon \envElem{Type}{}}\] 
+  % 
+  holds if, in the static environment~\stat, the expression \envElem{Expr}{} has the type \envElem{Type}{}.
+  % 
+  Also related to typing, the \funcName{prime} and \funcName{quantifier} are functions that extract all the item types
+  of its parameter and try to estimate the number of items in a type (?, +, or *), respectively.
+%
+\item[Variable Expansion.] Similarly, \[\statEnv \envElem{VarName}{}~\textbf{of var expands to}~\envElem{Variable}{}\]
+  holds if \envElem{Variable}{} corresponds to the expanded QName of \envElem{VarName}{}.
+%
+\item[Context Extension.] Contexts can be extended by using the~\character{$+$} notation, for
+  example: \[\stat\envExtend{varType}{\envElem{Variable}{pos} \Rightarrow \qname{xs}{integer}}\] creates a new context
+  based on~\stat by adding the information that \envElem{Variable}{pos} is of type \qname{xs}{integer} to the
+  \ecomp{varType} component of~\stat.
+%
+\item[Expression Evaluation.] A commonly used judgment in dynamic evaluation rules is
+  \[\dynEnv{\envElem{Expr}{} \Rightarrow \envElem{Value}{}}\] which holds if, in the environment~\dyn, the expression
+  \envElem{Expr}{} evaluates to the value \envElem{Value}{}.
+%
+\end{description}
+%
+As an example of the use of these judgments, the following static type rule handles the typing of a \FOR clause with a
+positional variable:
+%
+\begin{staticrule}
+  \begin{prooftree}
+    \def\ScoreOverhang{1pt}%
+    \def\extraVskip{1pt}%
+    \alwaysNoLine%
+    %
+    \AxiomC{$\statEnv \envElem{Expr}{1} \colon \envElem{Type}{1}$}
+    %
+    \UnaryInfC{$\statEnv \envElem{VarName}{}~\textbf{of var expands to}~\envElem{Variable}{}$}
+    %
+    \UnaryInfC{$\statEnv \envElem{VarName}{pos}~\textbf{of var expands to}~\envElem{Variable}{pos}$}
+    %
+    \UnaryInfC{$\stat\envExtend{varType}{\begin{array}{l} 
+          \envElem{Variable}{} \Rightarrow \funcCall{prime}{\envElem{Type}{1}}; \\
+          \envElem{Variable}{pos} \Rightarrow \qname{xs}{integer} 
+        \end{array}}~\proofs  \envElem{Expr}{2} \colon \envElem{Type}{2}
+      $}
+    %
+    \singleLine
+    %
+    \UnaryInfC{$\statEnv{
+        \begin{array}{l}
+          \FOR~\envElem{\var{VarName}}{}~\keyword{at}~\envElem{VarName}{pos}~\keyword{in}~\envElem{\grammarRule{Expr}}{1}\\
+          \keyword{return}~\envElem{\grammarRule{Expr}}{2} \colon \envElem{Type}{2} \cdot \funcCall{quantifier}{\envElem{Type}{1}}
+        \end{array}
+      }$}
+  \end{prooftree}%
+  \label{eq:static-type-for}
+\end{staticrule}%
+%
+
+
+The dynamic evaluation of \FOR expressions consists of first evaluating the expression specified by the \IN clause and,
+for each element of the resulting sequence, assign it to the \FOR variable and then evaluating the \RETURN expression.
+%
+Hence, the semantics separates the dynamic evaluation rules of \FOR expressions into two cases, depending on whether the
+\IN expression returns any elements.  If the \IN expression evaluates to an empty sequence, the \FOR expression also
+evaluates to an empty sequence:
+%
+\begin{dynamicrule}
+    %
+    \AxiomC{$\dynEnv{\envElem{Expr}{1} \Rightarrow \left(\right)}$}
+    %
+    \singleLine \UnaryInfC{$\dynEnv{
+        \FOR~\envElem{\var{VarName}}{}~\grammarRule{OptPositionalVar}~\keyword{in}~\envElem{\grammarRule{Expr}}{1}~\keyword{return}~\envElem{\grammarRule{Expr}}{2}
+        \Rightarrow \left(\right) }$}
+  \label{eq:dyn-ForClause-empty}
+\end{dynamicrule}%
+%
+Otherwise, the dynamic evaluation rule of a \FOR clause with a positional variable is presented next:
+%
+\begin{dynamicrule}
+    %
+    \AxiomC{$\dynEnv{\envElem{Expr}{1} \Rightarrow \envElem{Item}{1}, \dotsb, \envElem{Item}{n}}$}
+    %
+    \UnaryInfC{$\statEnv \envElem{VarName}{}~\textbf{of var expands to}~\envElem{Variable}{}$}
+    %
+    \UnaryInfC{$\statEnv \envElem{VarName}{pos}~\textbf{of var expands to}~\envElem{Variable}{pos}$}
+    %
+    \UnaryInfC{$\dyn\envExtend{varValue}{\begin{array}{l}
+            \envElem{Variable}{} \Rightarrow \envElem{Item}{1};\\
+            \envElem{Variable}{pos} \Rightarrow 1 
+          \end{array}}~\proofs \envElem{Expr}{2} \Rightarrow \envElem{Value}{1}$}
+    \UnaryInfC{$\vdots$}
+    \UnaryInfC{$\dyn\envExtend{varValue}{\begin{array}{l}
+            \envElem{Variable}{} \Rightarrow \envElem{Item}{n};\\
+            \envElem{Variable}{pos} \Rightarrow n 
+          \end{array}}~\proofs \envElem{Expr}{2} \Rightarrow \envElem{Value}{n}$}
+    \singleLine
+    \UnaryInfC{$\dynEnv{
+        \begin{array}{l}
+          \FOR~\envElem{\var{VarName}}{}~\keyword{at}~\envElem{VarName}{pos}~\keyword{in}~\envElem{\grammarRule{Expr}}{1}\\
+          \keyword{return}~\envElem{\grammarRule{Expr}}{2} \Rightarrow \envElem{Value}{1}, \dotsb, \envElem{Value}{n}
+        \end{array}
+      }$}
+  \label{eq:dyn-ForClause}
+\end{dynamicrule}%
+%
+Another judgement used for matching element values to types
+is~\stringValue{\small{$\statEnv{\envElem{Value}{}~\textbf{matches}~\envElem{Type}{}}$}}, which holds when, in the
+static environment~\stat, the type of \envElem{Value}{} is~\envElem{Type}{} or can be derived from~\envElem{Type}{} (as
+presented in \cref{sec:xml-validation}).
+%
+
+
+
+%%% Local Variables:
+%%% fill-column: 120
+%%% TeX-PDF-mode: t
+%%% TeX-debug-bad-boxes: t
+%%% TeX-parse-self: t
+%%% TeX-auto-save: t
+%%% reftex-plug-into-AUCTeX: t
+%%% mode: latex
+%%% mode: flyspell
+%%% mode: reftex
+%%% TeX-master: "../thesis"
+%%% End:

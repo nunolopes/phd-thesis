@@ -1,0 +1,257 @@
+
+\section{Querying Relational Databases}
+\label{sec:querying-rdb}
+
+In this section we give an overview of conjunctive queries which, according to~\citet{AbiteboulHullVianu:1995aa},
+represent the vast majority of relational database queries that are relevant in practice.  Later we present the \ac{SQL}
+query language, which is the most used query language for relational databases.
+
+\subsection{Conjunctive queries}
+\label{sec:conjunctive-queries}
+%
+In line with the different views on relational data (presented in \cref{sec:relational-model}), conjunctive queries can
+be formalised under different, although equivalent, perspectives: logic programming and the relational algebra.
+%
+The logic programming approach follows the corresponding view on relational data presented in
+\cref{sec:relational-model}, while the relational algebra approach relies on the conventional view.
+%
+We then present the \acs{SQL} query language and provide an overview of its mapping into relational algebra.
+
+Under the logic programming approach, in addition to the sets of relations \AR, attributes \AAs, and values \AD, we rely
+on the set of variables \AV that range over elements of \AD.
+%
+We can now extend the notion of fact to \emph{atom}: an atom over a relation~$r \in \AR$ is an
+expression~$\fact{r}{e_{1}, \dots, e_{n}}$ where~$n$ is the arity of~$r$ and each~$e_{i} \in \ADV$ is called a
+\emph{term}.  A fact can also be referred to as a \emph{ground atom}.  The notion of \emph{query} can then be defined
+as:
+%
+\begin{definition}[Rule-based conjunctive query~\cite{AbiteboulHullVianu:1995aa}]
+  \label{def:rule-based-conjunctive-query}
+  Given a database schema~$S$, a \emph{rule-based conjunctive query}~$q$ over~$S$ is an expression of the form:
+  %
+  \begin{equation}
+    \fact{q}{u} \leftarrow \fact{r_{1}}{u_{1}}, \dots, \fact{r_{n}}{u_{n}}\label{eq:1}
+  \end{equation}
+  % 
+  where each~$r_{i}, i \in [1,n]$ is a relation name from~$S$ and each~$\fact{r_{i}}{u_{i}}$, is an atom over~$r_{i}$.
+  Any variable occurring in~$u$ must be \emph{safe}, \ie~it must also occur at least once in any~$u_{1}, \dots, u_{n}$.
+  Furthermore, we denote the set of variables present in~$q$ as \vars{q}.
+\end{definition}
+%
+\noindent A rule-based conjunctive query can be referred to simply as a \emph{rule} where the lefthand side
+of~\character{$\leftarrow$} is called the \emph{head} and the righthand side is called the \emph{body} of the rule.  For
+example, in Rule~\eqref{eq:1}, the head is~$q(u)$ and the body corresponds to~$\fact{r_{1}}{u_{1}}, \dots,
+\fact{r_{n}}{u_{n}}$.
+% 
+A rule can be interpreted as: the head atom can be deduced if there are values for the variables in the rule that make
+the body hold.
+%
+Given a set of variables~$V \subset \AV$, a \emph{mapping} (or \emph{valuation}) over~$V$ is a function~$v : V \to \AD$.
+This function can be extended to represent the identity over any element of~$\AD$ and thus can map any atom with
+variables to a fact by applying it to all elements of the atom.  For any atom~$t$, the mapping of~$v$ is denoted as
+\funcCall{v}{t}.
+%
+Based on this notion of mapping, the \emph{answers} to a query can be defined as:
+
+\begin{definition}[Answers of a query]
+  Let~$q = \fact{q}{u} \leftarrow r_{1}, \dots, r_{n}$ be a rule-based conjunctive query and~$I$ be a database instance.
+  An \emph{answer} of~$I$ under~$q$ is:
+  \[
+  \funcCall{q}{I} = \set{ \funcCall{v}{r} \mid v\mbox{ is a mapping over}~\vars{q}~\mbox{and }\funcCall{v}{r_i} \in I
+  \mbox{ for each }i \in [1, n] }
+  \]
+\end{definition}
+%
+As we will see in the next section, since duplicate removal is a computational expensive operation, \ac{SQL} maintains
+duplicates in the answers of a query (thus represented as a multiset) unless otherwise instructed.
+
+Another paradigm for relational queries is the algebraic paradigm, which is defined by specifying operations on relation
+instances, called the \emph{relational algebra}.
+%
+The three primitive algebra operators are the \emph{selection}~($\sigma$), \emph{projection}~($\pi$) and the
+\emph{cartesian product}~($\times$) operators.
+%
+The full set of operators that form the \emph{relational algebra} also include the \emph{join}~($\bowtie$),
+\emph{union}~($\cup$) and \emph{difference}~($-$) operators.  
+%
+The selection operator consists of restricting the tuples present in a relation according to a specified condition.
+%
+The projection operator is used to discard attributes of a relation while the cartesian product combines any two
+relations and produces a new relation that includes all the attributes of both relations.
+%
+The join operator consists of combining the projection and cartesian product operators: the result of this operator
+consists of all the tuples from both relations that have a common value on any common attributes. 
+%
+The union~($\cup$) and difference~($-$) algebra operators are defined as the standard set-theoretical operators.
+% 
+
+Considering two relational instances~$I$ and~$J$ (with sorts~$U$ and~$W$, respectively), the relation attributes~$A$
+and~$B$, and a constant~$c \in \AD$, the relational algebra operators are defined as:
+% 
+\begin{description}
+\item[selection:] The two forms of the selection operator,~$\sigma_{A=c}$ and~$\sigma_{A=B}$ select tuples that match a
+  constant or where the value of two attributes is the same, respectively:
+  %
+  \begin{align*}
+    \sigma_{A=c}(I) &= \set{ t \in I \mid \funcCall{t}{A} = c } \\
+    \sigma_{A=B}(I) &= \set{ t \in I \mid \funcCall{t}{A} = \funcCall{t}{B} }
+  \end{align*}
+  %
+\item[projection:] This operator consists of restricting the attributes present in a relation. Given a set of
+  attributes~$X \subseteq U$, the projection operator returns:
+  \[
+  \pi_{X}(I) = \set{ t[X] \mid t \in I }
+  \]
+\item[join:] The join operator between~$I$ and~$J$ produces a relation with sort~$U \cup W$, such that:
+  \[
+  I \bowtie J = \set{ t \mid \funcCall{sort}{t} = U \cup W\mbox{ and }t[U] = u\mbox{ and }t[W] = w\mbox{ for some }u \in I\mbox{ and }w \in J }
+  \]
+\end{description}
+% 
+
+
+\subsection{SQL}
+\label{sec:sql}
+
+The \ac{SQL} is the most widely available query language for relational data, supported by most commercial relational
+database management systems~\cite{AbiteboulHullVianu:1995aa} and is an American National Standards Institute (ANSI)
+standard.
+%
+The core of SQL queries consist of the commonly known \emph{select-from-where} queries, which are equivalent in
+expressivity to conjunctive queries.  An example of a \ac{SQL} query is shown in \cref{ex:sql-query}.
+%
+\begin{example}[SQL query]
+  %
+  \label{ex:sql-query}
+  The following \ac{SQL} query, when executed against a database instance following the schema presented in
+  \cref{ex:bands-schema}, extracts the names of the artists that are in the \stringValue{Nightwish} band:
+  %
+\begin{lstlisting}[language=SQL,frame=none,numbers=none]
+SELECT persons.personName
+FROM persons, bands
+WHERE persons.bandId = bands.bandId
+      AND bands.bandName = 'Nightwish'
+\end{lstlisting}
+\end{example}
+%
+The \SELECT keyword specifies the attributes that should be present in the query results, while \FROM specifies the
+relations names over which the query will be evaluated.  It is possible to write \character{*} in place of attribute
+names in a \SELECT clause if all the attributes in the relations specified in the \FROM clause are to be returned.
+%
+In SQL, relation names are considered as variables that range over tuples occurring in the corresponding relation and,
+as shown in \cref{ex:sql-query}, can be used in the \WHERE clause to specify the relations and attributes.
+%
+If a query requires more than one variable ranging over the same relation, they can be specified in the \FROM clause and
+assigned different \emph{aliases} for the relation, \eg~\lstinline{FROM person p1, person p2}.  Furthermore, if the
+attributes are distinct, it is possible to omit the relation name from the \SELECT query.
+%
+Finally, the \WHERE keyword specifies the conditions that any result of the query must satisfy in order to be included
+in the result set and can express conjunction, disjunction, negation, and nesting.  It is possible to completely omit
+the \WHERE clause and, in this case, all tuples of the cartesian product of the relations specified in the query are
+returned.
+
+
+It is also possible to represent nested queries by using the keywords \IN and \NOTIN.  These keywords behave as
+operators over sets, testing the inclusion (or not) of an element in the set resulting from the nested query.
+%
+
+% 
+The result of a \ac{SQL} \emph{select-from-where} query evaluation consists of a multiset of tuples, \ie~there may be
+repeated answers in the results.  The explicit use of the \DISTINCT keyword after the \SELECT keyword removes any
+duplicate answers from the resulting set.
+%
+\ac{SQL} also includes several aggregate functions, such as \keyword{count}, \keyword{sum}, and \keyword{average}, which
+perform the specified function over the resulting multisets, such as counting number of elements in the collection, or
+adding the elements of a multiset composed of numeric elements.
+%
+Furthermore grouping of tuples, by means of the \keyword{group by} operator, also allows to create collections of tuples
+over which aggregates can be applied.
+%
+
+%
+Included in the SQL specification is also the definition of a DML.  This part of the SQL language allows the schema of a
+relational database to be manipulated, for instance creating new relations, altering the structure of existing ones, or
+removing existing relations.
+
+
+\subsubsection{Translation to Relational Algebra}
+\label{sec:sql-semantics}
+
+A translation from a subset of \ac{SQL} into relational algebra was presented by~\citet{CeriGottlob:1985aa}, while the 
+%
+semantics catering for the full syntax of \ac{SQL} and the three-valued logic inherent with \NULL{s}, was presented
+by~\citet{NegriPelagattiSbattella:1991aa}.
+%
+In this thesis, we follow the translation of \ac{SQL} \emph{select-from-where} queries into relational algebra as
+presented by~\citet{AbiteboulHullVianu:1995aa}:
+\begin{inparaenum}[(i)]
+\item the \SELECT keyword behaves as the projection operator~$\pi$;
+\item the \FROM keyword corresponds to the cartesian product operator~$\times$; and
+\item the \WHERE keyword specifies a selection operation~$\sigma$.
+\end{inparaenum}
+%
+In the rest of the thesis, we denote this translation of a \ac{SQL} query~$S$ into relational algebra
+as~$\RASQL{S}$.
+%
+\begin{example}[SQL translation into Relational Algebra]
+  The translation into relational algebra of the query in \cref{ex:sql-query} is:
+  %
+  \[
+  \pi_{\mathit{persons.personName}}(\sigma_{\mathit{persons.bandId} = \mathit{bands.bandId} \land \mathit{bands.bandId} = \mathit{'Nightwish'}}(\mathit{persons} \times \mathit{bands}))
+  \]
+\end{example}
+%
+
+
+\subsubsection{Mapping SQL Results to XML}
+\label{sec:mapping-xml-types}
+%
+\begin{table}[t]\centering
+  \caption{Mapping from SQL to XML datatypes}
+  \label{fig:SQL2XML}
+  { \scriptsize
+    \begin{tabular}{l|l}
+      \toprule
+      \textbf{SQL datatype} & \textbf{XML datatype}\\
+      \midrule
+      character string & xs:string\\
+      numeric, decimal& xs:decimal\\
+      boolean & xs:boolean \\
+      smallint, integer, bigint & xsd:integer\\
+      float, real, double precision & xsd:double\\
+      date & xsd:date\\
+      time & xsd:time\\
+      timestamp & xsd:dateTime\\
+      \bottomrule
+    \end{tabular}
+  }
+\end{table}
+%
+The mapping from SQL datatypes into \ac{XML} Schema datatypes is defined in the \ac{SQL} specification and was presented
+in~\citet{EisenbergMelton:2001aa}.  
+%
+An overview of this mapping is presented in \cref{fig:SQL2XML}.
+%
+Since \ac{XML} datatypes generically allow a wider range of valid values, it is common for concrete mappings to impose
+further restrictions on \ac{XML} datatypes, however, for this thesis we will omit these restrictions on the \ac{XML}
+datatypes.
+%
+Later, in \cref{sec:semantics}, we will rely on this mapping of datatypes for the translation of \ac{SQL} to \ac{XML}
+and we refer to the \ac{XML} representation of \ac{SQL} values as~\funcCall{sql2xml}{\mathit{SQLValue}} and vice-versa
+as~\funcCall{xml2sql}{\mathit{XMLValue}}.
+%
+
+
+
+%%% Local Variables:
+%%% fill-column: 120
+%%% TeX-PDF-mode: t
+%%% TeX-debug-bad-boxes: t
+%%% TeX-parse-self: t
+%%% TeX-auto-save: t
+%%% reftex-plug-into-AUCTeX: t
+%%% mode: latex
+%%% mode: flyspell
+%%% mode: reftex
+%%% TeX-master: "../thesis"
+%%% End:

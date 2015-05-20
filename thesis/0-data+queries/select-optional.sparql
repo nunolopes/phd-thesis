@@ -1,0 +1,3 @@
+SELECT $p $l $i WHERE {
+   dbpedia:Nightwish foaf:member $p $l .
+   OPTIONAL { $p mo:instrument $i $l } }

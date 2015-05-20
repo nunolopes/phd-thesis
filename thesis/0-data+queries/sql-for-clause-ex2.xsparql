@@ -1,0 +1,5 @@
+let $x := "bandName"
+for bandName from band
+where bandId = 1
+      and {$x} = 'Nightwish'
+return $bandName

@@ -1,0 +1,419 @@
+\section{Implementation}
+\label{sec:implementation}
+
+\begin{figure}[t]
+  \centering
+  \input{5-optimisations/architecture-tikz.tex}
+  \caption{XSPARQL implementation architecture}
+  \label{fig:arch}
+\end{figure}
+%
+In this section we present our prototype implementation of the XSPARQL language, which translates an XSPARQL query into
+an XQuery query with interleaved calls to a relational database and/or a SPARQL engine.  The architecture of our
+implementation is shown in \cref{fig:arch} and consists of the following main components:
+%
+\begin{inparaenum}[(1)]
+\item\label{item:arch-1} a query rewriter, which turns an XSPARQL query into an XQuery; and
+\item\label{item:arch-2} an (enhanced) XQuery engine for evaluating the rewritten XQuery.
+\end{inparaenum}
+%
+This enhanced XQuery engine relies on a \ac{SQL} relational database and on a SPARQL engine, for accessing the
+heterogeneous data sources from within the rewritten XQuery.
+
+ 
+We implement the XSPARQL language syntax and query rewriter by using the ANTLR parser
+generator,\footnote{\url{http://www.antlr.org/}, retrieved on 2012/07/17.}
+%
+which produces an XQuery with calls to the \ac{SQL} and SPARQL engines.
+%
+For the XQuery engine we use Saxon\footnote{\url{http://saxon.sourceforge.net/}, retrieved on 2012/07/17.} and use the
+ARQ SPARQL engine\footnote{\url{http://jena.sourceforge.net/ARQ/}, retrieved on 2012/07/17.} for querying the \ac{RDF}
+data.
+%
+As for accessing relational databases, we rely on a JDBC interface to the relational database and we have tested the
+connection to MySQL,\footnote{\url{http://www.mysql.com/}, retrieved on 2012/07/17.}
+PostgreSQL,\footnote{\url{http://www.postgresql.org/}, retrieved on 2012/07/17.} and Microsoft SQL
+Server.\footnote{\url{http://www.microsoft.com/sqlserver/}, retrieved on 2012/07/17.}
+%
+This interface between the different engines is implemented using the Saxon Extension API, which allows to create custom
+XQuery functions associated with Java methods.
+%
+The functions that the rewritten queries use to access the relational and \ac{RDF} data are called \funcNameR{sqlCall}
+and \funcNameR{sparqlCall}, which translate a \SQLForClause or a \SparqlForClause into a \ac{SQL} or SPARQL \SELECT
+query respectively, and evaluate it, returning the results according to the types presented in
+\cref{sec:xsparql-types}.\footnote{In the produced XQuery expressions we assume the reserved namespace prefix~$\prefixR$
+  associated with~\url{http://xsparql.deri.org/demo/xquery/xsparql.xquery}. 
+  % 
+  This prefix is not allowed in an XSPARQL query and is used not only as the namespace for the XQuery functions
+  \funcNameR{sqlCall} and \funcNameR{sparqlCall} but also as the namespace for any auxiliary variables introduced by the
+  rewriting, effectively avoiding clashes with variables from the XSPARQL query.  }
+%
+However, instead of implementing all the newly introduced types as custom types in XQuery, we reuse the XML Schema of
+the SPARQL Query Results XML Format,\footnote{See {\url{http://www.w3.org/2007/SPARQL/result.xsd}}, we assume this
+  schema is associated with the namespace prefix~$\mathtt{sr}$.}  where the~\qname{sr}{binding} type corresponds
+directly to XSPARQL's \type{RDFTerm} type.
+%
+An \type{RDFGraph}, \eg~the result of a \ConstructClause, is serialised using Turtle syntax by building the output as
+\type{\qname{xs}{string}}.  The remaining types \type{RDFDataset} and \type{RDFNamedGraph} are adapted accordingly.
+
+
+A more general form of using a SPARQL engine would be to rely on a SPARQL endpoint, as presented in the initial XSPARQL
+prototype described by~\citet{AkhtarKopeckyKrennwallner:2008aa}.
+%
+However, by using Saxon's extension mechanism the query engines are more tightly integrated and allow for a more
+efficient communication of results (opposed to using a SPARQL endpoint via HTTP).
+%
+As we will describe later in \cref{sec:sparqlforclause-imple}, we can still rely on this feature if necessary, and we
+use it for the implementation of the remote endpoint feature that allows us to mimic SPARQL~1.1 \keyword{SERVICE}
+feature.
+
+
+
+\paragraph*{Blank Node Matching in Nested Queries}
+\label{sec:blank-node-matching-nested}
+%
+The \funcNameR{sparqlCall} function also implements the \emph{matching blank nodes in nested queries} feature (as
+described in \cref{sec:bgpmatch}), for which we rely on custom Java code that uses the ARQ API to preserve blank node
+labels in consecutive SPARQL calls over the same dataset.
+%
+The custom Java code maintains a \emph{stack} of the previously used datasets during the query execution: upon the
+execution of a \SparqlForClause with a \DatasetClause, the code stores the blank node identifiers in the dataset and
+when executing a \SparqlForClause without an explicit \DatasetClause, we use the first element of the stack as the
+implicit dataset along with its existing blank node identifiers.
+
+
+\paragraph*{Creating Distinct Blank Nodes in \ConstructClause{s}}
+\label{sec:blank-node-construct}
+%
+In the XSPARQL semantics (\cref{sec:constructsem}), we use the new \ecomp{globalPosition} dynamic environment
+component to cater for creating fresh blank node identifiers for each instantiation of the \ConstructClause.
+%
+In our implementation we rely on \emph{position variables} in XQuery \FOR expressions~(\cf~\cref{sec:xquery}) for
+generating the distinct identifiers.
+%
+In the query rewriting step we normalise all the \FOR expressions to include a position variable and also keep a list of
+all previous position variables in the query.  Hence, when a blank node is found in a \ConstructClause, we can generate
+the blank node label based on the label provided in the query and the values of the existing position variables.
+
+
+
+
+\bigskip
+
+Next we present how \SQLForClause{s}, \SparqlForClause{s} and \ConstructClause{s} are processed by using what we call
+\emph{rewriting functions}, which operate on syntactic objects of XSPARQL and return an XQuery expression.
+
+
+\subsection{\SQLForClause and \SparqlForClause}
+\label{sec:sparqlforclause-imple}
+%
+Our implementation defers the \ac{SQL} and SPARQL query fragments to the respective external engines and extracts the
+bindings for the existing variables from the returned XML results document. 
+%
+For the definitions of the rewriting functions, let $\mathbb{XS}$ and $\mathbb{XQ}$ denote the set of all XSPARQL and
+XQuery core expressions, respectively.  The rewriting function~$\funcName{tr} \colon \mathbb{XS} \to \mathbb{XQ}$
+details our translation from XSPARQL to XQuery core.
+%
+We now describe the rewriting function for the translation of \SparqlForClause{s}, given an XSPARQL expression
+$\envElem{Q}{}$ of form
+%
+\begin{queryF}
+  \[
+  \begin{array}{l}
+    \FOR~\Vars~\DatasetClause\\
+    \SparqlWhereClause~\SolutionModifier\\
+    \ReturnExpr
+  \end{array}
+  \]
+\label{eq:expr_tr}
+\end{queryF}%
+%
+\noindent
+then $\funcCall{tr}{\envElem{Q}{}}$ is defined as the XQuery Core expression
+%
+\begin{small}
+\begin{equation*}
+  \begin{array}{l}
+    \funcCall{tr}{\envElem{Q}{}} =  \\
+    \mathrm{(1)~~}\LET~\varR{results}~\text{\texttt{:=}}~\funcCallR{sparqlCall}{\begin{array}{l}
+        \SELECT~\Vars~\DatasetClause\\
+        \SparqlWhereClause~\SolutionModifier
+      \end{array}
+    }~\RETURN\\
+    \mathrm{(2)~~}\FOR~\varR{result}~\AT~\varR{posvar}~\IN~\varR{results//sr{:}result}~\RETURN \\
+    \mathrm{(3)~~}\LET~\var{v} := \varR{result/sr{:}binding[@name = \varName{v}]/*}~\RETURN \hfill \qquad\qquad\qquad\qquad\qquad \textrm{\smaller for each~$\var{v} \in \Vars$}\\ 
+    \mathrm{(4)~~}\grammarRule{ExprSingle} 
+  \end{array}
+\end{equation*}
+\end{small}%
+%
+That is, we implement the $\funcName{fs{:}sparql}$ formal semantics function by translating $\envElem{Q}{}$ into a
+SPARQL \SELECT query, which is then executed by the custom runtime function \funcNameR{sparql\-Call}.  that returns the
+result in SPARQL's XML result format.  This is represented in line~(1) of the rewritten query.
+%
+The \FOR expression in line~(2) selects all solutions from the \ac{XML} representation of the query results, while the
+\LET expressions in line~(3) assign the result value of each variable to XSPARQL variables.  Finally, the \RETURN
+expression~\grammarRule{ExprSingle} of line~(4) is evaluated with the new variables available.
+
+For XSPARQL \SQLForClause{s} of the form
+%
+\begin{queryF}
+  \[
+  \begin{array}{l}%
+    \FOR~\envElem{AttrSpec}{1}~\keyword{as}~\envElem{\var{Var}}{1}, \dots, \envElem{AttrSpec}{n}~\keyword{as}~\envElem{\var{Var}}{n}\\
+    \grammarRule{RelationList}~\grammarRule{SQLWhereClause}\\
+    \ReturnExpr
+  \end{array} 
+  \]
+  \label{eq:expr_tr_sql}
+\end{queryF}%
+%
+\noindent
+then $\funcCall{tr}{\envElem{Q}{}}$ is defined as the XQuery Core expression
+%
+\begin{small}
+\begin{equation*}
+  \begin{array}{l}
+    \funcCall{tr}{\envElem{Q}{}} =  \\
+    \mathrm{(1)~~}\LET~\varR{results}~\text{\texttt{:=}}~\funcCallR{sqlCall}{\begin{array}{l}
+        \SELECT~\envElem{AttrSpec}{1}, \dots, \envElem{AttrSpec}{n}\\
+        \grammarRule{RelationList}~\grammarRule{SQLWhereClause}
+      \end{array}
+    }~\RETURN\\
+    \mathrm{(2)~~}\FOR~\varR{result}~\AT~\varR{posvar}~\IN~\varR{results//sr{:}result}~\RETURN \\
+    \mathrm{(3)~~}\LET~\envElem{\var{Var}}{i} := \hfill \qquad\qquad\qquad \textrm{ for each } \envElem{AttrSpec}{i}, \var{Var}{i} \in \envElem{AttrSpec}{1}~\keyword{as}~\envElem{\var{Var}}{1}, \dots, \envElem{AttrSpec}{n}~\keyword{as}~\envElem{\var{Var}}{n}\\ 
+    \qquad\qquad \varR{result/sr{:}binding[@name = \envElem{AttrSpec}{i}]/*}~\RETURN \\
+    \mathrm{(4)~~}\grammarRule{ExprSingle} 
+  \end{array}
+\end{equation*}
+\end{small}%
+%
+Furthermore, in case the XSPARQL specifies the attribute selection as a \lit{FOR *} the translation function requires
+access to the input relational database during the rewriting in order to determine the relation attributes and the names
+of the XSPARQL variables to be generated.
+
+
+\subsubsection*{Implementation of the XSPARQL Semantics}
+\label{sec:impl-xsparql-semant}
+
+The presented~\funcNameR{sparqlCall} function also implements XSPARQL's \ac{BGP} matching, as described in
+\cref{sec:semantics}, by replacing any previously assigned variables in the SPARQL query with their current value
+according to the rules presented in \cref{def:xml2rdfterm}.
+%
+This behaviour implements XSPARQL's \ac{BGP} matching while relying on an off-the-shelf SPARQL engine.  In
+\cref{sec:soundn-compl} we present the formal correspondence between the variable replacement approach and
+XSPARQL's semantics.
+%
+This replacement of variables can be statically determined during the query rewriting step and generate the respective
+\ac{SQL} or SPARQL query string (the parameters to the~\funcNameR{sqlCall} and~\funcNameR{sparqlCall} functions,
+respectively) by using XQuery's \concat function.  The \concat allows for an arbitrary number of arguments and when
+executed concatenates the string value resulting from the evaluation of each argument.
+%
+When parsing a \SparqlForClause we have access to the set of previously declared variables and, whenever we find a
+variable it is possible to determine whether to replace it by its previously assigned value or keep it as a variable.
+%
+If the variable has been previously declared, the variable name is inserted as an argument of the \concat function,
+which upon evaluation accesses the value of the variable and use it in the creation of the \SELECT query.
+%
+If the variable is fresh, \ie~has not been declared before, we leave the variable name as a (quoted) string within the
+\concat, which effectively postpones the evaluation of the variable to the SPARQL engine.
+%
+
+\begin{example}[\SELECT query generation]
+  %
+  Consider the following simple XSPARQL query:
+  % 
+  \lstinputlisting[frame=none,numbers=none]{0-data+queries/example-select.xsparql}
+  %
+  The rewritten code that generates the SPARQL \SELECT query is as follows:
+  % 
+  \lstinputlisting[frame=none,numbers=none]{0-data+queries/example-select-rewritten.xquery}
+  %
+  Note that the \lit{for *} has also been replaced to select only the \emph{unbound} variables in the
+  \synt{WhereClause}.
+\end{example}
+%
+For \SQLForClause{s} we follow a similar approach but since \ac{SQL} does not allow for \var{}-prefixed variable names,
+we always leave the variable name unquoted, which means that for \SQLForClause{s} all variables used in
+\synt{SQLWhereClauses} must be previously bound.
+
+
+\paragraph*{Querying External SPARQL Endpoints}
+\label{sec:external-endpoint}
+%
+Since our implementation of XSPARQL rewrites \SparqlForClause{s} into SPARQL queries, we can execute the rewritten
+SPARQL query in different ways: the typical way is to use a local instance of the ARQ engine to execute the query.
+%
+One of the new features of SPARQL~1.1 (presented in \cref{sec:sparql-11}) is the \keyword{SERVICE} keyword, which
+specifies that the following subquery will be executed in a remote SPARQL endpoint.  
+%
+In XSPARQL we can also enable this behaviour by specifying the \lit{endpoint} \ac{URI} in a \SparqlForClause, after the
+\DatasetClause.  This instructs the XSPARQL engine to use the remote endpoint specified by \ac{URI} for executing the
+query and incorporate the bindings into the query as usual.
+%
+As opposed to SPARQL~1.1, which does not allow to inject bindings of results into the \keyword{SERVICE}
+subquery,\footnote{Please note that the \keyword{BINDINGS} can only take fixed values for variables, preventing to use
+  results from the execution of other parts of the query} our variable replacement operation allows to inject values
+from the outer query into the inner query.
+%
+This feature allows to write queries that are otherwise unavailable or impractical in SPARQL, either by design
+restrictions of the language or practical restrictions of SPARQL endpoints (as illustrated in the following example).
+%
+\begin{query}[t]
+  \lstinputlisting[firstline=2]{0-data+queries/birthday-marco.xsparql}
+  \caption{Querying a remote endpoint with XSPARQL}
+  \label{qr:endpoint-xsparql}
+\end{query}
+%
+\begin{query}[t]
+  \lstinputlisting{0-data+queries/birthday-marco2.sparql}
+  \caption{Querying a remote endpoint with SPARQL}
+  \label{qr:service-sparql}
+\end{query}
+%
+\begin{example}[Querying Remote SPARQL Endpoints]
+  Consider as an example we want to retrieve from DBPedia persons that have the same birthday as Marco Hietala.  For
+  this we first need to retrieve Marco's birthday (we are taking this information from DBPedia but we could rather use
+  the artists personal \ac{FOAF} file) and then retrieve from DBPedia the persons with the same birthday.
+  % 
+  \cref{qr:endpoint-xsparql,qr:service-sparql} present possible XSPARQL and SPARQL versions of this query, respectively.
+  These queries both involve querying the remote DBPedia SPARQL endpoint.
+  %
+  The SPARQL version (\cref{qr:service-sparql}) quickly runs into limits imposed by the DBPedia SPARQL endpoint, since
+  the \keyword{SERVICE} nested query attempts to retrieve the all persons that have any birthday specified, due to not
+  being aware of the bindings of variable \var{MB}.
+  %
+  On the other hand, in the XSPARQL version in \cref{qr:endpoint-xsparql} the inner \keyword{endpoint} query only
+  retrieves the required birthdays.
+  %
+\end{example}
+
+
+\subsection{\ConstructClause}
+\label{sec:constructclause}
+%
+\begin{figure}[t]
+  \subfloat[\funcNameR{rdfTerm} function]{\label{ex:rdfTerm}
+    \begin{minipage}{.55\linewidth}
+      \lstinputlisting[numbers=none]{0-data+queries/rdfTerm.xquery}
+    \end{minipage}
+  }
+  % 
+  \subfloat[\funcNameR{validTriple} function]{\label{ex:validtriple}
+    \begin{minipage}{.45\linewidth}
+      \lstinputlisting[numbers=none]{0-data+queries/validTriple.xquery}
+    \end{minipage}
+  }
+  \caption{Implementation functions example}
+\end{figure}
+%
+As for the construction of \ac{RDF} graphs (\ie~whenever the~\grammarRule{ReturnClause} is a \ConstructClause), our
+implementation XQuery rewriting produces a string in Turtle syntax, where we ensure that each generated RDF triple is
+syntactically valid.
+%
+For this we rely on a number of additional auxiliary XQuery functions: firstly, the
+function~\funcCallR{rdfTerm}{\var{VarName}} (presented in \cref{ex:rdfTerm}), when given a variable of type
+\type{RDFTerm}, returns the correctly formatted \ac{RDF} term (according to the Turtle syntax) of \var{VarName}.
+%
+Next, the~\funcNameR{validTriple} presented in \cref{ex:validtriple} implements the semantics
+function~\funcName{fs{:}validTriple} by calling the~\funcNameR{rdfTerm} function to correctly format triples to Turtle
+syntax. 
+%
+This function further uses the auxiliary functions \funcNameR{validSubject}, \funcNameR{validPredi\-cate} and
+\funcNameR{validObject} that determine, according to the \ac{RDF} semantics, if their argument is a valid subject,
+predicate, or object, respectively.
+
+
+Our implementation of the~\funcName{fs{:}skolemConstant} function, that ensures blank nodes in \CONSTRUCT expressions
+are distinct between different solutions, consists of appending the position variables from all the surrounding \FOR
+expressions to the respective blank node identifier using ``\_'' as a separator.  This is represented by the following
+rewriting function
+%
+\begin{small}
+\begin{equation*}
+\begin{array}{l}
+  \funcCall{tr_{sk}}{\var{BNodeName},\set{\var{PosVar_1}, \cdots,\var{PosVar_n}}} = \\
+  \qquad\funcCall{\concat}{
+    \texttt{"}\mathunderscore{:}\texttt{"},\var{BNodeName},\texttt{"}\mathunderscore\texttt{"},\var{PosVar_1}, \cdots, \texttt{"}\mathunderscore\texttt{"}, \var{PosVar_n} 
+  } \enspace .
+\end{array} 
+\end{equation*}
+\end{small}%
+%
+Finally, the function~\funcNameR{evalCT} implements~\funcName{fs{:}evalCT} by simply concatenating all the triples
+generated by the~\funcNameR{validTriple} function to a string representation of the RDF graph to be constructed.
+
+
+\paragraph*{Implementation of Constructed Datasets}
+\label{sec:constructed-dataset}
+%
+As described in \cref{sec:syntax}, it is possible to assign the result of a \CONSTRUCT query to an XSPARQL
+variable, which can later be used in the \DatasetClause of a \SparqlForClause.
+%
+In order to make this constructed graph available to the ARQ SPARQL engine, we need to materialise it as a temporary
+file and specify this temporary file's location in the SPARQL query.
+%
+To enable this feature, during the query rewriting step, whenever we find a \ConstructClause assigned to an XSPARQL
+variable, we create a temporary \ac{RDF} file with the result of the \CONSTRUCT expression represented as Turtle and
+assign the local path of this generated file to the XSPARQL variable.
+
+
+\subsection{Soundness \& Completeness of the Implementation}
+\label{sec:soundn-compl}
+%
+We next present the equivalence between our implementation of the XSPARQL language and the XSPARQL semantics presented
+in \cref{sec:semantics}.  
+%
+We start by presenting a lemma stating that the results of the evaluation of a \ac{BGP}~$P$ under XSPARQL \ac{BGP}
+matching semantics can be determined based on the results of evaluating~$\funcCall{\mu}{P}$
+(\cf~\cref{def:variable-substitution}) under SPARQL semantics.  Similar correspondence for \SQLForClause{s} is
+presented was \cref{lemma:xsparql-relation-instance}.
+%
+\begin{lemma}
+  \label{lem:replacement-equivalence}
+  Let~$P$ be a BGP,~$D$ a dataset and~$\mu$ the XSPARQL instance mapping of $P$.  Considering~$P' = \funcCall{\mu}{P}$,
+  we have that~$\evalXS{D}{P}{\mu} = \evalS{D}{P'} \bowtie \set{\mu}$.
+\end{lemma}
+%
+\begin{proof}
+  % 
+  Since, according to the variable substitution operation we have that $\vars{P'} = \vars{P} \setminus \dom{\mu}$, we
+  also have that $\vars{P'} \cap \dom{\mu} = \emptyset$ and it follows directly from
+  \cref{lemma:xsparql-instance-mapping} that $\evalXS{D}{P}{\mu} = \evalS{D}{P'} \bowtie \set{\mu}$.
+  %
+\end{proof}
+
+The following result presents the equivalence of our implementation function $\funcName{tr}$ and the XSPARQL
+semantics.\footnote{Please note that, for presentation purposes, we are omitting the initial \emph{empty line} in case
+  the proof trees require no premises and the variable expansion premises.}
+%
+\begin{proposition}
+  \label{prop:sparqlCall}
+  Let \envElem{Q}{} be a \SparqlForClause of form~\eqref{eq:expr_tr} or a \SQLForClause of form~\eqref{eq:expr_tr_sql}
+  and \dyn the dynamic environment of \envElem{Q}{}, then $\dynEnv \envElem{Q}{} \Rightarrow \envElem{Val}{}$ if and
+  only if $\dynEnv \funcCall{tr}{\envElem{Q}{}} \Rightarrow \envElem{Val}{}.$
+\end{proposition}
+
+\input{5-optimisations/proof-prop-tr}
+
+
+
+
+
+
+
+
+
+%%% Local Variables:
+%%% fill-column: 120
+%%% TeX-master: t
+%%% TeX-PDF-mode: t
+%%% TeX-debug-bad-boxes: t
+%%% TeX-parse-self: t
+%%% TeX-auto-save: t
+%%% reftex-plug-into-AUCTeX: t
+%%% mode: latex
+%%% mode: flyspell
+%%% mode: reftex
+%%% TeX-master: "../thesis"
+%%% End:

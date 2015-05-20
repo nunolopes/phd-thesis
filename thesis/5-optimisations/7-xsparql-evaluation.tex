@@ -1,0 +1,322 @@
+
+\subsection{Nested Queries in XMarkRDF}
+\label{sec:optim-xmarkrdf-nest}
+
+
+From the initial set of 20 queries there are 5 queries ($q_8$--$q_{12}$) that contain nested expressions. They are
+described informally in the XMark suite as follows:
+\begin{enumerate}[noitemsep]
+\item[($q_8$)] ``List the names of persons and the number of items they bought;''
+\item[($q_9$)] ``List the names of persons and the names of the items they bought in Europe;''
+\item[($q_{10}$)] ``List all persons according to their interest;''
+\item[($q_{11}$)] ``List the number of items currently on sale whose price does not exceed 0.02\% of the seller's
+  income;'' and
+\item[($q_{12}$)] ``For each richer-than-average person, list the number of items currently on sale whose price does not
+  exceed 0.02\% of the person's income.''
+\end{enumerate}
+
+
+
+\begin{figure}[t]
+\subfloat[Query~$q_9$ in XQuery (XMark)]{\label{fig:query09-xquery}%
+  \begin{minipage}{.53\linewidth}%
+    \lstinputlisting[linewidth=.97\linewidth,basicstyle=\ttfamily\scriptsize]{0-data+queries/query09.xq}%
+  \end{minipage}%
+}
+%
+\hfill
+%
+\subfloat[Query~$q_9$ in XSPARQL (XMarkRDB)]{\label{fig:query09-rdb}%
+  \begin{minipage}{.53\linewidth}%
+    \lstinputlisting[linewidth=.97\linewidth,basicstyle=\ttfamily\scriptsize]{0-data+queries/query09-rdb.xsparql}%
+  \end{minipage}%
+}%
+
+\subfloat[Query~$q_9$ in XSPARQL (XMarkRDF)]{\label{fig:query09-xsparql}%
+  \begin{minipage}{.53\linewidth}%
+    \lstinputlisting[linewidth=.97\linewidth,basicstyle=\ttfamily\scriptsize]{0-data+queries/query09.xsparql}%
+  \end{minipage}%
+}%
+%
+\hfill
+%
+\subfloat[Query~$q_9$ in SPARQL2XQuery ($\textrm{XMarkRDF}_{\mathit{S2XQ}}$)]{\label{fig:query09-groppe}%
+  \begin{minipage}{.53\linewidth}%
+    \lstinputlisting[linewidth=.97\linewidth,basicstyle=\ttfamily\scriptsize]{0-data+queries/query09-groppe.xquery}%
+  \end{minipage}%
+}%
+\caption{Variants of benchmark query~$q_9$}
+\label{fig:query09}
+\end{figure}
+%
+
+\cref{fig:query09-xquery,fig:query09-rdb,fig:query09-xsparql} present XMark query~$q_9$, its translated XSPARQL version
+in XMarkRDB and XMarkRDF, respectively.
+%
+Query~$q_{9}$, as presented in \cref{fig:query09-groppe}, is ready to be evaluated by the SPARQL2XQuery system
+over the~$\textrm{XMarkRDF}_{\mathit{S2XQ}}$ dataset.\footnote{Please note that this query follows the syntax presented
+by~\citet{GroppeGroppeLinnemann:2008aa} however, we only had access to the implementation of the translation from SPARQL
+to XQuery and hence manually replicated the complete query translation.}
+
+The different rewritings presented in \cref{sec:optimisation} can be applied to the four nested
+queries~$q_8$--$q_{11}$.
+%
+Query~$q_{12}$ also consists of a nested expression, however the most accurate translation of this query into XSPARQL
+results in the dependent variable not being \emph{strictly bound} since it occurs only in the \FILTER of the inner
+query. As such, we cannot apply the different rewritings to this query.
+%
+
+XMarkRDF query~$q_9$ is presented in \cref{fig:query09-xsparql}. This query is close to queries~$q_8$,~$q_{10}$, and
+$q_{11}$ and consists of a nested expression: the inner \FOR expression of the query
+(\crefrange{fig:query09:inner-start}{fig:query09:inner-end}) is executed once for each person matched by the outer
+expression (\crefrange{fig:query09:outer-start}{fig:query09:outer-end}), which means that one SPARQL call will be
+made for each person separately.  
+%
+Thus, the number of SPARQL calls performed in the inner expression directly depends on the size of the
+dataset~(\cf~\cref{tab:iterations} for details).
+%
+Queries $q_8$,~$q_{9}$, and~$q_{11}$ evaluates the inner expression for each person, while~$q_{10}$ evaluates the inner
+expression for each category.  Each dataset contains approximately 25 times more persons than categories.
+%
+The rewriting strategies presented in \cref{sec:optimisation} reduce the number of SPARQL calls to two: one to
+get all the people (similar to the direct rewriting version), and one additional SPARQL call for retrieving all the
+information about all the auctions in the dataset.  
+%
+Although the query remains exponential, the practical evaluation will show that reducing the number of SPARQL calls
+drastically improves query execution times.
+
+
+
+
+\begin{figure}[t]
+
+  \subfloat[Query~$q_{9}$ -- bought items grouped by person]{\label{fig:output-09}
+    \begin{minipage}{.5\linewidth}
+      \lstinputlisting[language=XML,numbers=none]{0-data+queries/output-09.xml}
+    \end{minipage}
+  }
+  %
+  \subfloat[Query~$q_{9}'$ -- flat list of items and buyer]{\label{fig:output-39}
+    \begin{minipage}{.5\linewidth}
+      \lstinputlisting[language=XML,numbers=none]{0-data+queries/output-39.xml}
+    \end{minipage}
+  }
+  \caption{Example output excerpts of queries~$q_{9}$ and~$q_{9}'$}
+  \label{fig:output}
+\end{figure}
+
+
+
+As mentioned in \cref{sec:query-rewriting}, for the SPARQL based rewritings, we want the query output to be
+computable directly in SPARQL without any further processing, \ie~we do not want to use XQuery for further processing
+of the SPARQL results and the query should be expressible in SPARQL without features from SPARQL~1.1.  
+%
+Since the original nested queries~$q_8$--$q_{11}$ group the output results (while optionally applying some aggregation
+function), we need to include modified versions of these benchmark queries for the evaluation of the SPARQL based
+rewritings.
+%
+In these modified queries, denoted~$q_{8}'$--$q_{11}'$, we changed the return format of the queries to consist of a
+flattened representation of the output of the original query.  An example of the output for queries~$q_{9}$ and~$q_{9}'$
+is presented in \cref{fig:output}.
+%
+All queries~$q_i'$ and~$q_i''$ follow a similar strategy for reformatting the output:
+%
+the queries resulting from applying~$\funcName{opt_{sr}}$ are named~$q_8'$--$q_{11}'$, while the queries that consist of
+an outer \FOR expression -- to which~$\funcName{opt_{ng}}$ was applied -- are~$q_8''$--$q_{11}''$.
+
+
+
+\subsection{Evaluation of the Proposed Optimisations}
+\label{sec:exper-eval}
+
+In this section we present an experimental evaluation of the different rewritings presented in
+\cref{sec:optimisation}.
+%
+For this evaluation we also rely on the XMarkRDF benchmark suite (presented in \cref{sec:benchm-descr}) and
+compare, when possible, the effects of the different rewritings on the SPARQL2XQuery
+system~\cite{GroppeGroppeLinnemann:2008aa}.
+%
+
+
+
+For the evaluation we extend the run configurations presented in \cref{sec:benchm-descr} with the following:
+\begin{description}[noitemsep]
+\item[$\mathit{XS^{rdf}_{Z}}$:] using the XSPARQL implementation over the XMarkRDF datasets (translated data and
+  queries) with nested expresion optimisation \funcName{opt_{Z}} for~$Z \in \set{nl,ng,sr}$;
+\item[$\mathit{XS^{rdb}_{nl}}$:] using the XSPARQL implementation over the XMarkRDB datasets (translated data and
+  queries) with nested expresion optimisation \funcName{opt_{nl}};
+\item[$\mathit{S2XQ}_{Z}$:] using the SPARQL2XQuery implementation over the translation of the XMarkRDF datasets into
+  the required \ac{XML} format ($\textrm{XMarkRDF}_{\mathit{S2XQ}}$) with nested expresion optimisation
+  \funcName{opt_{Z}} for~$Z \in \set{nl,sr}$.
+\end{description}
+%
+The experimental setup remains the same as presented in \cref{sec:experimental_setup}.
+%
+We applied the nested-loop join rewriting from \cref{sec:join-impl-xquery} to the XMarkRDB and XMarkRDF translated
+queries, which are denoted as~$\mathit{XS^{rdb}_{nl}}$ and~$\mathit{XS^{rdf}_{nl}}$, respectively.  The same
+optimisations were applied to the SPARQL2\-XQuery translation to XQuery, denoted~$\mathit{S2XQ_{nl}}$ in the results.
+%
+The strategies of rewriting to a single SPARQL query, as presented in \cref{sec:join-impl-sparql}, were also applied to
+the XSPARQL XMarkRDF and SPARQL2XQuery queries and are denoted as~$\mathit{XS^{rdf}_{sr}}$ and~$\mathit{S2XQ_{sr}}$,
+respectively.  The Named Graph rewriting was applied to the XSPARQL XMarkRDF queries and is
+denoted~$\mathit{XS^{rdf}_{ng}}$.
+
+
+
+\def\scale{.99}
+\begin{figure*}[t]\scriptsize
+  \centering
+  \subfloat[Query~$q_8$]{
+    \import{\plotsDir}{optimisations-paper-query08}
+    \label{fig:opt08}
+  }
+  \hspace{8pt}
+  \subfloat[Query~$q_9$]{
+    \import{\plotsDir}{optimisations-paper-query09}
+    \label{fig:opt09}
+  }
+
+  \subfloat[Query~$q_8'$]{
+    \import{\plotsDir}{optimisations-paper-query38}
+    \label{fig:opt38}
+  }
+  \hspace{8pt}
+  \subfloat[Query~$q_9'$]{
+    \import{\plotsDir}{optimisations-paper-query39}
+    \label{fig:opt39}
+  }
+
+  \subfloat[Query~$q_8''$]{
+    \import{\plotsDir}{optimisations-paper-query48}
+    \label{fig:opt48}
+  }
+  \hspace{8pt}
+  \subfloat[Query~$q_9''$]{
+    \import{\plotsDir}{optimisations-paper-query49}
+    \label{fig:opt49}
+  }
+  \caption{Query response times for (variants of)~$q_8$ and~$q_9$ on all XMarkRDF datasets}
+  \label{fig:evaluation-times-q8-q9} 
+\end{figure*}
+
+\begin{figure*}[t]\scriptsize
+  \centering
+  \subfloat[Query~$q_{10}$]{
+    \import{\plotsDir}{optimisations-paper-query10}
+    \label{fig:opt10}
+  }
+  \hspace{8pt}
+  \subfloat[Query~$q_{11}$]{
+    \import{\plotsDir}{optimisations-paper-query11}
+    \label{fig:opt11}
+  }
+
+  \subfloat[Query~$q_{10}'$]{
+    \import{\plotsDir}{optimisations-paper-query40}
+    \label{fig:opt40}
+  }
+  \hspace{8pt}
+  \subfloat[Query~$q_{11}'$]{
+    \import{\plotsDir}{optimisations-paper-query41}
+    \label{fig:opt41}
+  }
+
+  \subfloat[Query~$q_{10}''$]{
+    \import{\plotsDir}{optimisations-paper-query50}
+    \label{fig:opt50}
+  }
+  \hspace{8pt}
+  \subfloat[Query~$q_{11}''$]{
+    \import{\plotsDir}{optimisations-paper-query51}
+    \label{fig:opt51}
+  }
+  \caption{Query response times for (variants of)~$q_{10}$ and~$q_{11}$ on all XMarkRDF datasets}
+  \label{fig:evaluation-times-q10-q11} 
+\end{figure*}
+
+The comparison of the response times of the different rewriting functions presented in \cref{sec:optimisation} is
+shown graphically in \cref{fig:evaluation-times-q8-q9,fig:evaluation-times-q10-q11}.
+%
+\begin{table*}[t]
+  \caption[Query response times (in seconds) of different optimisations for the 2MB datasets.]{Query response times (in seconds) of different optimisations for the 2MB datasets. Optimisation not applicable (\textit{n/a}).}
+  \label{tab:results-opt-2mb}
+  \centering
+  \import{\plotsDir}{table-optimisations-paper-2}
+\end{table*}
+%
+The response times of these queries for the 2MB are presented in \cref{tab:results-opt-2mb} as a reference,
+where~$\textit{n/a}$ indicates that the combination of query and optimisation is not applicable.
+
+
+
+
+
+As we can see from \cref{tab:results-opt-2mb} and \cref{fig:evaluation-times-q8-q9,fig:evaluation-times-q10-q11}, the
+\funcName{opt_{nl}} optimisation provides significant reduction in the query evaluation times when applied to the nested
+queries with an inner \SparqlForClause.  For queries~$q_{8}$,~$q_{9}$, and~$q_{11}$ the difference in response times is
+one order of magnitude.
+%
+However, applying a similar rewriting to relational data deteriorates the response times of the query.  This hints that
+collecting the data and performing the join in the rewritten XQuery is slower than the nested calls to the relational
+database.  
+%
+There are two possible causes for this discrepancy of behaviours from the different backends.  One possible explanation
+for the speed improvement in SPARQL is that the overhead resides on the loading of data by the ARQ engine.  Since this
+overhead is not presented in the relational database the queries would not benefit from the optimised rewritings.
+%
+The other explanation is that the cost of evaluating one unbound query and building the necessary structures for
+representing the returned data is greater than the cost of executing nested queries.
+%
+Further investigation into this would be required to determine the source of the overhead.
+%
+
+The improvement in the execution time for query~$q_{10}$ is less drastic. This can be explained by the fact that the
+outer expression of~$q_{10}$ iterates over ``categories'', which, as presented in \cref{tab:iterations}, increases at a
+much smaller rate than ``persons'' do in the outer expressions of queries~$q_8$,~$q_9$, and~$q_{11}$.
+
+
+However, for the~$\mathit{S2XQ}$ runs this optimisation provides virtually no improvement in the query response times
+for queries~$q_8$ and~$q_9$ and their variants.  In queries~$q_{10}$,~$q_{11}$,~$q_{10}'$, and~$q_{11}'$ we can observe
+an improvement in response times. This can be attributed to the fact that the rewriting for queries~$q_{10}$
+and~$q_{11}$ and their variants are not as suitable for optimisation by the XQuery engine when compared to queries~$q_8$
+and~$q_9$. For these cases our rewriting strategy is capable of performing the optimisation task for the XQuery engine.
+
+
+For the~$\mathit{XS^{rdf}}$ run, it is possible to see in \cref{fig:opt38,fig:opt39} that~\funcName{opt_{sr}} (presented
+in \cref{sec:join-impl-sparql}) is generally more efficient in terms of response times than the XQuery based.
+%
+This can be justified by the the smaller amount of information that is necessary to transfer from SPARQL to the XQuery
+engine.  This effectively reduces the overhead of using an external SPARQL engine for the evaluation of queries.
+%
+Considering the~$\mathit{S2XQ_{sr}}$ run, \funcName{opt_{sr}} produces no improvement in the
+query response times and in some cases ($q_{10}'$ and~$q_{11}'$ from \cref{tab:results-opt-2mb}) even deteriorates
+considerably the response times when compared to~$\mathit{S2XQ}$.  This further supports our previous
+claims that the XQuery engine is not capable of optimising the rewritten code from complex SPARQL queries.
+
+
+Furthermore, the~$\mathit{S2XQ_{sr}}$ runs could only evaluate the smaller dataset sizes for query~$q_{8}$: its response
+times deteriorated considerably with the larger dataset sizes, as opposed to the~$\mathit{XS^{rdf}_{sr}}$ runs that
+behaved consistently similar to~$\mathit{XS^{rdf}_{nl}}$.  This indicates that~$\mathit{S2XQ}$ is not as efficient as
+the ARQ-based native SPARQL engine runs~$\mathit{XS^{rdf}_{sr}}$ and~$\mathit{XS^{rdf}_{nl}}$ for larger datasets.
+
+
+We can draw similar conclusions for the \funcName{opt_{ng}} when comparing the query evaluation times of the
+\funcName{opt_{sr}} rewriting.  However, the response times for this approach are deteriorated by the the overhead of
+creating, inserting and deleting the \ac{RDF} Named Graph.  This slowdown makes queries~$q_8''$,~$q_{10}''$ and~$q_{11}''$ of
+the of the \funcName{opt_{nl}} rewriting outperform this optimisation.
+
+
+
+%%% Local Variables:
+%%% fill-column: 120
+%%% TeX-master: t
+%%% TeX-PDF-mode: t
+%%% TeX-debug-bad-boxes: t
+%%% TeX-parse-self: t
+%%% TeX-auto-save: t
+%%% reftex-plug-into-AUCTeX: t
+%%% mode: latex
+%%% mode: flyspell
+%%% mode: reftex
+%%% TeX-master: "../thesis"
+%%% End:

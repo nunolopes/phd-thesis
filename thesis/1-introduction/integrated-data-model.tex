@@ -1,0 +1,154 @@
+\section{A Model for Integrated Data}
+\label{sec:model-integr-data}
+
+
+Software applications are now focused on the Web, having evolved from single-user applications and the personal
+computer.
+%
+When we look at data models we find a similar evolution (\cf~\cref{fig:overview-dm-ql}), starting from data models
+that were mostly aimed at storing information in a single computer system to current ones that allow to share and link
+information to and from different sources.
+%
+The widely disseminated relational data model, although perfect for a closed environment such as a specific application
+within an enterprise system, is not so well suited for open environments like the Web, or for representing integrated
+data since, in both cases, the data schema cannot always be determined \textit{a priori}.
+%
+
+Given the variety of data and formats to be integrated, in this thesis we argue for a unifying data model and a query
+language capable of integrating data represented in different formats and models.
+%
+Several \sd data models were presented that cater for dynamic, open, and flexible environments.
+%
+\paragraph*{OEM.}
+One of the most notable \sd data models is the \acf{OEM} model~\cite{PapakonstantinouGarcia-MolinaWidom:1995aa}, defined
+in the context of the TSIMMIS data-integration project~\cite{Garcia-MolinaPapakonstantinouQuass:1997aa}.  \ac{OEM} is
+considered a \sd data model, consisting of a \emph{graph of objects}.  An object is represented as a
+quadruple~$\triple{\mathit{label}, \mathit{oid}, \mathit{type}, \mathit{value}}$, where $\mathit{label}$ aims to be a
+human readable description of the object, thus making the data model \emph{self-describing}.
+% 
+The $\mathit{oid}$ is a unique identifier for each object and $\mathit{type}$ indicates the type of the value.  Finally,
+$\mathit{value}$ consists of an atomic value or a set of objects.
+
+\paragraph*{XML.}
+%
+As presented by~\citet{Suciu:1998aa}, \ac{XML} has important differences to \sd data, one of which is that \ac{XML} more
+naturally represents data as \emph{trees} whereas \sd data models, namely the \ac{OEM} model, are usually
+graph-based.\footnote{\ac{XML} does cater for representing arbitrary graphs, by assigning unique identifiers to nodes
+  and then using \ac{XML} \emph{references} to point to those identifiers.}
+%
+Another core difference between \ac{XML} and the \ac{OEM} model resides in the \emph{ordering} of the data model:
+\ac{XML} is an intrinsically ordered data model, where each element has a specific order among its siblings, while the
+\ac{OEM} model consists of an unordered graph similar (in terms of lack of ordering) to the relational model.
+%
+The tree and ordered data model of \ac{XML} makes integrating different documents a difficult task, even requiring
+Turing-complete languages for arbitrary transformations~\cite{Kepser:2004aa}.
+%
+There are diverging opinions regarding whether \ac{XML} is self-describing.  Undoubtably, its unrestricted modelling
+features allow to specify the meaning of the data it contains, however, without the use of an \ac{XML} Schema, it is
+impossible to accurately determine the types of the values~\cite{SimeonWadler:2003aa}.
+%
+Finally, another difference between these models is the use of \ac{XML} attributes and although the \ac{OEM} model could
+be trivially extended to cater for similar representations, it does not have a natural equivalent~\cite{Suciu:1998aa}.
+
+
+\paragraph*{RDF.}
+%
+The \ac{RDF} data model is closely related to the \ac{OEM} data model for \sd data:
+%
+\begin{inparaenum}[(i)]
+\item its representation model is a graph;
+\item it is unordered; and
+\item it is schema-less and self-describing, relying on \acp{URI}~\cite{Berners-LeeFieldingMasinter:2005aa} as unique
+  identifiers for resources.
+\end{inparaenum}
+%
+The major differences between these data models is that the \ac{RDF} data model is more correctly represented by an
+\emph{hypergraph} since, as described by~\citet{HayesGutierrez:2004aa}, properties can themselves be the subject and
+object of other \ac{RDF} triples, making the \ac{RDF} model go beyond the theoretical notion of a graph.
+%
+The existence of blank nodes in \ac{RDF}, akin to existential variables, is another significant difference between the
+\ac{RDF} and \ac{OEM} data models.
+%
+When compared to \ac{XML}, \ac{RDF} is schema-unware: the task of \ac{RDFS} is to deduce implicit information rather
+than restricting the structure of the \ac{RDF} data, as is the task of \ac{XML} Schema for \ac{XML} data.
+% 
+A survey of other graph models, focusing mostly on databases, is presented by~\citet{AnglesGutierrez:2008ab}.
+
+
+\subsubsection*{Requirements of a Data Model for Integrated Data}
+%
+In the following we define the characteristics of a data model that is suitable for representing integrated data.
+%
+Most importantly, any such data model needs to be \emph{composable} \ie~the merging of data should be an easy task and,
+inspired by \sd data models, we can present the desired features of a data model for achieving composability as:
+%
+\begin{description}
+\item[Entity-Centric Global Identifiers:] The need for global identifiers is justified by the fact that we can, in any
+  closed system, uniquely identify an entity, for example, by giving it a unique sequential identifier.  For a global
+  system, we also need to uniquely identify an entity, thus requiring a global identifier.  In the case of \ac{RDF},
+  this global identifier is the \ac{URI}.  For global identifiers, we need to make some assumptions, namely that they
+  are used consistently \ie~the same identifier is not allowed to be used to identify different entities.  It is however
+  possible for the same entity to be identified by distinct identifiers.
+  %
+
+\item[Schema-less:] A schema-less data model is one of the premises of \sd data: in an open and possibly global
+  environment, obtaining agreement on the schema to represent any domain is a difficult and often impossible task.
+  Monetary considerations aside (it would be extremely expensive to develop a global schema) cultural differences or
+  simply personal preferences often stand in the way of achieving agreement on a schema~\cite{GohMadnickSiegel:1994aa}.
+  % 
+  Some common examples are the cultural, and often legislative, differences in the concepts of marriage: in some
+  cultures marriage must be monogamous while for others this is not a requirement.  Another example of schema conflicts
+  would be modelling monotheistic and polytheistic views of religion.
+  % 
+  Conversely, under a closed environment, it is possible to obtain a level of agreement over a topic, for example all
+  users of a specific system can agree on the use of a single \emph{domain model}.
+  % 
+  For the \ac{WWW}, one noteworthy attempt at defining a collection of models is \url{schema.org}; supported by the
+  Google, Yahoo! and Bing search engines, the major incentive for using this vocabulary is that webpages will be better
+  indexed by these search engines.
+  %
+  However, the concepts defined so far are unambiguous, such as Places, Events, or Organisations.  No vocabulary is yet
+  provided that caters for ambiguous concepts such as those presented above.
+
+\item[Self-Describing:] Also related to the previous topic, a self-describing data model is a necessary characteristic
+  derived from existing \sd data models that allows arbitrary data to be merged and exchanged without the need for
+  domain specialists.
+  %
+  This requirement allows us to arbitrarily combine information about the same object, where object identity can be
+  determined by global identifiers.
+  %
+
+
+\item[Graph-Based:] The need for a graph-based data model is necessary for the data integration step.  If we focus on
+  the data models we presented so far, we rapidly come to the conclusion that we need a graph-based data model: \ac{RDF}
+  is in itself graph-based and \ac{XML}, although naturally a tree-based model, includes forms of graph representation
+  (by means of giving \ac{XML} nodes identifiers and then referring to them).
+  % 
+  As for the relational model, although it consists of a set of relations, the schema is actually a graph when we take
+  into account foreign key constraints between different relations.  When we take a schema-less data-model as the target
+  data model, the schema information needs to be encoded in the data and as such, even for the relational model, we
+  require a target data model that is a graph.
+
+\end{description}
+%
+
+
+
+As we have seen, \ac{RDF} has clear advantages over the relational and \ac{XML} formats as a representation model for
+integrated data:
+%
+\begin{inparaenum}[(i)]
+\item \ac{RDF} is \textit{per se} schema-unaware; 
+\item by relying on \acp{URI}, it uses a standard mechanism for providing global identifiers for entities; and
+\item it is self-describing, since according to the \ac{LOD} principles, by accessing each \ac{URI} we obtain further
+  information about the resource or by using \ac{RDF} Schema~\cite{BrickleyGuha:2004aa} we can further deduce implicit
+  information.
+\end{inparaenum}
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% mode: flyspell
+%%% mode: reftex
+%%% TeX-master: "../thesis"
+%%% End:

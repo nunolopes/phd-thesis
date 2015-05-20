@@ -1,0 +1,124 @@
+
+\subsubsection{Querying RDF Data}
+\label{sec:bf-extended-bgp}
+%
+For querying \ac{RDF} data, we extend the notion of SPARQL \ac{BGP} (\cref{def:bgp-matching}) in order to provide SPARQL
+with the variable bindings from XQuery.
+%
+For this we interpret the XQuery \ecomp{varValue} dynamic environment component as a set of bindings in the spirit of
+SPARQL solution mappings (as presented in \cref{def:solution-mapping}).
+%
+Along these lines, we will regard the \ecomp{varValue} component of the dynamic environment in which a SPARQL graph
+pattern~$P$ is executed as the basis for the \emph{XSPARQL instance mapping} of~$P$.  The transformation from the
+\dyn.\ecomp{varValue} into the XSPARQL instance mapping is defined next:
+%
+\begin{definition}[XSPARQL instance mapping]
+  \label{def:xml2rdfterm}
+  Let~$C$ be an expression context, and furthermore let~$D_C = \funcCall{\dyn}{C}.\ecomp{varValue}$ and~$T_C =
+  \funcCall{\stat}{C}.\ecomp{varType}$ the \ecomp{varValue} component of the dynamic environment of~$C$ and be the
+  \ecomp{varType} component of the static environment of~$C$, respectively.
+  %
+  The \emph{XSPARQL instance mapping}~$\mu_C$ is a solution mapping where, for each mapping~$v_{i} \rightarrow x_{i} \in
+  D_C$,~$x_{i}$ is converted into an instance of type \type{RDFTerm} or an \ac{RDF} \emph{Collection} according to the
+  following conditions:
+  %
+  \begin{itemize}[noitemsep]
+  \item if~$\funcCall{D_C}{v_{i}} = \seq{}$ and~$\funcCall{T_C}{v_{i}} = \type{RDFTerm}$ or~$\funcCall{T_C}{v_{i}} =
+    \type{SQLTerm}$ then~$\funcCall{\mu_C}{\funcCall{D_C}{v_{i}}}$ is undefined;
+  \item if~$\funcCall{D_C}{v_{i}} = \seq{}$ and~$\funcCall{T_C}{v_{i}} \neq \type{RDFTerm}$ and~$\funcCall{T_C}{v_{i}}
+    \neq \type{SQLTerm}$ then~$\funcCall{\mu_C}{\funcCall{D_C}{v_{i}}} = \seq{}$ is an empty \ac{RDF} Collection;
+  \item if~$\funcCall{D_C}{v_{i}}$ is a singleton sequence then~$\funcCall{\mu_C}{\funcCall{D_C}{v_{i}}} =
+    \funcCall{RDFTerm}{\funcCall{D_C}{v_{i}}}$;
+  \item if~$\funcCall{D_C}{v_{i}} = \seq{e_{1}, \dotsc, e_{n}}$,~$n > 1$, is a sequence
+    then~$\funcCall{\mu_C}{\funcCall{D_C}{v_{i}}} = \seq{\funcCall{RDFTerm}{e_{1}} \dotsb \funcCall{RDFTerm}{e_{n}}}$ to
+    be read as an \ac{RDF} Collection in Turtle notation (\cf~\cref{sec:turtle}).
+  \end{itemize}
+  % 
+  For a graph pattern~$P$, we call the XSPARQL instance mapping of the expression context in which~$P$ is executed the
+  \emph{XSPARQL instance mapping of~$P$}.
+\end{definition}
+%
+Next we define the notion of XSPARQL \ac{BGP} matching based on the semantics of SPARQL \ac{BGP} matching presented in
+\cref{sec:sparql-semantics}.
+%
+\begin{definition}[Extended solution mapping]\label{def:extended-solution-mapping}
+  Let~$C$ be an expression context. An \emph{extended solution mapping} of a graph pattern~$P$ in~$C$ is a solution
+  mapping \emph{compatible} with the \emph{XSPARQL instance mapping} of~$C$.
+\end{definition}
+% 
+\noindent Accordingly, XSPARQL \ac{BGP} matching is defined analogously to the SPARQL \ac{BGP} matching with the
+exception that we consider only extended solution mappings:
+%
+\begin{definition}[XSPARQL \ac{BGP} matching]\label{def:xsparql-bgp-matching}
+  Let~$P$ be a \ac{BGP} with expression context~$C$, and~$G$ be an \ac{RDF} graph. We say that~$\mu$ is a
+  \emph{solution} for~$P$ with respect to active graph~$G$, if there exists an extended solution mapping~$\mu'$ of~$C$
+  such that~$\funcCall{\mu'}{P}$ is a subgraph of~$G$ and~$\mu$ is the restriction of~$\mu'$ to the variables
+  in~$\vars{P}$.
+\end{definition}
+%
+\noindent This definition quasi injects the variable bindings inherited from XQuery into SPARQL patterns occurring
+within XSPARQL.  By considering \emph{extended solution mappings} the bindings returned for a \ac{BGP}~$P$ will not only
+match the input graph~$G$ but also respect any bindings for variables in the dynamic environment.
+%
+We can extend the XSPARQL \ac{BGP} matching to generic graph patterns by following the SPARQL evaluation semantics
+(presented in \cref{sec:sparql-semantics}).
+%
+Considering a graph pattern~$P$ with XSPARQL instance mapping~$\mu_C$, we denote by~$\evalXS{D}{P}{\mu_C}$ the
+evaluation of~$P$ over dataset~$D$ following XSPARQL \ac{BGP} matching.
+ 
+\subsubsection{Matching Blank Nodes in Nested Queries}
+\label{sec:bgpmatch}
+%
+Although in XSPARQL, similar to SPARQL, we are not considering blank nodes in the semantics definitions of graph
+patterns, in the case of nested \SparqlForClause{s} XSPARQL instance mappings may in fact contain assignments of
+variables to blank nodes, injected from the outer \SparqlForClause into the inner \SparqlForClause.
+%
+\begin{query}
+  \lstinputlisting[language=XSPARQL]{0-data+queries/nested-bnodes.xsparql}%
+  \caption{Nested XSPARQL query}%
+  \label{qr:nested-bnodes}%
+\end{query}
+%
+\begin{example}[Blank node injection in XSPARQL nested queries]
+  %
+  For example, in \cref{qr:nested-bnodes}, blank nodes bound in the outer \SparqlForClause
+  (\crefrange{qr:nested-bnodes_out-s}{qr:nested-bnodes_out-e}) to the variable~\var{song} will be injected into
+  the inner \SparqlForClause expression (\crefrange{qr:nested-bnodes_in-s}{qr:nested-bnodes_in-e}).
+  %
+  If we would consider both \SparqlForClause{s} as distinct SPARQL queries, the blank nodes in the inner
+  \SparqlForClause would be matched as variables.
+\end{example}
+%
+However in XSPARQL, we want to enable coreference within nested queries over the same dataset and thus such injected
+blank nodes should be matched like constants against the blank nodes present in the input \ac{RDF} data (rather than
+being treated as variables).
+%
+To ensure this behaviour, we introduce the notion of \emph{active dataset} (similar to the concept of active graph in
+SPARQL), where nested queries over the same active dataset keep the same the scoping graphs
+(\cf~\cref{sec:sparql-semantics}).
+%
+Any \SparqlForClause with an \emph{explicit} \DatasetClause causes the \emph{active dataset} to change, \ie~new scoping
+graphs (with fresh blank nodes) for each graph within it are created.  On the other hand, if no \DatasetClause is
+present in a nested \SparqlForClause (implicit dataset), the active dataset remains
+unchanged.
+%
+To ensure this behaviour in the dynamic evaluation we have to introduce a new dynamic environment component called
+\ecomp{activeDataset}, that will be used to evaluate \SparqlWhereClause{s}.  Initially, this component is empty (or set
+to a system default) and is changed by a \DatasetClause appearing in a \SparqlForClause{}, as defined in the next
+section.
+
+
+
+%%% Local Variables:
+%%% fill-column: 120
+%%% TeX-master: t
+%%% TeX-PDF-mode: t
+%%% TeX-debug-bad-boxes: t
+%%% TeX-parse-self: t
+%%% TeX-auto-save: t
+%%% reftex-plug-into-AUCTeX: t
+%%% mode: latex
+%%% mode: flyspell
+%%% mode: reftex
+%%% TeX-master: "../thesis"
+%%% End:

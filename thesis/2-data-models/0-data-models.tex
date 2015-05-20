@@ -1,0 +1,81 @@
+\chapter{Data Models}
+\label{cha:data-models}
+
+
+
+This chapter details how data is represented in each of the data models mentioned in the previous chapter.
+%
+In the context of databases, a common definition for the term \emph{data model} is presented
+by~\citet{SilberschatzKorthSudarshan:1996aa} as ``a collection of conceptual tools for describing the real-world
+entities to be modeled in the database and the relationships among these entities''.
+% 
+This definition focuses on the (essential) data representation capabilities of a data model; however more fine-grained
+definitions, namely by~\citet{Codd:1980aa}, also include in the notion of data model operators and inference rules for
+retrieving or deriving data as well as integrity rules for determining accepted database states.
+% 
+In this chapter, we consider the definition by~\citet{SilberschatzKorthSudarshan:1996aa} and are thus particularly
+interested in the data representation aspects of each data model: the relational model, the tree based data models
+\ac{XML} and \acs{JSON}, and \ac{RDF}.
+%
+However, we do touch upon the inferencing capabilities of \ac{RDF} in \cref{sec:rdf-schema} with~\acl{RDFS}; these will
+be required later in \cref{cha:anql}.
+%
+In \cref{cha:query-languages}, we will focus on querying the presented data models.
+
+\input{2-data-models/bands-example}
+
+\bigskip
+
+
+In the next sections we describe the relational model, the tree-based \ac{XML} and \ac{JSON} models, and the graph-based
+\ac{RDF} data model.  We conclude with an high-level comparison of the presented data models in
+\cref{sec:overview-data-models}.
+%
+In \cref{cha:query-languages}, we will describe the respective query languages associated with each data model.
+
+
+\input{2-data-models/1-rdb}
+
+\input{2-data-models/21-xml}
+
+\input{2-data-models/22-json}
+
+\input{2-data-models/3-rdf}
+
+
+\input{2-data-models/data-models-overview}
+
+\section{Conclusion}
+\label{sec:conclusion-data-models}
+
+This chapter introduced the basis for the different data models we are considering in this thesis.  As such we described
+the relational, \ac{XML}, and \ac{RDF} data models and included a description of the \ac{JSON} interchange format.
+%
+As we have discussed in \cref{sec:model-integr-data}, from a data integration perspective, a flexible format for
+representing data is desirable, hence the \ac{XML} or \ac{RDF} formats are preferred over the relational model.
+%
+The major differences between these data models are 
+\begin{inparaenum}[(i)]
+\item the structure (table vs. tree vs. graph) that is used to represent data; and
+\item the ordering of the data model (\ac{XML} is an intrinsically ordered data model, \ac{JSON} included the ordered
+  array structure, while relational databases and \ac{RDF} consist of an unordered set of statements).
+\end{inparaenum}
+
+
+The specific query language for each of these data models are presented in \cref{cha:query-languages}.
+%
+These different data models are bridged in our novel transformation language, described in detail in
+\cref{cha:xsparql}.
+%
+Furthermore, \cref{cha:anql} presents a proposed extension to the \ac{RDF} model to represent context
+information, such as temporal or provenance information, a much needed feature when considering integrated data.
+
+
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% mode: flyspell
+%%% mode: reftex
+%%% TeX-master: "../thesis"
+%%% End:

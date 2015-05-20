@@ -1,0 +1,128 @@
+%
+\usepackage{fixltx2e}
+
+\usepackage{amsmath,amssymb,latexsym}
+\usepackage{amsthm}
+\usepackage{thmtools}
+\usepackage{mathtools}
+
+\usepackage{multirow}
+\usepackage{booktabs}
+
+
+\PassOptionsToPackage{final}{graphicx}
+\usepackage{graphicx}
+\graphicspath{{0-images/}}
+
+\usepackage{import}
+\usepackage{url}
+\usepackage{ifdraft}
+\usepackage{inputenc}				
+\usepackage{csquotes}
+\PassOptionsToPackage{british}{babel}
+\usepackage{babel}
+
+\PassOptionsToPackage{%
+  natbib=true,backref=true,%
+  isbn=false,doi=false,eprint=false,url=true,dashed=false,%
+  uniquename=init,%
+  maxcitenames=2,mincitenames=1,%
+  backend=biber,hyperref,%
+  bibstyle=apa,citestyle=authoryear%
+}{biblatex}%
+\usepackage{biblatex}
+
+\AtEveryBibitem{%
+  \clearfield{month}{}%
+  \clearfield{day}{}%
+  \clearlist{language}{}% 
+}
+
+% change apa style from \& to 'and'
+\AtBeginBibliography{\renewcommand*{\finalnamedelim}{%
+    \ifthenelse{\value{listcount}>\maxprtauth}
+      {}
+      {\ifthenelse{\ifcurrentname{author}\OR\boolean{bbx:editorinauthpos}}
+         {\ifnum\value{liststop}>1 \finalandcomma\fi\addspace and\space}
+         {\addspace and\space}}}}
+
+
+\setlength\bibitemsep{.5ex}
+
+\addbibresource{references.bib}
+\DeclareLanguageMapping{british}{british-apa}
+
+
+
+\usepackage{setspace}   % used for setstrech
+
+% fix warning from scrreprt
+\usepackage{scrhack}
+
+
+\PassOptionsToPackage{T1}{fontenc}
+\usepackage{fontenc}
+\PassOptionsToPackage{final}{listings}
+\usepackage{listings}
+
+
+\PassOptionsToPackage{final}{microtype}
+\usepackage{microtype}
+
+\PassOptionsToPackage{ruled,vlined,linesnumbered,onelanguage}{algorithm2e}
+\usepackage{algorithm2e}
+
+\usepackage{amsfonts}
+\usepackage{amsopn}
+\usepackage{boxedminipage}
+\usepackage{bussproofs}
+\usepackage{fancyvrb}
+\usepackage{paralist}
+\usepackage{verbatim}
+\usepackage{xspace}
+\usepackage{alltt}
+\PassOptionsToPackage{only,llbracket,rrbracket}{stmaryrd}
+\usepackage{stmaryrd}
+
+
+% used for todos
+\PassOptionsToPackage{normalem}{ulem}
+\usepackage{ulem}
+
+\PassOptionsToPackage{printonlyused,nohyperlinks}{acronym}
+\usepackage{acronym} 
+
+
+\PassOptionsToPackage{dvipsnames}{xcolor}
+\usepackage{xcolor}
+\definecolor{halfgray}{gray}{0.55}
+\definecolor{webgreen}{rgb}{0,.5,0}
+\definecolor{webbrown}{rgb}{.6,0,0}
+
+
+\PassOptionsToPackage{shortlabels,inline}{enumitem}
+\usepackage{enumitem}
+
+\usepackage{varioref}
+\usepackage{nameref}
+\usepackage{pifont}
+\usepackage{float}
+
+\usepackage[nounderscore]{syntax}
+\renewcommand{\syntleft}{\normalfont\itshape}
+\renewcommand{\syntright}{}
+
+\usepackage{tabularx}
+\usepackage{array}
+
+\usepackage{relsize}
+
+\ifdraft{%
+  \PassOptionsToPackage{final}{bookmark}%
+}{}
+\usepackage{bookmark}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "../thesis"
+%%% End:

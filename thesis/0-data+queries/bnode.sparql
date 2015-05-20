@@ -1,0 +1,12 @@
+prefix : <http://example.org/bands#> 
+prefix foaf: <http://xmlns.com/foaf/0.1/> 
+
+CONSTRUCT { $b foaf:name $name ; foaf:member $member }
+FROM <file:usecaseData.ttl>
+WHERE 
+  {
+   { SELECT DISTINCT $band $name (BNODE() as $b)
+     WHERE { $band foaf:name $name  }
+   }  
+   $band foaf:member $member
+   }

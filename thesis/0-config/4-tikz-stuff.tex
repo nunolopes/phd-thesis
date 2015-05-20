@@ -1,0 +1,161 @@
+\ifdraft{\setlength{\marginparwidth}{1.5cm}}{}  % fix left margin in todo's
+
+\PassOptionsToPackage{colorinlistoftodos,obeyDraft,textwidth=1.5cm,textsize=small}{todonotes}
+\usepackage{todonotes}
+\usepackage{tikz}
+\usetikzlibrary{er,calc,positioning,shapes,shadows,arrows,shapes.callouts,backgrounds,fit}
+
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.7}
+
+% necessary after loading pgfplots: bug, should go away in next updates
+\pgfdeclarelayer{background}
+\pgfdeclarelayer{foreground}
+\pgfsetlayers{background,main,foreground}
+
+\makeatletter
+\pgfdeclareshape{document}{
+  \inheritsavedanchors[from=rectangle] %  this is nearly a rectangle
+  \inheritanchorborder[from=rectangle]
+  \inheritanchor[from=rectangle]{center}
+  \inheritanchor[from=rectangle]{north}
+  \inheritanchor[from=rectangle]{south}
+  \inheritanchor[from=rectangle]{west}
+  \inheritanchor[from=rectangle]{east}
+  \inheritanchor[from=rectangle]{south east}
+  % ... and possibly more
+  \backgroundpath{%  this is new
+    % store lower right in xa/ya and upper right in xb/yb
+    \southwest \pgf@xa=\pgf@x \pgf@ya=\pgf@y
+    \northeast \pgf@xb=\pgf@x \pgf@yb=\pgf@y
+    % compute corner of ‘‘flipped page’’
+    \pgf@xc=\pgf@xb \advance\pgf@xc by-5pt %  this should be a parameter
+    \pgf@yc=\pgf@yb \advance\pgf@yc by-5pt
+    % construct main path
+    \pgfpathmoveto{\pgfpoint{\pgf@xa}{\pgf@ya}}
+    \pgfpathlineto{\pgfpoint{\pgf@xa}{\pgf@yb}}
+    \pgfpathlineto{\pgfpoint{\pgf@xc}{\pgf@yb}}
+    \pgfpathlineto{\pgfpoint{\pgf@xb}{\pgf@yc}}
+    \pgfpathlineto{\pgfpoint{\pgf@xb}{\pgf@ya}}
+    \pgfpathclose
+    % add little corner
+    \pgfpathmoveto{\pgfpoint{\pgf@xc}{\pgf@yb}}
+    \pgfpathlineto{\pgfpoint{\pgf@xc}{\pgf@yc}}
+    \pgfpathlineto{\pgfpoint{\pgf@xb}{\pgf@yc}}
+    \pgfpathlineto{\pgfpoint{\pgf@xc}{\pgf@yc}}
+  }
+}%\hskip-1.2cm
+\makeatother
+
+\tikzset{doc/.style={draw,document,text centered,text width=#1,inner sep=2ex, minimum width=1.5cm, minimum height=1cm },doc/.default=1cm }%
+
+
+\newcommand{\documentSet}[3]{
+  \begin{scope}
+    \node[#1,fill=white,doc=.9cm] (#2) {#3};
+    \begin{pgfonlayer}{background}
+      \node[#1,doc=.9cm,yshift=-2pt, xshift=2pt] {#3};
+      \node[#1,doc=.9cm,yshift=-4pt, xshift=4pt] {#3};
+    \end{pgfonlayer}
+\end{scope}
+}
+
+\newcommand{\documentSetL}[3]{
+  \begin{scope}
+    \node[#1,fill=white,doc=1.35cm] (#2) {#3};
+    \begin{pgfonlayer}{background}
+      \node[#1,doc=1.35cm,yshift=-2pt, xshift=2pt] {#3};
+      \node[#1,doc=1.35cm,yshift=-4pt, xshift=4pt] {#3};
+    \end{pgfonlayer}
+\end{scope}
+}
+
+
+
+\PassOptionsToPackage{framemethod=TikZ}{mdframed}
+\usepackage{mdframed}
+\theoremstyle{definition}
+
+
+\newmdtheoremenv[%
+ skipabove=\topskip,%
+ skipbelow=.5\topskip,%
+ splittopskip=\topskip,%
+ splitbottomskip=2pt,%
+ backgroundcolor=gray!20,%
+ middlelinewidth=0,%
+ innertopmargin=0pt,%
+ roundcorner=3pt%
+]{example}{Example}[chapter]
+
+\makeatletter
+\def\ll@example{%
+  \protect\numberline{\csname the\thmt@envname\endcsname}%
+  \ifx\@empty\thmt@shortoptarg
+  \thmt@thmname
+  \else
+  \thmt@shortoptarg
+  \fi
+}
+\makeatother
+
+
+
+
+\makeatletter
+\pgfdeclareshape{document}{
+  \inheritsavedanchors[from=rectangle] %  this is nearly a rectangle
+  \inheritanchorborder[from=rectangle]
+  \inheritanchor[from=rectangle]{center}
+  \inheritanchor[from=rectangle]{north}
+  \inheritanchor[from=rectangle]{south}
+  \inheritanchor[from=rectangle]{west}
+  \inheritanchor[from=rectangle]{east}
+  \inheritanchor[from=rectangle]{south east}
+  % ... and possibly more
+  \backgroundpath{%  this is new
+    % store lower right in xa/ya and upper right in xb/yb
+    \southwest \pgf@xa=\pgf@x \pgf@ya=\pgf@y
+    \northeast \pgf@xb=\pgf@x \pgf@yb=\pgf@y
+    % compute corner of ‘‘flipped page’’
+    \pgf@xc=\pgf@xb \advance\pgf@xc by-5pt %  this should be a parameter
+    \pgf@yc=\pgf@yb \advance\pgf@yc by-5pt
+    % construct main path
+    \pgfpathmoveto{\pgfpoint{\pgf@xa}{\pgf@ya}}
+    \pgfpathlineto{\pgfpoint{\pgf@xa}{\pgf@yb}}
+    \pgfpathlineto{\pgfpoint{\pgf@xc}{\pgf@yb}}
+    \pgfpathlineto{\pgfpoint{\pgf@xb}{\pgf@yc}}
+    \pgfpathlineto{\pgfpoint{\pgf@xb}{\pgf@ya}}
+    \pgfpathclose
+    % add little corner
+    \pgfpathmoveto{\pgfpoint{\pgf@xc}{\pgf@yb}}
+    \pgfpathlineto{\pgfpoint{\pgf@xc}{\pgf@yc}}
+    \pgfpathlineto{\pgfpoint{\pgf@xb}{\pgf@yc}}
+    \pgfpathlineto{\pgfpoint{\pgf@xc}{\pgf@yc}}
+  }
+}%\hskip-1.2cm
+\makeatother
+
+\tikzset{doc/.style={draw,document,text centered,text width=#1,inner sep=2ex, minimum width=1.5cm, minimum height=1cm },doc/.default=1cm }%
+
+
+
+\usepackage{environ}
+\makeatletter
+\newsavebox{\measure@tikzpicture}
+\NewEnviron{scaletikzpicturetowidth}[1]{%
+  \def\tikz@width{#1}%
+  \def\tikzscale{1}\begin{lrbox}{\measure@tikzpicture}%
+  \BODY
+  \end{lrbox}%
+  \pgfmathparse{#1/\wd\measure@tikzpicture}%
+  \edef\tikzscale{\pgfmathresult}%
+  \BODY
+}
+\makeatother
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "../thesis"
+%%% End:

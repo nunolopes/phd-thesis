@@ -1,0 +1,388 @@
+
+\begin{proposition}[Soundness and completeness]
+  For two annotated graphs~$G$ and~$G'$, the proof system~$\vdash$ is sound and complete for~$\models$, that is~$G
+  \vdash G'$ \iff~$G \models G'$.
+\end{proposition}
+
+
+\begin{proof}[Extends~\citep{MunozPerezGutierrez:2009aa}]
+  ($\Rightarrow$) 
+  %
+  Let~$\I=\tuple{\Delta_{R}, \Delta_{P}, \Delta_{C}, \Delta_{L}, \intP{\cdot}, \intC{\cdot},\int{\cdot}}$ be an
+  interpretation such that~$\I \models G$ \ie~$\I$ satisfies all the conditions of \cref{def:annotated-model}.
+  %
+  Furthermore let~$\fuzzyg{\tau}{\lambda}$ be the result from an instantiation of a \ifnormalisedardf rule~$2-5$\else
+  rule~$2-6$\fi, such that~$\frac{R}{\fuzzyg{\tau}{\lambda}}$, where~$R \subseteq G$ and
+  let~$G'=G\cup\set{\fuzzyg{\tau}{\lambda}}$,
+  then~$\I \models G'$.
+  % 
+  \begin{description}[nosep]
+  \item[1. Simple:]~
+    \begin{enumerate}[label=(\alph*),nosep]
+    \item We show that if~$G' \to G$ then~$G \models G'$.  Let~$\theta$ be an annotated map such that~$\fc{\theta}{G'}
+      \preceq G$. Consider the function~$A' \colon \AB \to \Delta_R$ such that~$$\fc{A'}{x} =
+      \left\{\begin{array}{l}\fc{A}{\fc{\theta}{x}}~\mathrm{if}~\fc{\theta}{x} \in \AB\\
+          \int{\fc{\theta}{x}}~\mathrm{if}~\fc{\theta}{x} \not\in \AB
+        \end{array}\right. \enspace .$$
+      %
+      Note that:
+      %
+      \begin{enumerate*}
+      \item if~$x\in\AB$ and~$\fc{\theta}{x} \in \AB$ we get that~$\intA{\fc{\theta}{x}} = \fc{A}{\fc{\theta}{x}} =
+        \fc{A'}{x} = \intAP{x}$;
+      \item if~$x\in\AB$ and~$\fc{\theta}{x} \not\in \AB$ we get that~$\intA{\fc{\theta}{x}} = \int{\fc{\theta}{x}} =
+        \fc{A'}{x} = \intAP{x}$;
+      \item if~$x\not\in\AB$ we get that~$\fc{\theta}{x} = x$ and~$\intA{\fc{\theta}{x}} = \int{x} = \fc{A'}{x} =
+        \intAP{x}$.
+      \end{enumerate*}
+      %
+      Thus we have that~$\intA{\fc{\theta}{x}} = \intAP{x}$ for all~$x\in\AUB$.
+      %
+      Let~$\fuzzyg{\triple{s,p,o}}{\lambda} \in G'$,
+      then~$\fuzzyg{\triple{\fc{\theta}{s},\fc{\theta}{p},\fc{\theta}{o}}}{\lambda} =
+      \fuzzyg{\triple{\fc{\theta}{s},p,\fc{\theta}{o}}}{\lambda} \in G$.
+      %
+      Since~$\I \models G$ we have that~$\int{p} \in \Delta_P$ and~$\intP{\intA{\fc{\theta}{s}},\intA{\fc{\theta}{s}}}
+      \succeq \lambda$ and~$\intP{\intAP{\fc{\theta}{s}},\intAP{\fc{\theta}{s}}} \succeq \lambda$.  
+      %
+      Thus~$\I$ satisfies condition~$(1)$ from \cref{def:annotated-model} for~$G'$ (with function~$A'$) and satisfies
+      all other conditions of \cref{def:annotated-model}, so~$\I \models G'$.
+
+      \ifnormalisedardf%
+    \item if~$G' \preceq G$ then~$G' \to G$ and thus~$G \models G'$.%
+      \else%
+    \item if $\forall \fuzzyg{\tau}{\lambda_{1}} \in G', \exists\fuzzyg{\tau}{\lambda_{2}} \in G$ such
+      that~$\lambda_{1} \preceq \lambda_{2}$ then~$G' \to G$ and thus~$G \models G'$.%
+      \fi
+    \end{enumerate}
+  \item[2. Subproperty:]~ 
+    \begin{enumerate}[label=(\alph*),nosep]
+    \item Let~$\I \models \fuzzyg{\triple{A, \spp, B}}{\lambda_{1}}$ and~$\I \models \fuzzyg{\triple{B, \spp,
+          C}}{\lambda_{2}}$.  
+      %
+      It follows that~$\fc{\intP{\int{\spp}}}{\int{A}, \int{B}} \succeq \lambda_{1}$
+      and~$\fc{\intP{\int{\spp}}}{\int{B}, \int{C}} \succeq \lambda_{2}$.
+      % 
+      According to condition ``Subproperty 1.'' from \cref{def:annotated-model}, we have
+      that~$\fc{\intP{\int{\spp}}}{\int{A}, \int{B}} \otimes \fc{\intP{\int{ \spp}}}{\int{B}, \int{C}} \preceq
+      \fc{\intP{\int{ \spp}}}{\int{A}, \int{C}}$ and thus~$\lambda_{1} \otimes \lambda_{2} \preceq
+      \fc{\intP{\int{\spp}}}{\int{A}, \int{C}}$.
+      %
+      Therefore~$\I \models \fuzzyg{\triple{A, \spp, C}}{\lambda_{1}\otimes\lambda_{2}}$.
+
+    \item Let~$\I \models \fuzzyg{\triple{D, \spp, E}}{\lambda_{1}}$ and~$\I \models \fuzzyg{\triple{X, D,
+          Y}}{\lambda_{2}}$.
+      %
+      It follows that~$\fc{\intP{\int{\spp}}}{\int{D}, \int{E}} \succeq \lambda_{1}$
+      and~$\fc{\intP{\int{D}}}{\int{X}, \int{Y}} \succeq \lambda_{2}$.
+      % 
+      According to condition ``Subproperty 2.'' from \cref{def:annotated-model}, we have
+      that~$\fc{\intP{\int{\spp}}}{\int{D}, \int{E}} \otimes \fc{\intP{\int{D}}}{\int{X}, \int{Y}} \preceq
+      \fc{\intP{\int{E}}}{\int{X}, \int{Y}}$ and thus~$\lambda_{1} \otimes \lambda_{2} \preceq
+      \fc{\intP{\int{E}}}{\int{X}, \int{Y}}$.
+      %
+      Therefore~$\I \models \fuzzyg{\triple{X, E, Y}}{\lambda_{1}\otimes\lambda_{2}}$.
+    \end{enumerate}
+  \item[3. Subclass:]~ 
+    \begin{enumerate}[label=(\alph*),nosep]
+    % \item $\frac{\fuzzyg{\triple{A, \subclass, B}}{\lambda_{1}}, \fuzzyg{\triple{B, \subclass,
+    %         C}}{\lambda_{2}}}{\fuzzyg{\triple{A, \subclass, C}}{\lambda_{1} \otimes \lambda_{2}}}$
+    \item Let~$\I \models \fuzzyg{\triple{A, \subclass, B}}{\lambda_{1}}$ and~$\I \models \fuzzyg{\triple{B, \subclass,
+          C}}{\lambda_{2}}$.  
+      %
+      It follows that~$\fc{\intP{\int{\subclass}}}{\int{A}, \int{B}} \succeq \lambda_{1}$
+      and~$\fc{\intP{\int{\subclass}}}{\int{B}, \int{C}} \succeq \lambda_{2}$.
+      % 
+      According to condition ``Subclass 1.'' from \cref{def:annotated-model}, we have
+      that~$\fc{\intP{\int{\subclass}}}{\int{A}, \int{B}} \otimes \fc{\intP{\int{ \subclass}}}{\int{B}, \int{C}} \preceq
+      \fc{\intP{\int{\subclass}}}{\int{A}, \int{C}}$ and thus~$\lambda_{1} \otimes \lambda_{2} \preceq
+      \fc{\intP{\int{\subclass}}}{\int{A}, \int{C}}$.
+      %
+      Therefore~$\I \models \fuzzyg{\triple{A, \subclass, C}}{\lambda_{1}\otimes\lambda_{2}}$.
+
+    % \item $\frac{\fuzzyg{\triple{A, \subclass, B}}{\lambda_{1}}, \fuzzyg{\triple{X, \typeR,
+    %         A}}{\lambda_{2}}}{\fuzzyg{\triple{X, \typeR, B}}{\lambda_{1} \otimes \lambda_{2}}}$
+    \item Let~$\I \models \fuzzyg{\triple{A, \subclass, B}}{\lambda_{1}}$ and~$\I \models \fuzzyg{\triple{X, \typeR,
+          A}}{\lambda_{2}}$.
+      %
+      It follows that~$\fc{\intP{\int{\subclass}}}{\int{A}, \int{B}} \succeq \lambda_{1}$
+      and~$\fc{\intP{\int{\typeR}}}{\int{X}, \int{A}} \succeq \lambda_{2}$.
+      % 
+      From condition ``Typing I, 1.'' (\cref{def:annotated-model}), we have that~$\fc{\intC{\int{A}}}{\int{X}} \succeq
+      \lambda_{2}$.
+      % 
+      According to condition ``Subclass 2.'' from \cref{def:annotated-model}, we have
+      that~$\fc{\intP{\int{\subclass}}}{\int{A}, \int{B}} \otimes \fc{\intC{\int{A}}}{\int{X}} \preceq
+      \fc{\intC{\int{B}}}{\int{X}}$ and thus~$\lambda_{1} \otimes \lambda_{2} \preceq \fc{\intC{\int{B}}}{\int{X}}$ and,
+      again from condition ``Typing I, 1.'', $\lambda_{1} \otimes \lambda_{2} \preceq \fc{\intP{\int{\typeR}}}{\int{X}, \int{B}}$.
+      %
+      Therefore~$\I \models \fuzzyg{\triple{X, \typeR, B}}{\lambda_{1}\otimes\lambda_{2}}$.
+      
+
+
+    \end{enumerate}
+  \item[4. Typing:]~ 
+    \begin{enumerate}[label=(\alph*),nosep]
+    \item Let~$\I \models \fuzzyg{\triple{D, \domR, B}}{\lambda_{1}}$ and~$\I \models \fuzzyg{\triple{X, D,
+          Y}}{\lambda_{2}}$.
+      %
+      It follows that~$\fc{\intP{\int{\domR}}}{\int{D}, \int{B}} \succeq \lambda_{1}$
+      and~$\fc{\intP{\int{D}}}{\int{X}, \int{Y}} \succeq \lambda_{2}$.
+      % 
+      From condition ``Typing I, 2.'' (\cref{def:annotated-model}), we have that~$\fc{\intP{\int{\domR}}}{\int{D},
+        \int{B}} \otimes \fc{\intP{\int{D}}}{\int{X}, \int{Y}} \preceq \fc{\intC{\int{B}}}{\int{X}}$ and
+      thus~$\lambda_{1} \otimes \lambda_{2} \preceq \fc{\intC{\int{B}}}{\int{X}}$.
+      % 
+      From condition ``Typing I, 1.'' (\cref{def:annotated-model}), we have that~$\lambda_{1} \otimes \lambda_{2}
+      \preceq \fc{\intP{\int{\typeR}}}{\int{X},\int{B}}$.
+      % 
+      Therefore~$\I \models \fuzzyg{\triple{X, \typeR, B}}{\lambda_{1} \otimes \lambda_{2}}$.
+
+    \item Let~$\I \models \fuzzyg{\triple{D, \range, B}}{\lambda_{1}}$ and~$\I \models \fuzzyg{\triple{X, D,
+          Y}}{\lambda_{2}}$.
+      %
+      It follows that~$\fc{\intP{\int{\range}}}{\int{D}, \int{B}} \succeq \lambda_{1}$ and~$\fc{\intP{\int{D}}}{\int{X},
+        \int{Y}} \succeq \lambda_{2}$.
+      % 
+      From condition ``Typing I, 3.'' (\cref{def:annotated-model}), we have that~$\fc{\intP{\int{\range}}}{\int{D},
+        \int{B}} \otimes \fc{\intP{\int{D}}}{\int{X}, \int{Y}} \preceq \fc{\intC{\int{B}}}{\int{Y}}$ and
+      thus~$\lambda_{1} \otimes \lambda_{2} \preceq \fc{\intC{\int{B}}}{\int{Y}}$.
+      % 
+      From condition ``Typing I, 1.'' (\cref{def:annotated-model}), we have that~$\lambda_{1} \otimes \lambda_{2}
+      \preceq \fc{\intP{\int{\typeR}}}{\int{Y},\int{B}}$.
+      % 
+      Therefore~$\I \models \fuzzyg{\triple{Y, \typeR, B}}{\lambda_{1} \otimes \lambda_{2}}$.
+
+    \end{enumerate}
+  \item[5. Implicit Typing:]~ 
+    \begin{enumerate}[label=(\alph*),nosep]
+      %
+    \item Let~$\I \models \fuzzyg{\triple{A, \domR, B}}{\lambda_{1}}$, $\I \models \fuzzyg{\triple{D, \spp,
+          A}}{\lambda_{2}}$, and~$\I \models \fuzzyg{\triple{X, D, Y}}{\lambda_{3}}$.
+      %
+      It follows that~$\fc{\intP{\int{\domR}}}{\int{A}, \int{B}} \succeq \lambda_{1}$, $\fc{\intP{\int{\spp}}}{\int{D},
+        \int{A}} \succeq \lambda_{2}$, and~$\fc{\intP{\int{D}}}{\int{X}, \int{Y}} \succeq \lambda_{3}$.
+      % 
+      According to condition ``Subproperty 2.'' from \cref{def:annotated-model}, we have
+      that~$\fc{\intP{\int{\spp}}}{\int{D}, \int{A}} \otimes \fc{\intP{\int{D}}}{\int{X}, \int{Y}} \preceq
+      \fc{\intP{\int{A}}}{\int{X}, \int{Y}}$ and thus~$\lambda_{1} \otimes \lambda_{2} \preceq
+      \fc{\intP{\int{A}}}{\int{X}, \int{Y}}$.
+      % 
+      From condition ``Typing I, 2.'' (\cref{def:annotated-model}), we have that~$\fc{\intP{\int{\domR}}}{\int{A},
+        \int{B}} \otimes \fc{\intP{\int{A}}}{\int{X}, \int{Y}} \preceq \fc{\intC{\int{B}}}{\int{X}}$ and
+      thus~$\lambda_{1} \otimes \lambda_{2} \otimes \lambda_{3} \preceq \fc{\intC{\int{B}}}{\int{X}}$.
+      % 
+      From condition ``Typing I, 1.'' (\cref{def:annotated-model}), we have that~$\lambda_{1} \otimes \lambda_{2}
+      \otimes \lambda_{3} \preceq \fc{\intP{\int{\typeR}}}{\int{X},\int{B}}$.
+      % 
+      Therefore~$\I \models \fuzzyg{\triple{X, \typeR, B}}{\lambda_{1} \otimes \lambda_{2} \otimes \lambda_{3}}$.
+      %
+    \item Let~$\I \models \fuzzyg{\triple{A, \range, B}}{\lambda_{1}}$, $\I \models \fuzzyg{\triple{D, \spp,
+          A}}{\lambda_{2}}$, and~$\I \models \fuzzyg{\triple{X, D, Y}}{\lambda_{3}}$.
+      %
+      It follows that~$\fc{\intP{\int{\range}}}{\int{A}, \int{B}} \succeq \lambda_{1}$, $\fc{\intP{\int{\spp}}}{\int{D},
+        \int{A}} \succeq \lambda_{2}$, and~$\fc{\intP{\int{D}}}{\int{X}, \int{Y}} \succeq \lambda_{3}$.
+      % 
+      According to condition ``Subproperty 2.'' from \cref{def:annotated-model}, we have
+      that~$\fc{\intP{\int{\spp}}}{\int{D}, \int{A}} \otimes \fc{\intP{\int{D}}}{\int{X}, \int{Y}} \preceq
+      \fc{\intP{\int{A}}}{\int{X}, \int{Y}}$ and thus~$\lambda_{1} \otimes \lambda_{2} \preceq
+      \fc{\intP{\int{A}}}{\int{X}, \int{Y}}$.
+      % 
+      From condition ``Typing I, 3.'' (\cref{def:annotated-model}), we have that~$\fc{\intP{\int{\range}}}{\int{A},
+        \int{B}} \otimes \fc{\intP{\int{A}}}{\int{X}, \int{Y}} \preceq \fc{\intC{\int{B}}}{\int{X}}$ and
+      thus~$\lambda_{1} \otimes \lambda_{2} \otimes \lambda_{3} \preceq \fc{\intC{\int{B}}}{\int{X}}$.
+      % 
+      From condition ``Typing I, 1.'' (\cref{def:annotated-model}), we have that~$\lambda_{1} \otimes \lambda_{2}
+      \otimes \lambda_{3} \preceq \fc{\intP{\int{\typeR}}}{\int{X},\int{B}}$.
+      % 
+      Therefore~$\I \models \fuzzyg{\triple{X, \typeR, B}}{\lambda_{1} \otimes \lambda_{2} \otimes \lambda_{3}}$.
+    \end{enumerate}
+    \ifnormalisedardf%
+    \else%
+  \item[6. Generalisation:]~ 
+    Let~$\I \models \fuzzyg{\triple{X, A, Y}}{\lambda_{1}}$ and $\I \models \fuzzyg{\triple{X, A, Y}}{\lambda_{2}}$.
+    % 
+    It follows that~$\fc{\intP{\int{A}}}{\int{X}, \int{Y}} \succeq \lambda_{1}$ and $\fc{\intP{\int{A}}}{\int{X},
+      \int{Y}} \succeq \lambda_{2}$.
+    % 
+    The~$\oplus$ operation, which corresponds to the least upper bound in the partial order induced over~$L$, guarantees
+    that~$\lambda_{1} \oplus \lambda_{2} \succeq \lambda_{1}$ and~$\lambda_{1} \oplus \lambda_{2} \succeq \lambda_{2}$
+    and thus
+    % 
+    we have that~$\fc{\intP{\int{A}}}{\int{X}, \int{Y}} \succeq \lambda_{1} \oplus \lambda_{2}$.
+    % 
+    Therefore~$\I \models \fuzzyg{\triple{X, A, Y}}{\lambda_{1} \oplus \lambda_{2}}$.
+    % 
+    Since~$\lambda_{1} \oplus \lambda_{2} \succeq \lambda_{1}$ and~$\lambda_{1} \oplus \lambda_{2} \succeq \lambda_{2}$,
+    the triples~$\fuzzyg{\triple{X, A, Y}}{\lambda_{1}}$ and $\fuzzyg{\triple{X, A, Y}}{\lambda_{2}}$ are redundant and
+    can be removed from~$G$.
+    % 
+    \fi
+  \end{description}
+  
+  ($\Leftarrow$)
+  %
+  Given an annotated graph~$G$, let~$\I=\tuple{\Delta_{R}, \Delta_{P}, \Delta_{C}, \Delta_{L}, \intP{\cdot},
+    \intC{\cdot},\int{\cdot}}$ be an interpretation defined as follows:
+  %
+  \begin{itemize}[nosep]
+  \item $\Delta_{R} = \fc{\universe}{G} \cup \rhodf$;
+  \item $\Delta_{P} = \set{p \in \fc{\voc}{G} \mid \fuzzyg{\triple{s,p,o}}{\lambda} \in \fc{cl}{G}} \cup $ \\ $ \rhodf \cup
+    \set{p \in \fc{\universe}{G} \mid \fuzzyg{\triple{p,\spp,x}}{\lambda}, \fuzzyg{\triple{y,\spp,p}}{\lambda},
+      \fuzzyg{\triple{p,\domR,z}}{\lambda}~\mathrm{or}~\fuzzyg{\triple{p,\range,v}}{\lambda} \in G}$;
+  \item $\Delta_{C} = \set{c \in \fc{\universe}{G} \mid \fuzzyg{\triple{x,\typeR,c}}{\lambda} \in G} \cup $ \\ $\set{c
+      \in \fc{\universe}{G} \mid \fuzzyg{\triple{c,\subclass,x}}{\lambda}, \fuzzyg{\triple{y,\subclass,c}}{\lambda},
+        \fuzzyg{\triple{z,\domR,c}}{\lambda}~\mathrm{or}~\fuzzyg{\triple{v,\range,c}}{\lambda} \in G}$;
+  \item $\Delta_{L} = \AL \cap \fc{\universe}{G}$;
+
+  \item $\intP{\cdot}: \Delta_{P} \to 2^{\Delta_{R}\times\Delta_{R}}$ is an interpretation function such that:
+    \begin{itemize}[nosep]
+    \item if~$p \in \AU \cap \Delta_{P}~\mathrm{and}~\fuzzyg{\triple{x,p,y}}{\lambda} \in \fc{cl}{G}$
+      then~$\fc{\intP{p}}{x,y} \succeq \lambda$;
+    \item if~$p \in \AB \cap
+      \Delta_{P}~\mathrm{and}~\fuzzyg{\triple{p,\spp,p'}}{\lambda_{1}},\fuzzyg{\triple{x,p',y}}{\lambda_{2}} \in
+      \fc{cl}{G}$ then~$\fc{\intP{p}}{x,y} \succeq \lambda_{1} \otimes \lambda_{2}$ such that~$\lambda_{1} \otimes
+      \lambda_{2} \neq \bot$.
+    \end{itemize}
+
+  \item $\intC{\cdot}: \Delta_{C} \to L$ is an interpretation function such that~$\fuzzyg{\triple{x,\typeR,c}}{\lambda}
+    \in \fc{cl}{G}, \fc{\intC{c}}{x} \succeq \lambda$;
+
+  \item $\int{\cdot}$ is the identity function over~$\fc{\universe}{G} \cup \rhodf$.
+  \end{itemize}
+  %
+  We have that~$\I \models G$ if $\I$ satisfies all the conditions from \cref{def:annotated-model}:
+  %
+  \begin{description}[nosep]
+  \item[Simple:]~
+    \begin{enumerate}[label=(\alph*),nosep]
+    %   
+    \item First note that from the construction of~$\fc{cl}{G}$, $\fc{\universe}{\fc{cl}{G}} = \fc{\universe}{G} \cup
+      \rhodf$.  
+      % 
+      Let~$\fuzzyg{\triple{s,p,o}}{\lambda} \in G$ then, from the construction of~$\I$, we have that~$\int{p} = p \in
+      \Delta_P$ and~$\fc{\intP{p}}{\int{s},\int{o}} = \lambda$ and thus~$\I$ satisfies condition (i) for~$G$.
+
+    \item We now show that if~$G \models G'$ then there is an annotated map~$G' \to \fc{cl}{G}$.  From the construction
+      of~$\I$ we have that~$\I \models G$ and since~$G \models G'$, $\I \models G'$.  Since~$\I$ satisfies
+      condition~$(i)$ there exists a function~$A \colon \AB \to \fc{\universe}{G}\cup\rhodf$ such that for
+      each~$\fuzzyg{\triple{s,p,o}}{\lambda} \in G'$, $p\in\Delta_P$ and~$\fc{\intP{\int{p}}}{\intA{s}, \intA{o}} =
+      \lambda$.  Since~$p\in\AU$, we have that~$\int{p} = \intA{p} = p$ and thus~$\fc{\intP{\int{p}}}{\intA{s},
+        \intA{o}} = \fc{\intP{p}}{\intA{s}, \intA{o}} = \lambda$ for each~$\fuzzyg{\triple{s,p,o}}{\lambda} \in
+      \fc{cl}{G}$.
+      %
+      Since~$\fc{\intP{\int{p}}}{\intA{s}, \intA{o}} = \lambda$, we have
+      that~$\fuzzyg{\triple{\intA{s},\intA{p},\intA{o}}}{\lambda} \in\fc{cl}{G}$ for
+      each~$\fuzzyg{\triple{s,p,o}}{\lambda} \in G'$.
+      % 
+      Thus~$\IA \colon G' \to \fc{cl}{G}$ is an annotated map~$G' \to \fc{cl}{G}$.
+    \end{enumerate}
+  \item[Subproperty:]~ 
+    \begin{enumerate}[label=(\alph*),nosep]
+    \item Let~$\fc{\intP{\int{\spp}}}{\int{A}, \int{B}} \succeq \lambda_{1}$ and~$\fc{\intP{\int{\spp}}}{\int{B},
+        \int{C}} \succeq \lambda_{2}$.
+      % 
+      From the construction of~$\I$ we have that~$\fuzzyg{\triple{A,\spp,B}}{\lambda_{1}},
+      \fuzzyg{\triple{B,\spp,C}}{\lambda_{2}} \in \fc{cl}{G}$ and~$A,B,C \in \Delta_P$.  Since~$\fc{cl}{G}$ is closed
+      under application of rule~$(2a)$ we have that~$\fuzzyg{\triple{A,\spp,C}}{\lambda_{1} \otimes \lambda_{2}} \in
+      \fc{cl}{G}$ and thus~$\fc{\intP{\int{\spp}}}{\int{A}, \int{B}} \succeq \lambda_{1} \otimes \lambda_{2}$.
+
+    \item Let~$\fc{\intP{\int{D}}}{\int{X}, \int{Y}} \succeq \lambda_1$ and~$\fc{\intP{\int{\spp}}}{\int{D}, \int{E}}
+      \succeq \lambda_2$, thus~$\fuzzyg{\triple{D,\spp,E}}{\lambda_2} \in \fc{cl}{G}$ and~$D,E\in\Delta_P$.
+      %
+      We must consider the following cases:
+      \begin{itemize}[nosep]
+      \item if~$D \in \AU$ then, from the construction of~$\I$ we have that~$\fuzzyg{\triple{X,D,Y}}{\lambda_1} \in
+        \fc{cl}{G}$.
+        %
+        If~$E \in \AU$ and since~$\fc{cl}{G}$ is closed under the application of rule~$(2b)$, we also have
+        that~$\fuzzyg{\triple{X,E,Y}}{\lambda_1 \otimes \lambda_2} \in \fc{cl}{G}$.
+        % 
+        Therefore~$\fc{\intP{\int{E}}}{\int{X}, \int{Y}} \succeq \lambda_1 \otimes \lambda_2$.
+        %
+        If~$E \in \AB$, then~$\fuzzyg{\triple{X,D,Y}}{\lambda_1}, \fuzzyg{\triple{D,\spp,E}}{\lambda_2} \in \fc{cl}{G}$,
+        and from the construction of~$\I$ we have that~$\fc{\intP{\int{E}}}{\int{X}, \int{Y}} \succeq \lambda_1 \otimes
+        \lambda_2$.
+        %
+      \item if~$D \in \AB$ by the construction of~$\I$ there exists~$D'$ such
+        that~$\fuzzyg{\triple{D',\spp,D}}{\lambda_3}, \fuzzyg{\triple{X,D',Y}}{\lambda_4} \in \fc{cl}{G}$ and~$D' \in
+        \Delta_{P}$.
+        % 
+        Since~$\fc{cl}{G}$ is closed under the application of rule~$(2a)$, we also have
+        that~$\fuzzyg{\triple{D',\spp,E}}{\lambda_2 \otimes \lambda_3} \in \fc{cl}{G}$.
+        %
+        If~$E \in \AU$ as~$\fuzzyg{\triple{D',\spp,E}}{\lambda_2 \otimes \lambda_3}, \fuzzyg{\triple{X,D',Y}}{\lambda_4}
+        \in \fc{cl}{G}$ and since~$\fc{cl}{G}$ is closed under the application of rule~$(2b)$, we also have
+        that~$\fuzzyg{\triple{X,E,Y}}{\lambda_2 \otimes \lambda_3 \otimes \lambda_4} \in \fc{cl}{G}$.
+        % 
+        Therefore, from the construction of~$\I$, we have that~$\fc{\intP{\int{E}}}{\int{X}, \int{Y}} \succeq \lambda_2
+        \otimes \lambda_3 \otimes \lambda_4$.
+        %
+        If~$E \in \AB$, then~$\fuzzyg{\triple{X,D,Y}}{\lambda_1}, \fuzzyg{\triple{D,\spp,E}}{\lambda_2} \in \fc{cl}{G}$,
+        and from the construction of~$\I$ we have that~$\fc{\intP{\int{E}}}{\int{X}, \int{Y}} \succeq \lambda_1 \otimes
+        \lambda_2$.
+        %
+      \end{itemize}
+    \end{enumerate}
+  \item[Subclass:]~ 
+    \begin{enumerate}[label=(\alph*),nosep]
+    \item Let~$\fc{\intP{\int{\subclass}}}{\int{A}, \int{B}} \succeq \lambda_{1}$
+      and~$\fc{\intP{\int{\subclass}}}{\int{B}, \int{C}} \succeq \lambda_{2}$.
+      % 
+      From the construction of~$\I$ we have that~$\fuzzyg{\triple{A,\subclass,B}}{\lambda_{1}},
+      \fuzzyg{\triple{B,\subclass,C}}{\lambda_{2}} \in \fc{cl}{G}$ and~$A,B,C \in \Delta_C$.  Since~$\fc{cl}{G}$ is
+      closed under application of rule~$(3a)$ we have that~$\fuzzyg{\triple{A,\subclass,C}}{\lambda_{1} \otimes
+        \lambda_{2}} \in \fc{cl}{G}$ and thus~$\fc{\intP{\int{\subclass}}}{\int{A}, \int{B}} \succeq \lambda_{1} \otimes
+      \lambda_{2}$.
+
+    \item Let~$\fc{\intC{\int{A}}}{\int{X}} \succeq \lambda_{1}$ and~$\fc{\intP{\int{\subclass}}}{\int{A}, \int{B}}
+      \succeq \lambda_{2}$.
+      %
+      From condition ``Typing I, 1.'' (\cref{def:annotated-model}), we have that~$\fc{\intP{\int{\typeR}}}{\int{X},
+        \int{A}} = \lambda_{2}$ and thus~$\I \models \fuzzyg{\triple{X, \typeR, A}}{\lambda_{2}}$.
+      % 
+      Since~$\fc{cl}{G}$ is closed under application of rule~$(3b)$ we have that~$\fuzzyg{\triple{X, \typeR, B}}{\lambda_1
+        \otimes \lambda_2}$.
+      %
+      Then~$\fc{\intP{\int{\typeR}}}{\int{X}, \int{B}} \succeq \lambda_{1} \otimes \lambda_{2}$ and
+      thus~$\fc{\intC{\int{B}}}{\int{X}} \succeq \lambda_{1} \otimes \lambda_{2}$.
+      %
+    \end{enumerate}
+  \item[Typing I:]~
+    \begin{enumerate}[label=(\alph*),nosep]
+    \item Let~$\fc{\intP{\int{\typeR}}}{X,C} \succeq \lambda_1$, by construction of~$\I$ we have that~$C\in\Delta_C$
+      and~$\fuzzyg{\triple{X,\typeR,C}}{\lambda_1} \in \fc{cl}{G}$.  Also by the construction of~$\intC{\cdot}$ we have
+      that~$\fc{\intC{\int{C}}}{X} \succeq \lambda_1$.
+      %
+      On the other hand, if~$C\in\Delta_C$ and~$\fc{\intC{\int{C}}}{X} \succeq \lambda_1$, by construction
+      of~$\intC{\cdot}$ we have that~$\fuzzyg{\triple{X, \typeR, C}}{\lambda_1} \in \fc{cl}{G}$ and
+      so~$\fc{\intP{\int{\typeR}}}{X,C} \succeq \lambda_1$.
+      %
+    \item Let~$\fc{\intP{\int{\domR}}}{D, B} \succeq \lambda_1$ and~$\fc{\intP{D}}{X,Y} \succeq \lambda_2$.
+      By construction of~$\I$ we have that~$D\in\Delta_P$ and~$B\in\Delta_C$. 
+      % 
+      Since~$\fc{cl}{G}$ is closed under application of rule~$(4a)$ we have that~$\fuzzyg{\triple{X, \typeR, B}}{\lambda_1
+        \otimes \lambda_2} \in \fc{cl}{G}$.
+      %
+      Then~$\fc{\intP{\typeR}}{\int{X},\int{B}} \succeq \lambda_1 \otimes \lambda_2$ and~$\fc{\intC{\int{B}}}{\int{X}}
+      \succeq \lambda_1 \otimes \lambda_2$.
+      %
+    \item Let~$\fc{\intP{\int{\range}}}{D, B} \succeq \lambda_1$ and~$\fc{\intP{D}}{X,Y} \succeq \lambda_2$.
+      By construction of~$\I$ we have that~$D\in\Delta_P$ and~$B\in\Delta_C$. 
+      % 
+      Since~$\fc{cl}{G}$ is closed under application of rule~$(4b)$ we have that~$\fuzzyg{\triple{Y, \typeR, B}}{\lambda_1
+        \otimes \lambda_2} \in \fc{cl}{G}$.
+      %
+      Then~$\fc{\intP{\typeR}}{\int{Y},\int{B}} \succeq \lambda_1 \otimes \lambda_2$ and~$\fc{\intC{\int{B}}}{\int{Y}}
+      \succeq \lambda_1 \otimes \lambda_2$.
+      %
+    \end{enumerate}
+  \item[Typing II:] The definition of~$\Delta_R$ and~$\Delta_P$ satisfy all of these conditions.
+  \end{description}%
+\end{proof}
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "../thesis"
+%%% End:

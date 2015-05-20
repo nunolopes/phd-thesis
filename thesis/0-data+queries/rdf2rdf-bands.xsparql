@@ -1,0 +1,6 @@
+prefix : <http://example.org/bands#> 
+prefix foaf: <http://xmlns.com/foaf/0.1/> 
+
+construct { _:{fn:replace($band, "http://dbpedia.org/resource/","")} foaf:name $name ; foaf:member $member } 
+from <file:bands.ttl>
+where { $band a mo:MusicGroup; foaf:name $name; foaf:member $member }

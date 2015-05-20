@@ -1,0 +1,37 @@
+declare namespace rdf = "http://www.w3.org/1999/02/22-rdf-syntax-ns#" ;      (:@\label{lift-xs-namespace-start}@:)
+declare namespace foaf = "http://xmlns.com/foaf/0.1/" ;
+declare namespace mo = "http://purl.org/ontology/mo/" ;
+declare namespace dc = "http://purl.org/dc/elements/1.1/" ;     (:@\label{lift-xs-namespace-end}@:)
+
+let $bandPos := distinct-values(//band/@name)     (:@\label{lift-xs-pos-start}@:)
+let $memberPos := distinct-values(//member)
+let $albumPos := distinct-values(//album/@name)
+let $songPos := distinct-values(//song)           (:@\label{lift-xs-pos-end}@:)
+
+return (
+  for $band in //band                                                (:@\label{lift-xs-bands-start}@:)
+  let $bandName := data($band/@name)
+  let $bandID := fn:index-of($bandPos, $bandName)
+  construct { _:b{$bandID} a mo:MusicGroup ; foaf:name {$bandName} .  (:@\label{lift-xs-construct-bands-start}@:)
+              { for $member in $band//member
+                let $memberID := fn:index-of($memberPos, $member)
+                construct { _:b{$bandID} foaf:member _:m{$memberID} }
+              } },                                                    (:@\label{lift-xs-bands-end}@:)
+
+  for $memberName at $memberID in $memberPos                      (:@\label{lift-xs-artists-start}@:)
+  construct { _:m{$memberID} a mo:MusicArtist; foaf:name {$memberName} },  (:@\label{lift-xs-artists-end}@:)
+
+  for $album in //album                                           (:@\label{lift-xs-albums-start}@:)
+  let $albumName := data($album//@name)
+  let $albumID := fn:index-of($albumPos, $albumName)
+  let $bandID := fn:index-of($bandPos, data($album/../../@name))
+  construct { _:a{$albumID} a mo:Record;  mo:title {$albumName};
+                            foaf:maker _:b{$bandID} . 
+                            { for $song in $album//song
+                              let $songID := fn:index-of($songPos, $song)
+                                construct { _:a{$albumID} mo:track _:s{$songID} } }
+            },                                                    (:@\label{lift-xs-albums-end}@:)
+
+  for $songName at $songID in $songPos                               (:@\label{lift-xs-songs-start}@:)
+  construct { _:s{$songID} a mo:Track; dc:title {$songName} }        (:@\label{lift-xs-songs-end}@:)
+ )

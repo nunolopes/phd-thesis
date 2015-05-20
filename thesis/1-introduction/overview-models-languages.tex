@@ -1,0 +1,61 @@
+
+
+\begin{tikzpicture}[scale=\tikzscale,transform shape]
+  \tikzstyle{every node}=[anchor=center]
+  \tikzset{x=1em,y=1em}
+  
+  \draw (-1,0) -- (41,0);
+
+
+  \node[text width=6em,rotate=0,anchor=east] at (-2,2) {Data Models};
+  \draw[dashed,very thin] (-4,4) -- (41,4);
+
+  \node[text width=6em,rotate=0,anchor=east] at (-2,6) {Meta-Information};
+  \draw[dashed,very thin] (-4,8) -- (41,8);
+
+  \node[text width=6em,rotate=0,anchor=east] at (-2,10) {Query \\Languages};
+  
+  % draw vertical lines
+  \foreach \x in {0,10,20,30,40} \draw (\x,3pt) -- (\x,-3pt);
+  
+  \draw (5 ,0) node[below=3pt] {1970} ;
+  \draw (15,0) node[below=3pt] {1980} ;
+  \draw (25,0) node[below=3pt] {1990} ;
+  \draw (35,0) node[below=3pt] {2000} ;
+
+  \footnotesize
+  \node at (1,2) (rdb) {\textbf{RDB}};
+  \node at (4, 10) (sql) {\textbf{SQL}};
+
+  \node[text width=5em,text centered] at (8,6) {Temporal databases};
+  \node at (20, 10) {TSQL2};
+
+  \node at (18,6) {Provenance};
+
+  \node at (9,2) {Semantic};
+
+  \node at (16,3) {Object Oriented};
+  \node at (16,1) {Graph};
+
+  \node at (25,2) {OEM};
+
+  \node at (26,1) (xml) {\textbf{XML}};
+  \node at (29, 9) {XSLT};
+  \node at (32, 10) {\textbf{XQuery}};
+  \node[text width=5em,text centered] at (30,6) {Temporal XML};
+
+  \node at (28,3) (rdf) {\textbf{RDF}};
+  \node at (34, 11) {\textbf{SPARQL}};
+  \node[text width=5em, text centered] at (35,6) {\textbf{Temporal RDF}};
+
+  \node at (32,2) (json) {\textbf{JSON}};
+
+\end{tikzpicture}
+
+%%% Local Variables:
+%%% mode: latex
+%%% mode: flyspell
+%%% mode: reftex
+%%% TeX-master: "../thesis"
+%%% End:
+

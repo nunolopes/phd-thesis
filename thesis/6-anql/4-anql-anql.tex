@@ -1,0 +1,377 @@
+\section{AnQL: Annotated SPARQL}
+\label{sec:annotated-sparql}
+
+The query language introduced so far allows for conjunctive queries.  Languages like \ac{SQL} and SPARQL allow to pose
+more complex queries including built-in predicates to filter solutions and advanced features such as negation or
+aggregates.
+%
+In this section we will present an extension of the SPARQL~\cite{PrudhommeauxSeaborne:2008aa} query language, called
+AnQL, that enables querying annotated graphs.
+
+For the rest of this section we fix a specific annotation domain,~$D = \tuple{L, \oplus, \otimes, \bot, \top}$, as
+defined in \cref{sec:rdfs-annot-doma}.
+
+\subsection{Syntax}
+\label{sec:aSPARQL-syntax}
+
+A \emph{simple AnQL query} is defined -- analogously to a SPARQL query in \cref{sec:sparql-syntax} -- as a
+quadruple~$Q=(P,G,V, A)$ with the differences that:
+%
+\begin{enumerate}[(1),noitemsep]
+\item $G$ is an annotated \ac{RDF} graph;
+\item we allow annotated graph patterns as presented in \cref{def:pattern}; and
+\item $A$ is the set of annotation variables taken from an infinite set~$\AAs$ (distinct from~$\AV$).
+\end{enumerate}
+%
+We now introduce the definition of \emph{Annotated Graph Patterns}:
+%
+\begin{definition}[Annotated Graph Patterns]
+  \label{def:pattern}
+  % 
+  Let~$\AU$,~$\AB$,~$\AL$, and~$\AV$ be defined as before. Furthermore, let~$\lambda$ be an annotation value from~$L$ or
+  an annotation variable from~$\AAs$, we call~$\lambda$ an \emph{annotation label}.
+  %
+  An \emph{annotated graph pattern} in AnQL is defined (similar to SPARQL) inductively as follows:
+  %
+  \begin{itemize}[noitemsep]
+  \item for a triple pattern~$\tau$,~$\fuzzyg{\tau}{\lambda}$ (called an \emph{annotated triple pattern}) is an
+    annotated graph pattern;
+  \item a set of annotated triple patterns, called a \acf{BAP}, is an annotated graph pattern;
+  \item if~$P$ and~$P'$ are annotated graph patterns, then~$(P\ \AND\ P')$,~$(P\ \OPTIONAL\ P')$,~$(P\ \UNION\ P')$ are
+    annotated graph patterns;
+  \item if~$P$ is an annotated graph pattern and~$R$ is a filter expression, then~$(P\ \FILTER\ R)$ is an annotated
+    graph pattern.
+  \end{itemize}
+  %
+  We further denote by~$\funcCall{avars}{P}$ the set of annotation variables present in a graph pattern~$P$ and~\vars{P}
+  is extended to include also the annotation variables.
+\end{definition}
+
+\nd The \OPTIONAL operator in the annotated case may cause the values of annotation variables outside the \OPTIONAL to
+change depending if the optional pattern is matched.  This is presented in \cref{exx1}.
+%
+Please note that in query examples we will use a simple extension of the SPARQL syntax that caters for a fourth element
+in triple patterns and, for convenience, we will use the notation~$\mu = \set{x_{1}/t_{1}, \ldots, x_{n}/t_{n}}$ to
+indicate that~$\funcCall{\mu}{x_{i}} = t_{i}$, \ie~variable~$x_{i}$ is assigned to term~$t_{i}$.
+
+\begin{example}[AnQL \OPTIONAL]
+  \label{exx1}
+  % 
+  Suppose we are looking for Nightwish members during some time period and optionally the instrument they played.  This
+  query can be posed as follows:
+  %
+  \lstinputlisting[numbers=none,frame=none]{0-data+queries/select-optional.sparql}
+  % 
+  Take our example dataset from \cref{fig:dataset-example} extended with the following triples that indicate the
+  instrument:
+    \[
+    \fuzzyg{\triple{\qname{dbpedia}{Marco\mathunderscore{}Hietala}, \qname{mo}{instrument}, \qname{}{bass}}}{[2005,2009]} 
+    \]
+  we will get the following answers: 
+  %
+    \[
+    \begin{array}{lcl}
+      \mu_{1} & = & \set{\var{p}/\qname{dbpedia}{Tarja\mathunderscore{}Turunen}, \var{l}/[1996, 2005]} \\
+      \mu_{2} & = & \set{\var{p}/\qname{dbpedia}{Marco\mathunderscore{}Hietala}, \var{l}/[2001, 2012]} \\
+      \mu_{3} & = & \set{\var{p}/\qname{dbpedia}{Marco\mathunderscore{}Hietala}, \var{l}/[2005, 2009], \var{i}/\qname{}{bass} } \enspace .
+    \end{array}
+    \]
+    % 
+    The first two answers ($\mu_{1}$ and~$\mu_{2}$) correspond to the answers in which the~\OPTIONAL pattern is not
+    satisfied, so we get the annotation values of~$[1996, 2005]$ and~$[2001, 2012]$, respectively, corresponding to the
+    time that Tarja and Marco were members of Nightwish.  In the third answer, the~\OPTIONAL pattern is also matched
+    and, in this case, the annotation value is restricted to the time when Marco is a member of Nightwish and we have
+    information regarding the instrument he played.
+    % 
+\end{example}
+%
+Note that -- as we will see -- this first query will return as a binding for the annotation variable \var{l} the periods
+where an instrument was played.
+%
+A different query can be written that returns the periods of time an artist was a member of a band.
+
+\begin{example}[AnQL \OPTIONAL with \FILTER] 
+  \label{exx2} 
+  % 
+  The following query returns the Nightwish members during some time period that optionally played an instrument at some
+  point during this time:
+  %
+  \lstinputlisting[numbers=none,frame=none,,escapechar=\%]{0-data+queries/select-optional-filter.sparql}
+  %
+  Using the input data from  \cref{exx1}, we obtain the following answers: 
+  %
+  \[
+  \begin{array}{lcl}
+    \mu_{1} & = & \set{ \var{p}/\qname{dbpedia}{Tarja\mathunderscore{}Turunen}, \var{l}/[1996, 2005] } \\
+    \mu_{2} & = & \set{ \var{p}/\qname{dbpedia}{Marco\mathunderscore{}Hietala}, \var{l}/[2001, 2012] } \\
+    \mu_{3} & = & \set{ \var{p}/\qname{dbpedia}{Marco\mathunderscore{}Hietala}, \var{l}/[2001, 2012], \var{i}/\qname{}{bass} } \enspace .
+  \end{array}
+  \]
+  %
+  In this example the~\FILTER behaves as in SPARQL by removing from the answer set the mappings that do not make
+  the~\FILTER expression true.
+  % 
+\end{example}
+
+
+\nd This query also exposes the issue of unsafe filters, noted in~\citet{AnglesGutierrez:2008aa} and we presented the
+semantics to deal with this issue in \cref{def:optsemantics}.
+
+
+
+\subsection{Semantics}
+\label{sec:aSPARQL-semantics}
+
+We can now define the semantics of AnQL queries by extending the notion of SPARQL BGP matching.  
+%
+Just as matching \acp{BGP} against \ac{RDF} graphs is at the core of SPARQL semantics, matching \acp{BAP} against
+annotated \ac{RDF} graphs is the heart of the evaluation semantics of AnQL.
+
+We extend the notion of \emph{substitution} to include a substitution of annotation variables in which we do not allow
+any assignment of an annotation variable to~$\bot$ (of the domain~$D$).  
+%
+An annotation value of~$\bot$, although it is a valid answer for any triple, does not provide any additional information
+and thus is of minor interest. Furthermore this would contribute to increasing the number of answers unnecessarily.
+
+\begin{definition}[BAP evaluation]
+  \label{def:btpmatch}
+  Let~$P$ be a \ac{BAP} and~$G$ an annotated \ac{RDF} graph. We define \emph{evaluation}~$\eval{P}_G$ as the list
+  of substitutions that are \emph{solutions} of~$P$, \ie~$\eval{P}_G = \set{ \mu \mid G \models \mu(P) }$, where~$G
+  \models \mu(P)$ means that any annotated triple in~$\mu(P)$ is entailed by~$G$.
+\end{definition}
+%
+\nd We can define the notion of solutions for \ac{BAP} as the equivalent notion of answer sets for annotated conjunctive
+queries. As for SPARQL, we have:
+%
+\begin{proposition}
+  \label{ppp}
+  %
+  Given an annotated graph~$G$ and a \ac{BAP}~$P$, the solutions of~$P$ are the same as the answers of the annotated
+  query~$\fc{q}{\vars{P}} \leftarrow P$ (where~$\vars{P}$ is the vector of variables in~$P$), \ie~$ans(G,q) =
+  \eval{P}_{G}$.
+\end{proposition}
+
+\nd For the extension of the SPARQL relational algebra to the annotated case we introduce -- inspired by the definitions
+in~\cite{PerezArenasGutierrez:2009aa} -- definitions of compatibility and union of substitutions:
+
+\begin{definition}[$\otimes$-compatibility]
+  Two substitutions~$\mu_1$ and~$\mu_2$ are \emph{$\otimes$-compatible} \iff:
+  \begin{enumerate}[label=(\roman*),noitemsep]
+  \item $\mu_1$ and~$\mu_2$ are compatible for all the non-annotation variables, \ie~$\mu_1(x) = \mu_2(x)$ for any
+    non-annotation variable~$x\in \dom{\mu_1} \cap \dom{\mu_2}$; and
+  \item $\funcCall{\mu_1}{\lambda} \otimes \funcCall{\mu_2}{\lambda} \neq \bot$ for any annotation variable~$\lambda \in
+    \dom{\mu_1} \cap \dom{\mu_2}$.
+  \end{enumerate}
+\end{definition}
+%
+\nd This definition of \emph{compatible solutions} is the same for non-annotated variables.
+%
+For the case of shared annotation variables, consider as an example the temporal domain and two solutions~$\mu_1$
+and~$\mu_2$ that share an annotation variable~$x$.  
+%
+For~$\mu_1$ and~$\mu_2$ to be considered compatible the value their values for~$x$ must overlap:
+%
+\begin{itemize}[noitemsep]
+\item if~$\mu_1(x) = [2001, 2005]$ and~$\mu_2(x) = [2003, 2009]$, then~$[2001, 2005] \otimes [2003, 2009] = [2003,
+  2005]$ and~$\mu_1$ and~$\mu_2$ will be considered compatible;
+\item on the other hand, if~$\mu_1(x) = [2001, 2003]$ and~$\mu_2(x) = [2005, 2009]$ then~$\mu_1$ and~$\mu_2$
+  will are not compatible.
+\end{itemize}
+
+
+
+\begin{definition}[$\otimes$-union of substitutions]
+  Given two~$\otimes$-compatible substitutions~$\mu_1$ and~$\mu_2$, the \emph{$\otimes$-union} of~$\mu_1$ and~$\mu_2$,
+  denoted~$\mu_1 \otimes \mu_2$, is as~$\mu_{1} \cup \mu_{2}$, with the exception that any annotation variable~$\lambda
+  \in \dom{\mu_1} \cap \dom{\mu_2}$ is mapped to~$\funcCall{\mu_1}{\lambda} \otimes \funcCall{\mu_2}{\lambda}$.
+\end{definition}
+
+We now present the notion of evaluation for generic AnQL graph patterns.  This consists of an extension of
+\cref{def:semantics-sparql}:
+
+\begin{definition}[Evaluation, extends {\cite[Definition 2]{PerezArenasGutierrez:2009aa}}]
+  \label{def:semantics-anql}
+  Let~$P$ be a \ac{BAP},~$P_{1}, P_{2}$ annotated graph patterns,~$G$ an annotated graph and~$R$ a filter expression, then
+  the evaluation~$\eval{\cdot}_{G}$, is recursively defined as:
+  \begin{center}
+    \begin{itemize}[noitemsep]
+    \item~$\eval{P}_{G} = \set{\mu \mid \dom{\mu} = \vars{P}\textrm{ and }G\models \funcCall{\mu}{P} }$
+    \item~$\eval{P_1\ \AND\ P_2}_{G} = \set{ \mu_1\otimes\mu_2 \mid \mu_1 \in \eval{P_1}_{G}, \mu_2 \in
+      \eval{P_2}_{G},\mu_1\textrm{ and }\mu_2\textrm{~$\otimes$-compatible} }$
+    \item~$\eval{P_1\ \UNION\ P_2}_{G} = \eval{P_1}_{G} \cup \eval{P_2}_{G}$
+    \item~$\eval{P_1\ \FILTER\ R}_{G} = \left\{\mu \mid \mu \in \eval{P_1}_{G} \mbox{ and } R\mu \textrm{ is true} \right\}$
+    \item~$\eval{P_1\ \OPTIONAL\ P_2[R]}_{G} = \{ \mu \mid \mu$ meets one of the following conditions: 
+      %
+      \begin{enumerate}[nosep]
+      \item $\mu = \mu_1 \otimes \mu_2$ if~$\mu_1 \in \eval{P_1}_{G}, \mu_2 \in \eval{P_2}_{G}, \mu_1$ and~$\mu_2~\otimes$-compatible, and~$R\mu$ is true
+      \item $\mu = \mu_1 \in \eval{P_1}_{G}$ and~$\forall\mu_2 \in \eval{P_2}_{G}$ such that~$\mu_1$
+        and~$\mu_2$~$\otimes$-compatible,~$\funcCall{R}{\mu_1\otimes\mu_2}$ is true, and for all annotation
+        variables~$\lambda\in \dom{\mu_1} \cap \dom{\mu_2}$,~$\funcCall{\mu_2}{\lambda} \prec \funcCall{\mu_1}{\lambda}$
+      \item $\mu = \mu_1 \in \eval{P_1}_{G}$ and~$\forall\mu_2 \in \eval{P_2}_{G}$ such that~$\mu_1$
+        and~$\mu_2$~$\otimes$-compatible,~$\funcCall{R}{\mu_1\otimes\mu_2}$ is false~$\}$
+      \end{enumerate}
+      %
+    \end{itemize}
+    %
+  \end{center}
+  Let~$R$ be a~$\FILTER$ expression and~$x,y \in \AAs \cup L$, in addition to the~$\FILTER$ expressions presented in
+  \cref{def:semantics-sparql} we further allow the expressions presented next.  The valuation of~$R$ on a
+  substitution~$\mu$, denoted~$R\mu$, is true if:\footnote{We consider a simple evaluation of filter expressions where the
+    ``error'' result is ignored, see~\citet[Section 11.3]{PrudhommeauxSeaborne:2008aa} for details.}
+  
+  \nd(9)~$R = (x \preceq y)$ with~$x,y \in \dom{\mu} \cup L \wedge\ \funcCall{\mu}{x} \preceq \funcCall{\mu}{y}$;\\
+  (10)~$R = \funcCall{p}{\vec{z}}$ with~$\funcCall{p}{\vec{z}}\mu=\mbox{ true \iff }\ \funcCall{p}{\funcCall{\mu}{\vec{z}}} =\textrm{ true}$, where~$p$ is a built-in
+  predicate.
+  
+  \noindent Otherwise~$R\mu$ is false.
+\end{definition}
+
+Please note that the cases for the evaluation of~$\OPTIONAL$ are compliant with the SPARQL
+specification~\cite{PrudhommeauxSeaborne:2008aa}, covering the notion of unsafe~$\FILTER{s}$ as presented
+by~\citet{AnglesGutierrez:2008aa}.  However, there are some peculiarities inherent to the annotated case. More
+specifically case 2.) introduces the side effect that annotation variables that are compatible between the mappings may
+have different values in the answer depending if the~$\OPTIONAL$ is matched or not.  This is the behaviour demonstrated
+in \cref{exx1}.
+
+ In the~$\FILTER$ expressions above, a built-in predicate~$p$ is any~$n$-ary predicate~$p$, where~$p$'s arguments may
+be variables (annotation and non-annotation ones), domain values of~$D$, or values from~$\AUL$;~$p$ has a fixed
+interpretation and we assume that the evaluation of the predicate can be decided in finite time.
+
+Annotation domains may define their own built-in predicates that range over annotation values as in the following query:
+%
+\begin{example}[AnQL query]
+  Consider our example dataset from \cref{fig:dataset-example} and that we want to know which band
+  \qname{dbpedia}{Marco\mathunderscore{}Hietala} was a member of before 2005. This query can be expressed in the
+  following way:
+  %
+  \lstinputlisting[frame=none,numbers=none]{0-data+queries/select-before.sparql}%
+  % 
+\end{example}
+
+\nd For practical convenience, we retain in~$\eval{\cdot}_{G}$ only ``domain maximal answers''. That is, let us
+define~$\mu' \prec \mu$ \iff:
+% 
+\begin{enumerate}[label=(\roman*),noitemsep]
+\item $\mu' \neq \mu$;
+\item $\dom{\mu'} = \dom{\mu}$;
+\item $\fc{\mu'}{x} = \fc{\mu}{x}$ for any non-annotation variable~$x$; and
+\item $\fc{\mu'}{\lambda} \preceq \fc{\mu}{\lambda}$ for all annotation variable~$\lambda$.
+\end{enumerate}
+%
+Then, for any~$\mu \in \eval{P}_{G}$ we remove any~$\mu' \in \eval{P}_{G}$ such that~$\mu' \prec \mu$.
+
+
+
+\subsection{Further Extensions of AnQL}
+\label{sec:asparql-aggregates}
+
+In this section we will present extensions of \cref{def:semantics-anql} to include features from the SPARQL~1.1
+specification, such as variable assignments, aggregates, and solution modifiers.
+
+
+
+\begin{definition}[Assignment in AnQL]
+  \label{def:anql-assign}
+  Let~$P$ be an annotated graph pattern and~$G$ an annotated graph, the evaluation of an~$\keyword{ASSIGN}$ statement is
+  defined as:
+  %
+    \[
+    \eval{P\ \keyword{ASSIGN}\ f(\vec{z})\ AS\ z}_{G} = \set{ \mu \mid \mu_1 \in \eval{P}_{G},\mu =\mu_1[z/f(\mu_{1}(\vec{z}))]}
+    \]
+    %
+    \nd where
+    \[
+    \mu[z/t] = \left\{
+    \begin{array}{ll}
+      \mu \cup \{z/t\} &\textrm{ if } z \not\in \mathit{dom}(\mu)\\
+      \left(\mu \setminus \{z/t'\}\right) \cup \{z/t\} &\textrm{ otherwise} \ .
+    \end{array}
+    \right.
+    \]
+    
+\end{definition}
+
+\nd Essentially, we assign to the variable~$z$ the value~$f(\mu_{1}(\vec{z}))$, which is the evaluation of the function~$f(\vec{z})$ with respect to a substitution~$\mu_{1} \in \eval{P}_{G}$.
+
+\begin{example}[Assignment in AnQL]
+  \label{exx3}
+  %
+  Using a built-in function we can retrieve for each artist the length of membership for any band:
+  %
+  \lstinputlisting[frame=none,numbers=none]{0-data+queries/select-assign.sparql}
+  % 
+  \nd Here, the~$\funcName{length}$ built-in predicate returns, given a set of temporal intervals, the overall total
+  length of the intervals.
+  % 
+\end{example}
+
+
+\nd We also introduce the~$\keyword{ORDERBY}$ clause where the evaluation of
+a~$\eval{P\ \keyword{ORDERBY}\ \var{x}}_{G}$ statement is defined as the ordering of the solutions -- for any~$\mu \in
+\eval{P}_G$ -- according to the values of~$\mu(\var{x})$. Ordering for non-annotation variables follows the rules
+in~\citet[Section~9.1]{PrudhommeauxSeaborne:2008aa}.
+%
+Similar to ordering in the query answering setting, we require that the set of values over which~$x$ ranges can be
+ordered.
+%
+We can further extend the evaluation of AnQL queries with aggregate functions
+\[
+\aggr \in \{\keyword{SUM},\keyword{AVG}, \keyword{MAX}, \keyword{MIN}, \keyword{COUNT}, \oplus, \otimes\}
+\]%
+\vspace{-\belowdisplayskip}%
+\nd as follows:
+%
+\begin{definition}[Grouping in AnQL]
+  \label{def:groupby}
+  % 
+  The evaluation of a~$\keyword{GROUPBY}$ statement is defined as:\footnote{In the
+    expression,~$\vec{\aggr}\vec{f}(\vec{z})\ AS\ \vec{\alpha}$ is a concise representation of~$n$ aggregations of the
+    form~$\aggr_{i} f_{i}(\vec{z}_{i})\ AS\ \alpha_{i}$ and~$\{\ldots\}_{\mathsf{DISTINCT}}$ represents a duplicate
+    removal operation.}
+  %
+  \[
+  \eval{P\ \keyword{GROUPBY}(\vec{w})\ \vec{\aggr}\vec{f}(\vec{z})\ AS\ \vec{\alpha}}_{G} = \set{ \mu \mid \mu'\mbox{ in
+    }\eval{P}_{G}, \mu = \mu'|_{\vec{w}}[\alpha_i/\aggr_{i}{}f_i(\mu'(\vec{z}_{i}))] }_{\mathsf{DISTINCT}}
+  \]
+  %
+  \nd where the variables~$\alpha_i \not\in var(P)$,~$\vec{z}_i \in var(P)$ and none of the~$\keyword{GROUPBY}$
+  variables~$\vec{w}$ are included in the aggregation function variables~$\vec{z}_i$.  Here, we denote
+  by~$\mu|_{\vec{w}}$ the restriction of variables in~$\mu$ to variables in~$\vec{w}$. Using this notation, we can also
+  straightforwardly introduce projection, \ie~sub-SELECTs as an algebraic operator in the language covering another new
+  feature of SPARQL~1.1: 
+  %
+  \[
+  \eval{\keyword{SELECT}\ \vec{V}\ \{ P \} }_{G} = \set{ \mu \mid \mu'\mbox{ in }\eval{P}_{G}, \mu = \mu'|_{\vec{v}} } \enspace .
+  \]
+  %
+\end{definition}
+
+Please note that the aggregator functions have a domain of definition and thus can only be applied to values of their
+respective domain.  For example,~$\keyword{SUM}$ and~$\keyword{AVG}$ can only be used on numeric values,
+while~$\keyword{MAX}, \keyword{MIN}$ are applicable to any total order.
+% 
+The~$\keyword{COUNT}$ aggregator can be used for any finite set of values. The last two aggregation functions,
+namely~$\oplus$ and~$\otimes$, are defined by the annotation domain and thus can be used on any annotation variable.
+
+
+\begin{example}[Grouping in AnQL]
+  \label{ex:AA}
+  Suppose we want to know, for each artist, the average length of their membership with different bands. Then such a
+  query will be expressed as:
+  %
+  \lstinputlisting[frame=none,numbers=none]{0-data+queries/select-average.sparql}
+  % 
+  \nd Essentially, we group by the artists, compute for each artist the time he was a member of a band (by means of the
+  built-in function~$\funcName{length}$), and compute the average value for each group.
+  % 
+  That is, if~$g = \{\tuple{t, t_{1}},\ldots, \tuple{t, t_{n}}\}$ is a group of tuples with the same value~$t$ for
+  artist~$x$, and value~$t_{i}$ for~$y$, where each length of membership for~$t_{i}$ is~$l_{i}$ (computed
+  as~$length(\cdot)$), then the value of~$avgL$ for the group~$g$ is~$(\sum_{i} l_{i})/n$. 
+  %
+\end{example}
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "../thesis"
+%%% End:

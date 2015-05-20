@@ -1,0 +1,163 @@
+\chapter{The XSPARQL Language}
+\label{cha:xsparql}
+
+
+This chapter introduces a language that is capable of querying, transforming, and exposing data from heterogeneous
+sources, namely sources adhering to the data models presented in \cref{cha:data-models}: the relational model,
+the tree-based \ac{XML} and \ac{JSON} formats, and the graph-based \ac{RDF} model.
+%
+This language, called XSPARQL, is based on the existing standard query languages described in
+\cref{cha:query-languages}: \ac{SQL}, XQuery, and SPARQL, that are used to query the heterogeneous input sources.
+%
+Since \ac{JSON} does not specify a query language XSPARQL, automatically converts \ac{JSON} into a predefined \ac{XML}
+representation over which it is possible to use XQuery and XPath (this approach is detailed in \cref{sec:xsparql-json}).
+%
+XSPARQL consists of an extension of the XQuery language with syntactical constructs from both \ac{SQL} and SPARQL and as
+such XSPARQL is an XQuery-flavoured language, whose semantics is defined as an extension of the XQuery
+semantics.
+%
+As a first example we can use this language to expose data in relational databases as \ac{RDF} or \ac{XML} data, in a
+similar approach to current proposals for translating relational data to \ac{RDF} (RDB2RDF).  But furthermore a common
+language including \ac{SQL}, XQuery and SPARQL can support more involved transformations between different formats, for
+instance, enabling the integration of enterprise legacy data into \ac{LOD} as described in \cref{cha:introduction}.
+%
+The importance of converting data between these data models has been acknowledged within the \ac{W3C} in several
+standardisation efforts: \ac{GRDDL}~\cite{Connolly:2007aa}, \ac{SAWSDL}~\cite{FarrellLausen:2007aa}, and more recently
+RDB2RDF~\cite{ArenasPrudhommeauxSequeda:2011aa,DasSundaraCyganiak:2011aa}.
+
+
+In data integration scenarios, such as the one described in \cref{cha:introduction}, we often call the transformations
+from the different formats into \ac{RDF}~\emph{lifting} and the transformations in the opposite direction
+\emph{lowering}.  The names derive from the fact that \ac{RDF} is classified as having a higher abstraction level when
+compared to relational data or even semi-structured \ac{XML} data.
+
+\subsubsection*{Lifting: Transforming Heterogeneous Sources into RDF}
+%
+Within the \ac{W3C}, the \ac{GRDDL} working group addressed the lifting task by allowing \ac{RDF} data to be extracted
+from existing \ac{XML} and (X)HTML Web pages.  The \ac{XML} or \ac{HTML} document can link (by means of a specialised
+vocabulary) to \ac{XSLT} transformations that, when applied to the original document, produce the \ac{RDF} data.
+%
+In the Web Services community, the Web Services Description Language (WSDL)~\cite{ChinniciMoreauRyman:2007aa} is an
+\ac{XML}-based language for describing the messages that a web service accepts (sends and receives).  The \ac{SAWSDL}
+working group focused on defining mechanisms to add annotations to WSDL documents that allow the \ac{XML} messages of a
+web service to be transformed into \ac{RDF} (adhering to a specified schema) and, vice versa, enable the lowering of
+data stored in \ac{RDF} and the creation of target \ac{XML} messages.
+%
+The ongoing RDB2RDF Working Group focuses on transforming data between the relational model and \ac{RDF}, enabling the
+vast amounts of data contained in relational databases to be exposed as \ac{RDF}, for example most enterprise data (as
+discussed in \cref{cha:introduction}).
+%
+The RDB2RDF Working Group has defined a mapping vocabulary that specifies how existing relational data can be converted
+into \ac{RDF}.  In \cref{sec:examples-rdb2rdf} we will look at how the XSPARQL language implements this
+specification.
+
+
+As described in \cref{sec:rdfxml}, RDF/XML~\cite{BeckettMcBride:2004aa} is the recommended syntax for RDF, using
+XML as the underlying representation model and, based on this format, it is conceivable to use \ac{XML}-based tools,
+such as \ac{XSLT} or XQuery, to produce \ac{RDF} data.
+%
+Both the \ac{GRDDL} and \ac{SAWSDL} specifications use \ac{XSLT} to perform lifting and lowering, however, as we will
+show, approaches that rely on RDF/XML for transformations between \ac{RDF} and \ac{XML} have several disadvantages.
+%
+In the following examples we are using XQuery to perform the different transformations, similar transformations can also
+be achieved using \ac{XSLT} but this does not invalidate any of the drawbacks we present.
+%
+\begin{query}[t]
+  \lstinputlisting{0-data+queries/lifting-bands.xquery}
+  \caption{Lifting using XQuery}
+  \label{qr:lifting_xq}
+\end{query}
+%
+\begin{example}[Lifting in XQuery]
+  As an example of the lifting transformation, \cref{qr:lifting_xq} presents the XQuery that converts the \ac{XML}
+  data from \cref{fig:bands-xml} into \ac{RDF}.
+  % 
+  This query produces an \ac{RDF} graph similar to the one presented in \cref{fig:bands-rdfxml-abbrev} with the
+  exception that it uses blank nodes as idenfiers for all entities, while the graph from \cref{fig:bands-rdfxml-abbrev}
+  uses DBpedia \acp{URI} as identifiers.
+  % 
+  The blank node labels assigned to each entity are generated by using a prefix for each type of entity:
+  \textbf{(b)}ands, \textbf{(m)}usic artists, \textbf{(a)}lbums, and \textbf{(s)}ongs, followed by a sequencial
+  identifier (\cf~\qname{rdf}{nodeID} in \cref{nodeid}).
+  %
+  Having determined all the identifiers (in \crefrange{pos-start}{pos-end}), the query produces the required RDF/XML
+  structure: the triples refering to bands, their name and its members are generated in
+  \crefrange{bands-start}{bands-end}.
+  %
+  A similar process is then repeated for artists (\crefrange{artists-start}{artists-end}), albums
+  (\crefrange{albums-start}{albums-end}), and songs (\crefrange{songs-start}{songs-end}).
+  % 
+\end{example}
+% 
+While this example presents a valid solution for lifting, we can observe the following drawbacks:
+%
+\begin{itemize}[noitemsep]
+\item we have to build RDF/XML manually and cannot use the more readable and concise Turtle syntax; and
+\item the resulting \ac{RDF} data is not  guaranteed to be valid (according to \cref{def:rdf-triple}).
+\end{itemize}
+%
+The task of lifting data from relational databases can be performed in a similar fashion by relying on
+SQL/XML~\cite{EisenbergMelton:2001aa} however this would introduce an indirection step by first having to transform data
+into \ac{XML} and then into \ac{RDF}.
+%
+Combining \ac{SQL}, XQuery, and SPARQL in XSPARQL simplifies the lifting process, allowing to use SPARQL
+\ConstructClause{s} to generate \ac{RDF} in Turtle format (directly from relational data or \ac{XML}) and performing
+automatic validation of the generated \ac{RDF}.
+
+
+
+\input{4-xsparql/lifting-lowering}
+
+\bigskip 
+%
+We next present the syntax and semantics of the XSPARQL language in \cref{sec:syntax,sec:semantics}, respectively.  We
+continue by presenting properties relating the novel language with its constituent languages
+(\cref{sec:correspondence}), introduce our handling of \ac{JSON} data in \cref{sec:xsparql-json}, and presenting the
+processing of RDB2RDF mappings within XSPARQL (\cref{sec:examples-rdb2rdf}).
+%
+Finally, we introduce a discussion on related works in \cref{sec:relworks}.
+
+\input{4-xsparql/41-xsparql-syntax}
+
+\input{4-xsparql/42-xsparql-semantics}
+
+\input{4-xsparql/correspondence}
+
+\input{4-xsparql/3-xsparql-json}
+
+
+\input{4-xsparql/4-rdb-rdb2rdf}
+
+
+\input{4-xsparql/6-xsparql-related-work}
+
+
+\section{Conclusion}
+\label{sec:xsparql-conclusions}
+
+This chapter described the novel query language that we defined to tackle the integration of heterogeneous sources.  We
+presented the syntax and semantics of the language, which are based on the syntax and semantics of the XQuery language.
+% 
+XSPARQL relies on the semantics of the other languages, \ac{SQL} and SPARQL for querying the relational and \ac{RDF}
+data and we also presented equivalences between the execution of queries in the different languages.
+
+This query language forms the basis for a possible solution for the presented data integration scenario.
+%
+In the next chapter we present our implementation of XSPARQL and tackle the problem of defining optimisations for the
+XSPARQL language, in an attempt to lower the query evaluation times for more complex queries, while the issue of
+representing meta-information in \ac{RDF} is addressed in \cref{cha:anql}.
+
+
+%%% Local Variables:
+%%% fill-column: 120
+%%% TeX-master: t
+%%% TeX-PDF-mode: t
+%%% TeX-debug-bad-boxes: t
+%%% TeX-parse-self: t
+%%% TeX-auto-save: t
+%%% reftex-plug-into-AUCTeX: t
+%%% mode: latex
+%%% mode: flyspell
+%%% mode: reftex
+%%% TeX-master: "../thesis"
+%%% End:

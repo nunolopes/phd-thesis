@@ -1,0 +1,23 @@
+@prefix ex: <http://example.org/bands#> . 
+@prefix foaf: <http://xmlns.com/foaf/0.1/> . 
+@prefix dbpedia: <http://dbpedia.org/resource/> . 
+@prefix mo: <http://purl.org/ontology/mo/> .
+@prefix dc: <http://purl.org/dc/elements/1.1/> .
+
+dbpedia:Nightwish a mo:MusicGroup .
+dbpedia:Nightwish foaf:name "Nightwish" .
+dbpedia:Nightwish foaf:member dbpedia:Marco_Hietala .
+dbpedia:Nightwish foaf:member dbpedia:Tarja_Turunen .
+dbpedia:Marco_Hietala foaf:name "Marco Hietala"@en .
+dbpedia:Marco_Hietala a mo:MusicArtist .
+dbpedia:Tarja_Turunen foaf:name "Tarja Turunen"@en .
+dbpedia:Tarja_Turunen a mo:MusicArtist .
+ex:album208 a mo:Record .
+ex:album208 mo:title "Wishmaster" .
+ex:album208 foaf:maker dbpedia:Nightwish .
+ex:album208 mo:track _:song566 .
+ex:album208 mo:track _:song506 .
+_:song566 a mo:Track .
+_:song566 dc:title "Wishmaster" .
+_:song506 a mo:Track .
+_:song506 dc:title "FantasMic" .

@@ -1,0 +1,413 @@
+\begin{proof}
+  We now present the proof of the~$\funcName{opt_{nl}}$ rewriting function for expressions of the
+  form~\eqref{eq:expr_sdep}.
+  %
+  We start by showing the proof for the base case, where \ExprSingle of~\eqref{eq:expr_sdep} does not
+  contain any occurrences of~\eqref{eq:expr_sdep}.
+  %
+  \paragraph*{Base Case.}
+  \noindent ($\Rightarrow$)
+  % 
+  We start by showing that if~$\dynEnv \envElem{Q}{} \Rightarrow \envElem{Val}{}$ then~$\dynEnv \onl{\envElem{Q}{}}
+  \Rightarrow \envElem{Val}{}$.
+  % 
+  We present the proof tree for each of the XQuery core expressions in the~$\onl{\envElem{Q}{}}$ rewriting where, in
+  each proof tree, \grammarRule{Expr} corresponds to the XQuery expressions of the following lines.
+  % 
+  \begin{description}
+    % 
+  \item[\LET expression of line (1).] For this rule let~$\Vars = \gsup{\Vars}{in} \cup \left( \gsup{\Vars}{out} \cap
+      \vars{\gsup{\SparqlWhereClause}{in}} \right)$ be the set of variables from the inner \SparqlForClause and any
+    variables from the outer \SparqlForClause used in the inner \SparqlWhereClause. Thus, we have that:
+
+    \begin{prooftreefunction}
+      \AxiomC{$\begin{array}{r@{\hspace{-1pt}}l}
+          \dyn &~\proofs \funcCallR{sparqlCall}{
+            \begin{array}{l}
+              \SELECT~\Vars~\gsup{\DatasetClause}{in}\\
+              \gsup{\SparqlWhereClause}{in}~\gsup{\SolutionModifier}{in}
+            \end{array}
+          }~\Rightarrow \omg{nl}{in}
+        \end{array}$}
+      
+      \UnaryInfC{$\dynEnvX{1}{nl}{\grammarRule{Expr}} \Rightarrow \envElem{Res}{}$}
+      
+      \UnaryInfC{$\dynEnv{\begin{array}{l}
+            \LET~\varR{res\mathunderscore{}in}~:=~\funcCallR{sparqlCall}{
+              \begin{array}{l}
+                \SELECT~\Vars~\gsup{\DatasetClause}{in}\\
+                \gsup{\SparqlWhereClause}{in}~\gsup{\SolutionModifier}{in}
+              \end{array}\!} \\ 
+            \quad \RETURN~\grammarRule{Expr}
+          \end{array} \Rightarrow \envElem{Res}{}}$}
+      
+    \end{prooftreefunction}%
+    where 
+    \begin{tree}
+      \dynX{1}{nl} = \dyn \envExtend{varValue}{\varNameR{res\mathunderscore{}in} \Rightarrow \omg{nl}{in}} \enspace .
+      \label{tree:dynEvn2}
+    \end{tree}%
+    % 
+
+  \item[\LET expression of line (2):]~
+
+    \begin{prooftreefunction}
+      \AxiomC{$\dynEnvX{1}{nl}{\funcCallR{sparqlCall}{
+            \begin{array}{l}
+              \SELECT~\gsup{\Vars}{out}~\gsup{\DatasetClause}{out} \\
+              \gsup{\SparqlWhereClause}{out}~\gsup{\SolutionModifier}{out}
+            \end{array}}}~\Rightarrow \omg{nl}{out}~$}
+
+      \UnaryInfC{$\dynEnvX{2}{nl}{\grammarRule{Expr}} \Rightarrow \envElem{Res}{}$}
+
+      \UnaryInfC{$\dynEnvX{1}{nl}{\begin{array}{l}
+            \keyword{let}~\varR{res\mathunderscore{}out}~:=\\
+            \qquad\funcCallR{sparqlCall}{
+              \begin{array}{l}
+                \SELECT~\gsup{\Vars}{out}~\gsup{\DatasetClause}{out} \\
+                \gsup{\SparqlWhereClause}{out}~\gsup{\SolutionModifier}{out}
+              \end{array}} \\
+            \quad \RETURN~\grammarRule{Expr}
+          \end{array}}~ \Rightarrow \envElem{Res}{}$}
+    \end{prooftreefunction}%
+    %
+    where 
+    % 
+    \begin{small}
+      $\dynX{2}{nl} = \dynX{1}{nl} \envExtend{varValue}{\varNameR{res\mathunderscore{}out} \Rightarrow \omg{nl}{out}}
+      \enspace .$
+    \end{small}%    
+    
+
+  \item[\FOR expression of line (3):]~
+
+    \begin{prooftreefunction}
+
+      \AxiomC{$\dynEnvX{2}{nl}{\varR{res\mathunderscore{}out//sr{:}result}} \Rightarrow \sm{i}{out}$}
+      \UnaryInfC{$\dynEnvX{3}{nl}{\grammarRule{Expr}} \Rightarrow \envElem{Res}{i}$}
+
+      \AxiomC{$\Ddots$}
+      
+      \BinaryInfC{$\dynEnvX{2}{nl}{
+          \begin{array}{l}
+            \FOR~\varR{rout}~\AT~\varR{posvar\mathunderscore{}out}\\
+            \quad\IN~\varR{res\mathunderscore{}out//sr{:}result}\\
+            \RETURN~\grammarRule{Expr}
+          \end{array} \Rightarrow \envElem{Res}{1},\dotsb,\envElem{Res}{n}}$}
+      
+    \end{prooftreefunction}%
+    %
+    where 
+    \begin{small}
+      $\dynX{3}{nl} = \dynX{2}{nl} \envExtend{varValue}{\begin{array}{l}
+          \varNameR{rout} \Rightarrow \sm{i}{out};\\
+          \varNameR{posvar\mathunderscore{}out} \Rightarrow i
+        \end{array}
+      } \enspace .$
+    \end{small}%
+
+
+  \item[\LET expressions of line (4).] Here we consider all the \LET expressions represented by line~(4), where~$\var{v}
+    \in \gsup{\Vars}{out}$:
+
+    \begin{prooftreefunction}
+      \AxiomC{$\dynEnvX{3}{nl}{\varR{rout/sr{:}binding[@name = \varName{v}]/*}} \Rightarrow \envElem{V}{}$}
+
+      \UnaryInfC{$\dynEnvX{4}{nl}{\grammarRule{Expr}} \Rightarrow \envElem{Res}{}$}
+
+      \UnaryInfC{$\dynEnvX{3}{nl}{\begin{array}{l}
+            \LET~\var{v} :=~\varR{rout/sr{:}binding[@name = \varName{v}]/*} \\
+            \RETURN~\grammarRule{Expr}
+          \end{array} \Rightarrow \envElem{Res}{}}$}
+
+    \end{prooftreefunction}%
+    %
+    where 
+    \begin{small}
+      $\dynX{4}{nl} = \dynX{3}{nl}\envExtend{varValue}{\mathit{v} \Rightarrow V} \enspace .$
+    \end{small}%
+    
+  \item[\FOR expression of line (5):]~
+
+    \begin{prooftreefunction}
+
+      \AxiomC{$\dynEnvX{4}{nl}{\varR{res\mathunderscore{}in//sr{:}result}} \Rightarrow \sm{j}{out}$}
+      \UnaryInfC{$\dynEnvX{5}{nl}{\grammarRule{Expr}} \Rightarrow \envElem{Res}{j}$}
+
+      \AxiomC{$\Ddots$}
+
+      \BinaryInfC{$\dynEnvX{4}{nl}{
+          \begin{array}{l}
+            \FOR~\varR{rin}~\AT~\varR{posvar\mathunderscore{}in}\\
+            \IN~\varR{res\mathunderscore{}in//sr{:}result}\\
+            \RETURN~\grammarRule{Expr}
+          \end{array} \Rightarrow \envElem{Res}{1},\dotsb,\envElem{Res}{n}}$}
+      
+    \end{prooftreefunction}%
+    %
+    where 
+    \begin{small}
+      %
+      $\dynX{5}{nl} = \dynX{4}{nl} \envExtend{varValue}{\begin{array}{l}
+          \varNameR{rin} \Rightarrow \sm{j}{out};\\
+          \varNameR{posvar\mathunderscore{}in} \Rightarrow j
+        \end{array}
+      }\enspace .$
+      % 
+    \end{small}%
+    
+  \item[\IF expression of lines (6)--(9).] In this rule,~\grammarRule{Expr} represents the \LET expressions from lines
+    (7)--(8):
+
+    \begin{prooftreefunction}
+      \AxiomC{$\dynEnvX{5}{nl}{\funcCall{join_{sr}}{\begin{array}{l}
+              \gsup{\Vars}{out} \cap \vars{\SparqlWhereClause},\\
+              \varR{res\mathunderscore{}out}, \varR{res\mathunderscore{}in}
+            \end{array}
+          }} \Rightarrow \mathtt{true}$}
+      \UnaryInfC{$\dynEnvX{5}{nl}{\ExprSingle} \Rightarrow \envElem{Res}{1}$}
+
+      \UnaryInfC{$\dynEnvX{5}{nl}{
+          \begin{array}{l}
+            \IF~\left(\funcCall{join_{sr}}{
+                \begin{array}{l}
+                  \gsup{\Vars}{out} \cap \vars{\SparqlWhereClause},\\
+                  \varR{res\mathunderscore{}out}, \varR{res\mathunderscore{}in}
+                \end{array}
+              }\right)\\
+            \THEN~\grammarRule{Expr}~\ELSE~()
+          \end{array}  \Rightarrow \envElem{Res}{1}}$}
+      
+    \end{prooftreefunction}%
+
+    \pagebreak[3]
+  \item[\LET expressions of lines (7)--(8).] Again, we consider all the \LET expressions represented by line~(7),
+    where~$\var{v} \in \gsup{\Vars}{out} \triangle \vars{\gsup{\SparqlWhereClause}{in}}$:
+
+    \begin{prooftreefunction}
+      \AxiomC{$\dynEnvX{5}{nl}{\varR{res\mathunderscore{}in/sr{:}binding[@name = \varName{v}]/*}} \Rightarrow \envElem{V}{}$}
+
+      \UnaryInfC{$\dynEnvX{6}{nl}{\grammarRule{ExprSingle}} \Rightarrow \envElem{Res}{}$}
+
+      \UnaryInfC{$\dynEnvX{5}{nl}{\begin{array}{l}
+            \keyword{let}~\var{v} :=~\varR{res\mathunderscore{}in/sr{:}binding[@name = \varName{v}]/*}\\
+            \ReturnExpr
+          \end{array} \Rightarrow \envElem{Res}{}}$}
+    \end{prooftreefunction}%
+    %
+    where 
+    \begin{small}
+      %
+      $\dynX{6}{nl} = \dynX{5}{nl}\envExtend{varValue}{\mathit{v} \Rightarrow \envElem{V}{}} \enspace .$
+      %
+    \end{small}%
+  \end{description}
+
+  Consider~$\omg{xs}{out}$ and~$\omg{xs}{in}$ the solution sequences returned by the evaluation of the outer and inner
+  \SparqlForClause{s} of~$\envElem{Q}{}$, respectively, and the set of join variables~$J = \gsup{\Vars}{out} \cap
+  \vars{\gsup{\SparqlWhereClause}{in}}$.
+  %
+  Furthermore consider~$\sm{xs}{out} \in \omg{xs}{out}$ and~$\sm{xs}{in} \in \omg{xs}{in}$ the solution mappings that
+  agree on the value of each join variable~$j \in J$ from where \envElem{Val}{} is generated, \ie~there exists some
+  dynamic environment \dynX{i}{xs} based on \dyn and extended with the variable mappings from \sm{xs}{out} and
+  \sm{xs}{in} such that \dynEnvX{i}{xs}{\ExprSingle \Rightarrow \envElem{Val}{}}.
+
+
+  \paragraph*{Outer \SparqlForClause:} Regarding the \SparqlForClause of lines~(1)--(2) of~$\envElem{Q}{}$ (evaluated
+  considering~$\dyn$), the~$\onl{\envElem{Q}{}}$ translates it into the~$\funcNameR{sparqlCall}$ from line~(2), which is
+  evaluated over~$\dynX{1}{nl}$.
+  %
+  Consider~$C_1$ the expression context where~$\dynX{1}{nl}$ is included,~$\mu_{C_1}$ the XSPARQL instance mapping
+  of~$C_1$ and~$\e{P}{}{out} = \fc{\mu_{C_1}}{\gsup{\SparqlWhereClause}{out}}$ the graph pattern obtained from replacing
+  the variables in~$\gsup{\SparqlWhereClause}{out}$ according to~$\mu_{C_1}$.
+  % 
+  From~\eqref{tree:dynEvn2} we can see that~$\funcCall{dom}{\mu_{C_1}} = \dom{\mu_{C}} \cup
+  \set{\varR{res\mathunderscore{}in}}$ but~$\varR{res\mathunderscore{}in}$ belongs to the~$\varR{}$ reserved namespace
+  so it cannot be included in the variables of $\gsup{\SparqlWhereClause}{out}$ and we can observe that we obtain the
+  same graph pattern~$\e{P}{}{out}$ by replacing~$\gsup{\SparqlWhereClause}{out}$ according to~$\mu_C$,
+  \ie~$\e{P}{}{out} = \fc{\mu_{C_1}}{\gsup{\SparqlWhereClause}{out}} = \fc{\mu_{C}}{\gsup{\SparqlWhereClause}{out}}$.
+  %
+  Furthermore, let~$\omg{xs}{out} = \evalXS{\gsup{\DatasetClause}{out}}{\gsup{\SparqlWhereClause}{out}}{\mu_C}$ be the solution
+  sequence resulting from evaluating the outer \SparqlForClause according to XSPARQL semantics and~$\omg{nl}{out} =
+  \evalS{\gsup{\DatasetClause}{out}}{\gsup{P}{out}}$ be the pattern solution resulting from evaluating the rewritten
+  outer \SparqlForClause according to SPARQL semantics.
+  % 
+  Following \cref{lem:replacement-equivalence}, we have that~$\omg{xs}{out} = \omg{nl}{out} \bowtie \set{\mu_C}$
+  and, as we have seen from the proof of \cref{prop:sparqlCall}, since~$\mu_C$ is already included in~$\dyn$,
+  we have that~$\omg{xs}{out} = \omg{nl}{out}$.
+
+
+  \paragraph*{Inner \SparqlForClause:} The inner \SparqlForClause from lines~(3)--(4) of \envElem{Q}{} is evaluated
+  considering some dynamic environment \dynX{i}{xs} (with expression context~$C_i$).
+  %
+  On the other hand, the~\onl{\envElem{Q}{}} translates this inner expression into the \funcNameR{sparqlCall} of
+  line~(1), which is evaluated over the dynamic environment~$\dyn$ (with expression context~$C$).
+  % 
+  Consider~$\mu_C$ the XSPARQL instance mapping of~$C$ and~$\mu_{C_i}$ the XSPARQL instance mapping of~$C_i$.
+  %
+  Since \dynX{i}{xs} is an extension of \dyn we have that~$\dom{\mu_C} \subseteq \dom{\mu_{C_i}}$.
+  % 
+  Let~$\omg{xs}{in} = \evalXS{\gsup{\DatasetClause}{in}}{\gsup{\SparqlWhereClause}{in}}{\mu_{C_i}}$ be the solution
+  sequence resulting from the evaluation of the inner \SparqlForClause of \envElem{Q}{} and the solution sequence
+  resulting from the evaluation of the~$\funcNameR{sparqlCall}$ function be~$\omg{nl}{in} =
+  \evalS{\gsup{\DatasetClause}{in}}{\gsup{P}{in}}$, where~$\gsup{P}{in} = \fc{\mu_C}{P}$ is the graph pattern obtained
+  from replacing the variables in~$\gsup{\SparqlWhereClause}{in}$ according to~$\mu_C$.
+  % 
+  As~$\dom{\mu_C} \subseteq \dom{\mu_{C_i}}$, \ie~$\mu_C$ contains less bindings for variables than~$\mu_{C_i}$, the
+  rewritten graph pattern~$\envElem{P}{in}$ contains more variables and we get that~$\omg{xs}{in} \preceq \omg{nl}{in}$.
+
+  \medskip
+
+  Since we know that~$\omg{nl}{out} = \omg{xs}{out}$ and~$\omg{xs}{in} \preceq \omg{nl}{in}$, we obtain that~$\sm{xs}{out}
+  \in \omg{nl}{out}$ and~$\sm{xs}{in} \in \omg{nl}{in}$.  Since~$\onl{\envElem{Q}{}}$ performs a nested-loop
+  iteration over~$\omg{nl}{out}$ and~$\omg{nl}{in}$, the~$\funcName{join_{sr}}$ function will  join the two solution
+  mappings successfully since~$\sm{xs}{out}$ and~$\sm{xs}{in}$ share the same values for the join variables, and
+  thus we have that~$\dynEnv \onl{\envElem{Q}{}} \Rightarrow \envElem{Val}{}$.
+
+
+  \medskip \noindent ($\Leftarrow$)
+  %
+  We now proceed by showing that if~$\dynEnv \onl{\envElem{Q}{}} \Rightarrow \envElem{Val}{}$ then~$\dynEnv \envElem{Q}{}
+  \Rightarrow \envElem{Val}{}$.
+  %
+  \noindent Let us turn to the evaluation of~$\dynEnv \envElem{Q}{} \Rightarrow \envElem{Val}{}$. 
+  \begin{description}
+  \item[\SparqlForClause from lines (1)--(2).] Considering that \grammarRule{Expr} corresponds to the \SparqlForClause
+    from lines~(3)--(4) of~\envElem{Q}{}, the evaluation of this \SparqlForClause consists of the application of
+    Rule~\eqref{eq:sparqlForClause}:
+
+    \begin{prooftreefunction}
+      \AxiomC{$\dyn.\ecomp{globalPosition} = \seq{ \envElem{Pos}{1}, \cdots, \envElem{Pos}{m} } $}
+      \UnaryInfC{$\dynEnv{
+          \funcCall{fs{:}dataset}{\gsup{\DatasetClause}{out}}
+          \Rightarrow \gsup{DS}{out}
+        }$}
+      \UnaryInfC{$\dynEnv{
+          \funcCall{fs{:}sparql}{
+            \begin{array}{l}
+              \gsup{DS}{out},~\SparqlWhereClause, \\ 
+              \SolutionModifier 
+            \end{array}}
+          \Rightarrow \sm{i}{}}$}
+      \UnaryInfC{$\dynX{1}{xs} \proofs \grammarRule{Expr} \Rightarrow \envElem{Value}{i}$}
+
+      \AxiomC{$\Ddots$}
+
+      \BinaryInfC{$\dynEnv{\begin{array}{l}
+            \FOR~\gsup{\Vars}{out}~\gsup{\DatasetClause}{out}\\
+            \gsup{\SparqlWhereClause}{out}~\gsup{\SolutionModifier}{out}\\
+            \RETURN~\grammarRule{Expr}
+          \end{array} \Rightarrow \envElem{Value}{1}, \dotsb, \envElem{Value}{m}}$}
+
+    \end{prooftreefunction}%
+    % 
+    with~$\gsup{\Vars}{out} = \e{\var{\!Var}}{\!1}{out}\dotsb\e{\var{\!Var}}{n}{out}$, we have for each~$\sm{i}{}$
+    \begin{tree}
+      $\dynX{1}{xs} = \begin{array}{l}
+        \dyn \envExtend{activeDataset}{\gsup{DS}{out}}\envExtend{globalPosition}{\seq{ \envElem{Pos}{1}, \cdots, \envElem{Pos}{m}, i }}\\
+        \envExtend{varValue}{\begin{array}{l}
+            \e{Var}{1}{out} \Rightarrow \funcCall{fs{:}value}{\sm{i}{}, \e{Var}{1}{out}}; \\
+            \dotsc;\\
+            \e{Var}{n}{out} \Rightarrow \funcCall{fs{:}value}{\sm{i}{}, \e{Var}{n}{out}}
+          \end{array}
+          }
+      \end{array}  \enspace~$
+      \label{proof:dynenv_i}
+    \end{tree}
+    
+  \item[\SparqlForClause of lines (3)--(4).] The evaluation of~$\dynX{1}{xs}$~$\proofs \grammarRule{Expr} \Rightarrow
+    \envElem{Value}{i}$ is given by:
+
+    \begin{prooftreefunction}
+      % 
+      \AxiomC{$\dyn.\ecomp{globalPosition} = \seq{ \envElem{Pos}{1}, \cdots, \envElem{Pos}{m} } $}
+      \UnaryInfC{$ \dynEnvX{1}{xs}{
+          \funcCall{fs{:}dataset}{\gsup{\DatasetClause}{in}} 
+          \Rightarrow \gsup{DS}{in}
+        }$}
+      \UnaryInfC{$\dynEnvX{1}{xs}{
+          \funcCall{fs{:}sparql}{\!\!\begin{array}{l}
+              \gsup{DS}{in}, \gsup{\SparqlWhereClause}{in}, \\
+              \gsup{SolutionModifier}{in}
+            \end{array}\!\!}
+          \Rightarrow \sm{j}{}}$}
+      \UnaryInfC{$\dynEnvX{2}{xs}{ \ExprSingle \Rightarrow \envElem{Value}{j}}$}
+
+      \AxiomC{$\Ddots$}
+
+      \BinaryInfC{$\dynEnvX{1}{xs}{\begin{array}{l}
+            \FOR~\gsup{\Vars}{in}~\gsup{\DatasetClause}{in}\\
+            \gsup{\SparqlWhereClause}{in}~\gsup{\mathit{SolutionModifier}}{in}\\
+            \RETURN~\ExprSingle
+          \end{array} \Rightarrow \envElem{Value}{1} \dotsb \envElem{Value}{m}}$}
+    \end{prooftreefunction}%
+    % 
+    where, considering~$\gsup{\Vars}{in} = \e{\var{Var}}{1}{in}\dots\e{\var{Var}}{n}{in}$, we have for each~$\sm{j}{}$
+    \begin{small}
+      \begin{equation*}
+        \ \ \dynX{2}{xs} = \begin{array}{l}
+          \dynX{1}{xs} \envExtend{activeDataset}{\gsup{DS}{in}}\envExtend{globalPosition}{\seq{ \envElem{Pos}{1}, \cdots, \envElem{Pos}{m}, j }}\\
+          \envExtend{varValue}{\!\begin{array}{l}
+              \e{Var}{1}{in} \Rightarrow \funcCall{fs{:}value}{\sm{j}{}, \e{Var}{1}{in}}; \\
+              \dotsb;\\
+              \e{Var}{n}{in} \Rightarrow \funcCall{fs{:}value}{\sm{j}{},\e{Var}{n}{in}}
+            \end{array}\!\!} \enspace .
+        \end{array}
+      \end{equation*}
+    \end{small}%
+  \end{description}
+  % 
+  Let~$\omg{nl}{out}$ and~$\omg{nl}{in}$ be the pattern solutions returned by the outer and inner \SparqlForClause{s},
+  respectively, and let~$\sm{nl}{out} \in \omg{nl}{out}$ and~$\sm{nl}{in} \in \omg{nl}{in}$ be the solution mappings.
+  Without loss of generality we can assume these are the solution mappings from where~$\envElem{Val}{}$ is deduced,
+  \ie~\sm{nl}{out} and~\sm{nl}{in} are compatible.
+  %
+  We also know that there exists a dynamic environment \dynX{}{nl}, based on \dyn and extended with the variable
+  mappings~$\sm{nl}{out}$ and~$\sm{nl}{in}$ such that~$\dynEnvX{}{nl}{\ExprSingle \Rightarrow \envElem{Val}{}}$.
+  
+  As we know from the ($\Rightarrow$) direction of the proof,~$\omg{nl}{out} = \omg{xs}{out}$ and so we have
+  that~$\sm{nl}{out} \in \omg{xs}{out}$.  Regarding the evaluation of the inner \SparqlForClause we also know
+  that~$\omg{xs}{in} \preceq \omg{nl}{in}$ and as such, we must consider two cases:
+  \begin{inparaenum}[(i)]
+  \item\label{en:inxsin}~$\sm{nl}{in} \in \omg{xs}{in}$ or
+  \item\label{en:notinxsin}~$\sm{nl}{in} \not\in \omg{xs}{in}$.
+  \end{inparaenum}
+  % 
+  From~\eqref{en:inxsin}, we immediately get the desired result that~$\dynEnv \envElem{Q}{} \Rightarrow
+  \envElem{Val}{}$.
+  % 
+  For~\eqref{en:notinxsin}, we know from~\eqref{proof:dynenv_i} that the inner \SparqlForClause is executed over
+  \dynX{1}{xs} (and the respective XSPARQL instance mapping \sm{C_1}{xs}), which include the bindings for variables from
+  each solution mapping~$\sm{i}{} \in \omg{xs}{out}$.
+  %
+  Thus, according to the XSPARQL \ac{BGP} matching (\cf~\cref{def:xsparql-bgp-matching}), \omg{xs}{in} will
+  contain all the solution mappings that are compatible with any solution mapping~$\sm{i}{} \in \omg{xs}{out}$ and,
+  since~$\sm{nl}{out} \in \omg{xs}{out}$, specifically those compatible with \sm{nl}{out}.  
+  %
+  However, we know that \sm{nl}{in} is compatible with \sm{nl}{out} and thus we have that \sm{nl}{in} must also belong
+  to \omg{xs}{in} and we can deduce that~$\dynEnv \envElem{Q}{} \Rightarrow \envElem{Val}{}$.
+
+  \paragraph*{Inductive Step.}
+  % 
+  The proof follows from the recursive application of the base case, over a new dynamic environment determined by the
+  \funcName{opt_{nl}} rewriting to $\dynEnvX{i}{}{\onl{\ExprSingle}}$.
+  % 
+
+  \medskip
+
+  The proof for nested queries with an XQuery \FOR outer expression~\eqref{eq:expr_sdep_xquery} is analogous where, in
+  the preceding, the evaluation of the \SparqlForClause from lines~(1)--(2) of~\eqref{eq:expr_sdep} is replaced by the
+  evaluation of an XQuery \ForClause, as presented by~\cite[Section~4.8.2]{DraperFankhauserFernandez:2010aa}.
+  %
+\end{proof}
+
+
+%%% Local Variables:
+%%% fill-column: 120
+%%% TeX-master: "../thesis" 
+%%% TeX-PDF-mode: t
+%%% TeX-debug-bad-boxes: t
+%%% TeX-parse-self: t
+%%% TeX-auto-save: t
+%%% reftex-plug-into-AUCTeX: t
+%%% End:

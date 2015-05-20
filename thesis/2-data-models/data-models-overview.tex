@@ -1,0 +1,116 @@
+
+\section{Comparison of the Data Models}
+\label{sec:overview-data-models}
+%
+\begin{table} [t]
+\centering
+\caption{Feature overview of data models}
+\label{fig:data-models-overview}
+\begin{tabular}{rcccc}
+\toprule
+                         & RDB        &   \acs{XML}     & \acs{JSON}     & \acs{RDF} \\
+\midrule
+\multicolumn{1}{l}{\bf Model:}  & & & & \\
+logical structure         & relations  &  tree           &  tree          & graph    \\
+ordered                   & \no        &  \yes           &  \kindof       & \no      \\
+schema validation         & \yes       &  \yes           &  \no           & \no      \\
+inference                 & \no        &  \no            &  \no           & \yes     \\
+\tabularnewline
+\multicolumn{1}{l}{\bf Languages:}  & & & & \\
+query                     & \yes       &  \yes           &  \no           & \yes     \\
+data manipulation         & \yes       &  \yes            &  \no           & \no      \\
+schema manipulation       & \yes       &  \no            &  \no           & \no      \\
+\bottomrule
+\end{tabular}
+\end{table}
+%
+We present a brief comparison of the data models in \cref{fig:data-models-overview}, focusing on features of the
+data model and existing query languages.\footnote{In this table we are using the term RDB as a shorthand for the
+  relational model.}
+%
+The features of the data model we considered were the logical structure it uses to represent data, whether the model is
+an intrinsically ordered data model, and if it provides means, possibly external, of performing schema validation.
+%
+Inference capabilities allow to deduce new data based on existing one by specifying structural and representational
+properties.
+%
+Regarding the languages, we represent the existence of languages for querying data contained in the respective model, as
+well as manipulation languages for both data and schema.  Such languages can be used, for example, for inserting and
+updating data or changing the representation structure of data.
+%
+
+
+\paragraph*{The Relational Model.}
+%
+As we have discussed in \cref{cha:introduction}, the relational model is used to store information for many
+software applications.  A relational database consists of a set of relations (also commonly known as tables), and data
+for each table is called a record.
+%
+As the data model overview presented in \cref{fig:data-models-overview} shows, the relational model is the most
+mature, having stable query and manipulation languages.
+%
+
+\paragraph*{XML.}
+With the uptake of the \ac{WWW}, more flexible data models were introduced, such as \ac{XML}.
+%
+Also Web pages are described using the \ac{HTML} language, a syntax that although similar to \ac{XML} is mostly focused
+on rendering the contents in a \emph{web browser}.
+%
+\ac{XML} is more concerned with describing the data it contains while rendering \acs{XSLT} transformation language.
+% 
+\ac{XML} is a tree-based, ordered data representation format that imposes no restrictions on its element and attribute
+names, nor on the nesting structure.
+%
+The \ac{XML} query and transformation languages were presented in \cref{sec:prelim-xquery}, mostly focusing on the
+XQuery language.  A recommendation for an XQuery Update language was also presented
+by~\citet{RobieChamberlinDyck:2011aa}.
+
+\paragraph*{JSON.}
+%
+\cref{sec:json} presented another tree-based representation format, \ac{JSON}, that has recently gained traction and
+uptake on the Web due to its easy integration with the JavaScript language, which is supported by all modern web
+browsers.
+%
+\acs{JSON} is mostly regarded as an interchange format, notably lacking the specifications of any type of query language
+and schema validation.  The \ac{JSON} data model is also tree-based and it distinguishes different structures
+(\emph{objects} and \emph{arrays}), where objects consist of unordered sets, while arrays represent an ordered sequence
+of elements.
+
+
+\paragraph*{RDF.}
+%
+The advance of the traditional, human-readable Web into a machine-readable \emph{Semantic
+  Web}~\cite{LeeHendlerLassila:2001aa} introduces a new data model: \ac{RDF}.
+%
+\ac{RDF} is a graph-based data model and, as discussed in \cref{sec:model-integr-data}, is suitable for representing
+integrated data.
+%
+One main difference between \ac{RDF} and the other data models relates to its capabilities for deducing new data, based
+on a specialised vocabulary called \acl{RDFS}.  \ac{RDFS}, as opposed to XML Schema, does not behave as a form of data
+validation but rather as a form of deducing new data.
+%
+Although the new SPARQL~1.1 query language includes the specification of an update
+language~\cite{GearonPassantPolleres:2012aa}, this is still not a finalised \ac{W3C} standard so we chose to omit it
+from \cref{fig:data-models-overview}.
+%
+Possible forms of validating \ac{RDF} data, even though no recommendation exists, may involve
+\begin{enumerate*}[label=(\roman*)]
+\item using the SPARQL query language (presented in \cref{sec:sparql-preliminaries}) for determining if any triples
+  do not match the constraints;
+\item SPIN~\cite{KnublauchHendlerIdehen:2011aa} is a vocabulary that also allows to specify constraints for \ac{RDF}
+  data; or
+\item by using extensions of \ac{OWL} towards integrity constraints, \eg~\citet{TaoSirinBao:2010aa}.
+\end{enumerate*}
+%
+In this thesis we focus primarily on the \ac{RDF} data model; however, several other graph-based database models exist
+and a survey is presented by~\citet{AnglesGutierrez:2008ab}.
+%
+
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% mode: flyspell
+%%% mode: reftex
+%%% TeX-master: "../thesis"
+%%% End:

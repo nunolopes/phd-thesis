@@ -1,0 +1,16 @@
+<jsonObject>
+  <bands>
+    <Nightwish>
+      <albums>
+        <Wishmaster>
+          <arrayElement>Wishmaster</arrayElement>
+          <arrayElement>FantasMic</arrayElement>
+        </Wishmaster>
+      </albums>
+      <members>
+        <arrayElement>Tuomas Holopainen</arrayElement>
+        <arrayElement>Tarja Turunen</arrayElement>
+      </members>
+    </Nightwish>
+  </bands>
+</jsonObject>

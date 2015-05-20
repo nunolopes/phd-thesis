@@ -1,0 +1,30 @@
+declare namespace rdf = "http://www.w3.org/1999/02/22-rdf-syntax-ns#" ;
+declare namespace foaf = "http://xmlns.com/foaf/0.1/" ;
+declare namespace mo = "http://purl.org/ontology/mo/" ;
+declare namespace dc = "http://purl.org/dc/elements/1.1/" ;
+
+(
+  for band.bandId as $bandID, band.bandName as $bandName                  (:@\label{qr:xsparql-db-band-start}@:)
+  from band
+  construct { _:b{$bandID} a mo:MusicGroup ; foaf:name {$bandName} },           (:@\label{qr:xsparql-db-band-end}@:)
+
+  for person.personId as $memberID, person.personName as $memberName, person.bandId as $bandID                 (:@\label{qr:xsparql-db-person-start}@:)
+  from person
+  construct { _:m{$memberID} a mo:MusicArtist; foaf:name {$memberName} . 
+              _:b{$bandID} foaf:member _:m{$memberID}
+            },                                                            (:@\label{qr:xsparql-db-person-end}@:)
+
+  for album.albumId as $albumID, album.albumName as $albumName, album.bandId as $bandID             (:@\label{qr:xsparql-db-album-start}@:)
+  from album
+  construct { _:a{$albumID} a mo:Record;  mo:title {$albumName};
+                            foaf:maker _:b{$bandID} . 
+            },                                                            (:@\label{qr:xsparql-db-album-end}@:)
+
+  for song.songId as $songID, song.songName as $songName, song.albumId as $albumID           (:@\label{qr:xsparql-db-song-start}@:)
+  from song
+  construct { _:s{$songID} a mo:Track; dc:title {$songName} .
+              _:a{$albumID} mo:track _:s{$songID}
+             }                                                                               (:@\label{qr:xsparql-db-song-end}@:)
+ )
+
+

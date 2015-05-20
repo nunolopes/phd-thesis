@@ -1,0 +1,5 @@
+<http://example.com/band/1> <http://xmlns.com/foaf/0.1/name> "Nightwish" .
+<http://example.com/band/1> <http://xmlns.com/foaf/0.1/member> <http://example.com/person/2> .
+<http://example.com/band/1> <http://xmlns.com/foaf/0.1/member> <http://example.com/person/1> .
+<http://example.com/person/2> <http://xmlns.com/foaf/0.1/name> "Tarja Turunen" .
+<http://example.com/person/1> <http://xmlns.com/foaf/0.1/name> "Marco Hietala" .

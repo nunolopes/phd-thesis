@@ -1,0 +1,206 @@
+\subsubsection{Querying Relational Data}
+\label{sec:extending-sql}
+
+
+In order to reuse the semantics of \ac{SQL} for defining the semantics of XSPARQL \SQLForClause{s} we transform the
+\ecomp{varValue} component of the dynamic environment in which the \SQLForClause is executed into a relation (which we
+call the \emph{XSPARQL instance relation}).
+%
+The following definition presents this translation:
+%
+\begin{definition}[XSPARQL instance relation]
+  \label{def:xml2sqlterm}
+  Let the set of relation names (\AR) be defined as in \cref{sec:relational-model}, and let~$C$ be an expression
+  context.
+  %
+  The \emph{XSPARQL instance relation} of~$C$ is a relation instance named \lit{$xir_C$}, where $xir_C$ is a reserved
+  relation name, \ie~$xir_C \not\in \AR$, and~$\funcCall{sort}{xir_C} = \dom{\funcCall{\dyn}{C}.\ecomp{varValue}}$.
+  %
+  For each mapping~$v_{i} \rightarrow x_{i} \in \funcCall{\dyn}{C}.\ecomp{varValue}$, the value of~$xir_C$ for
+  attribute~$v_i$, denoted~$\funcCall{xir_C}{v_{i}}$, is defined as:
+  %
+  \begin{itemize}[noitemsep]
+  \item if~$x_{i} = \seq{}$ is an empty sequence then~$\funcCall{xir_C}{x_{i}} = \NULL$;
+  \item if~$x_{i} = \seq{e_{1}, \dotsc, e_{n}}$ is a sequence, then~$\funcCall{xir_C}{x_{i}} =
+    \funcCall{fn{:}concat}{\funcCall{SQLTerm_C}{e_{1}}, \dotsb, \funcCall{SQLTerm_C}{e_{n}}}$.\footnote{Since the values
+      of any relation attribute must be atomic, in the case of a variable being assigned to an XQuery sequence we assume
+      the concatenation of each element of the sequence.}
+    %
+  \end{itemize}
+  %
+   For a \synt{SQLWhereClause}~$S$, we call the XSPARQL instance relation of the expression context in which~$S$ is
+  executed the \emph{XSPARQL instance relation of~$S$}.
+\end{definition}
+%
+
+%
+Another necessary step to enable the reuse of \ac{SQL} evaluation semantics is to convert our extended syntax (that
+allows for \var{}-prefixed variable names) into valid \ac{SQL} syntax: each \synt{WhereSpec} in a \SQLForClause that
+contains an XSPARQL variable is removed from the normalised \ac{SQL} query (by replacing it with \lit{true}) and is
+stored for a later evaluation by the XSPARQL semantics.  For this we rely on the following normalisation function:
+%
+\begin{definition}[\ac{SQL} Representation of \synt{SQLWhereClauses}]
+  %
+  \label{def:normalisation-where}
+  %
+  Let~$S = \lit{where}~\synt{WhereSpecList}$ be a \synt{SQLWhereClause}.  The normalisation of~$S$,
+  $\funcCall{normaliseSQL}{S} = \lit{where}~\funcCall{normaliseSQL}{\synt{WhereSpecList}}$, where
+  \funcCall{normaliseSQL}{\synt{WhereSpecList}} is defined as:
+  % 
+  \begin{itemize}
+  \item if \synt{WhereSpecList} is of form~$\lit{(}\ \synt{WhereSpecList}_{1}\ \synt{Op}\ \synt{WhereSpecList}_2\
+    \lit{)}$ then
+    %
+    \[
+    \lit{(}\ \funcCall{normaliseSQL}{\synt{WhereSpecList}_1}\ \synt{Op}\ \funcCall{normaliseSQL}{\synt{WhereSpecList}_2}\ \lit{)}
+    \]
+  \item if~\synt{WhereSpecList} is of form~$Attr_1~\synt{Op}~Attr_2$ then~$\funcCall{normaliseSQL}{Attr_1~Op~Attr_2}$
+    is:
+    \[
+    \begin{dcases*}
+      \lit{true}        & if~$Attr_1$  or~$Attr_2$ is an XSPARQL variable \\
+      Attr_1~Op~Attr_2  & otherwise.
+    \end{dcases*}
+    \]
+  \end{itemize}
+  %
+  Furthermore we denote the set of \synt{WhereSpec} of~$S$ in which an attribute is an XSPARQL variable as
+  \funcCall{whereSpecVars}{S}.
+  % 
+\end{definition}
+%
+\noindent
+%
+The normalisation of complete \SQLForClause{s} consists also of the normalisation of the syntactical elements
+\synt{AttrSpecList} and \synt{TableSelector} presented in \cref{sec:syntax-rdb}.
+%
+In the normalisation of~\synt{AttrSpecList} we remove any existing \synt{AttrNameSpec} component, since they reflect
+only the name of the corresponding XSPARQL variable.
+%
+However, the normalisation of the \synt{TableSelector} can only be performed during the dynamic evaluation of the
+XSPARQL query since any variables present in the \synt{TableSelector} must be evaluated to determine the corresponding
+relation name.
+%
+With the restriction of performing the substitution at evaluation time, we can reuse the standard translation of a
+\ac{SQL} query into relational algebra as presented in \cref{sec:sql-semantics}.
+
+Next we present how XSPARQL combines the results of a \ac{SQL} query with an XSPARQL instance mapping.
+%
+For this we rely on the standard relational selection~($\sigma$) and cross-product~($\times$) algebra operators
+presented in \cref{sec:querying-rdb} and on the~$xir_C$ relation instance from \cref{def:xml2sqlterm}.
+%
+Firstly, we present the construction of the relational algebra select expression that, based on the provided
+\SQLForClause~$S$ and the XSPARQL instance mapping of~$S$, makes the connection between the results of the \ac{SQL}
+query and the existing XSPARQL variable bindings:
+%
+\begin{definition}[XSPARQL $\sigma$ expression]
+  \label{def:xsparql-join}
+  %
+  Let~$S$ be a \SQLForClause with expression context~$C$ and~$V = \funcCall{whereSpecVars}{S}$ the attribute
+  specifications that contain XSPARQL variables in~$S$.
+  %
+  The \emph{XSPARQL $\sigma$ expression} of~$S$, denoted~$\funcCall{\sigma_{xs}}{S}$, is a relational algebra~$\sigma$
+  expression that, for each $Att_1~Op~Att_2 \in V$ is~$\funcCall{trans}{Att_1}~Op~\funcCall{trans}{Att_2}$,
+  where~$\funcCall{trans}{Att}$ is defined as:
+  % 
+  \begin{itemize}[noitemsep]
+  \item $Attr$ \hfill if~$Attr$ is not an XSPARQL variable;
+  \item if~$Attr = \lit{\$}AttrName$ is an XSPARQL variable then 
+    %
+    \[
+    \funcCall{trans}{Attr} = \begin{dcases*}
+        \dyn.\funcCall{\ecomp{varValue}}{AttrName} & if~\stat.\funcCall{\ecomp{varType}}{Attr} = \type{SQLAttribute}\\
+        \textrm{`}xir_C.AttrName\textrm{'} & otherwise.
+      \end{dcases*}
+    \]
+  \end{itemize}
+\end{definition}
+%
+\noindent
+%
+This definition creates a relational algebra expression from the extended XSPARQL \SQLForClause syntax, which can then
+be used to further restrict the results of the normalised \ac{SQL} expression.
+%
+Based on these definitions we can introduce the translation of \SQLForClause{s} into relational algebra.
+%
+\begin{definition}[XSPARQL relational algebra expression]
+  \label{def:xsparql-sql-answers}
+  %
+  Let~$Q$ be a \SQLForClause,~$Q' = \funcCall{normaliseSQL}{Q}$ the \ac{SQL} rewriting of~$Q$,~$E =
+  \funcCall{\sigma_{xs}}{S}$ the XSPARQL~$\sigma$ expression of~$S$, and~$\RASQL{Q'}$ the relational algebra expression
+  obtained from the standard \ac{SQL} translation into relational algebra.
+  %
+  The \emph{XSPARQL relational algebra expression} of~$Q$, denoted~$\RAXSP{Q}$, combines the relational algebra
+  expression of the \ac{SQL} query and restricts its results to the existing bindings for XSPARQL variables as follows:
+  %
+  \[
+  \funcCall{\sigma_{E}}{\RASQL{Q'} \times xir_C} \enspace .
+  \]
+  %
+\end{definition}
+%
+The following example illustrates the translation of XSPARQL \SQLForClause{s} into XSPARQL relational algebra
+expressions.
+%
+\begin{figure}[t]
+  \subfloat[Value Matching]{\label{ex:sql-for-ex1}
+    \begin{minipage}{.5\linewidth}
+      \lstinputlisting{0-data+queries/sql-for-clause-ex1.xsparql}
+    \end{minipage}
+  }
+  % 
+  \subfloat[Attribute Matching]{\label{ex:sql-for-ex2}
+    \begin{minipage}{.5\linewidth}
+      \lstinputlisting{0-data+queries/sql-for-clause-ex2.xsparql}
+    \end{minipage}
+  }
+  \caption{XSPARQL \SQLForClause examples}%
+  \label{fig:sql-for-ex}%
+\end{figure}
+%
+\begin{example}[Translation of \SQLForClause{s} into Relational Algebra]
+  %
+  \cref{fig:sql-for-ex} presents two XSPARQL queries including \SQLForClause{s}.
+  %
+  The query in \cref{ex:sql-for-ex1} illustrates the syntax for querying values of a relation.  First the
+  normalisation function drops the restriction in line~3, which is incorporated into the relational algebra~$\sigma$
+  expression:
+  % 
+  \[
+  \funcCall{\sigma_{band.bandId = xir_C.x}}{\funcCall{\sigma_{band.bandName = 'Nightwish'}}{band} \times xir_C} \enspace ,
+  \]
+  where~$\funcCall{sort}{xir_C} = \set{x}$ and~$\funcCall{xir_C}{x} = 1$.
+
+  \medskip
+
+  On the other hand, the query in \cref{ex:sql-for-ex2} shows how to match attribute names.
+  %
+  The query in this figure is converted into the following relational algebra expression:
+  % 
+  \[
+  \funcCall{\sigma_{band.bandName = 'Nightwish'}}{\funcCall{\sigma_{band.bandId = 1}}{band} \times xir_C} \enspace ,
+  \]
+  %
+  where~$\funcCall{sort}{xir_C} = \set{x}$ and~$\funcCall{xir_C}{x} = \textrm{`bandName'}$.  
+  %
+\end{example}
+
+
+
+
+
+
+
+%%% Local Variables:
+%%% fill-column: 120
+%%% TeX-master: t
+%%% TeX-PDF-mode: t
+%%% TeX-debug-bad-boxes: t
+%%% TeX-parse-self: t
+%%% TeX-auto-save: t
+%%% reftex-plug-into-AUCTeX: t
+%%% mode: latex
+%%% mode: flyspell
+%%% mode: reftex
+%%% TeX-master: "../thesis"
+%%% End:

@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<user>
+  <bands>
+    <band name="Nightwish">
+      <members>
+        <member>Marco Hietala</member>
+        <member>Tarja Turunen</member>
+      </members>
+      <albums>
+        <album name="Wishmaster">
+          <song>FantasMic</song>
+          <song>Wishmaster</song>
+        </album>
+      </albums>
+    </band>
+  </bands>
+</user>

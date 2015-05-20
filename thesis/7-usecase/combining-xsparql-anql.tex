@@ -1,0 +1,54 @@
+\subsection{Combining XSPARQL and AnQL}
+\label{sec:comb-xsparql-anql}
+
+
+Next we present the combination of the XSPARQL language, as presented in \cref{cha:xsparql}, with the AnQL query
+language described in \cref{cha:anql}.
+%
+This combination caters for the creation and querying of Annotated RDF graphs using the XSPARQL language.  For the
+purposes of this thesis, namely the data integration \usecase, we are mostly interested in creating the Annotated RDF
+data.
+
+In XSPARQL we extend the syntax of \SparqlForClause{s} and \ConstructClause{s} to cater for the fourth element (as
+presented in \cref{cha:anql}), thus allowing us to create and query the Annotated RDF graphs, respectively.
+%
+Considering this extended expression syntax, the semantics of \SparqlForClause{s}, presented in \cref{sec:semantics},
+can be changed to follow the AnQL semantics instead of the SPARQL semantics.  Conversely, in the XSPARQL implementation
+(described in \cref{sec:implementation}) we can replace the ARQ SPARQL engine with our own AnQL prototype
+implementation~(\cf~\cref{sec:implementation-notes}).
+%
+
+For the creation of \ac{RDF} graphs, the current implementation of the XSPARQL language (described in
+\cref{sec:constructclause}) relies on creating a string representation of the \ac{RDF} graph in Turtle notation.
+%
+For the creation of Annotated RDF graphs, we similarly extend this string representation to cater for an Annotated
+\ac{RDF} graph according to the N-Quads representation~\cite{CyganiakHarthHogan:2009aa}.
+ 
+Following the N-Quads specification, we represent the annotation value as an \ac{RDF} literal, which also allows us to
+implement the extension of XSPARQL independently of the annotation domain.
+%
+We also introduce a new generic type, which we call \type{AnnotationLiteral}, which will be the type of any annotation
+values and variables.  
+%
+In XSPARQL we follow the restriction that annotation variables and non-annotation variables should be distinct in the
+query and this newly introduced type ensures that we can enforce this restriction in nested XSPARQL queries.
+% 
+Similar to AnQL, we assume the sharing of variables is possible only by using domain specific functions that handle
+the appropriate type conversions.
+
+The combination of XSPARQL and Annotated \ac{RDFS} also introduces inferencing capabilities into XSPARQL by reusing the
+annotated inference rules presented in \cref{sec:anql-deductive-system}.  Notably the classical domain
+(\cf~\cref{sec:crisp}) caters for the classical \ac{RDFS} inferences.
+%
+A proper formalisation of this combination is beyond the scope of this thesis, however a possible starting point is the
+SPARQL~1.1 Entailment Regimes specification~\cite{GlimmOgbuji:2012aa}, which introduces other entailment regimes (beyond
+simple \ac{RDF} entailment) into the upcoming SPARQL~1.1 specification.
+%
+
+
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "../thesis"
+%%% End:

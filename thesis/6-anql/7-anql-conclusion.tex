@@ -1,0 +1,28 @@
+\section{Conclusion}
+\label{sec:conclusion}
+
+In this chapter we have presented a generalised \ac{RDF} annotation framework that conservatively extends the \ac{RDFS}
+semantics, along with an extension of the SPARQL query language to query annotated data.
+%
+The framework presented here is generic enough to cover other proposals for \ac{RDF} annotations and their query
+languages.  Our approach extends the classical case of \ac{RDFS} reasoning with features of different annotation
+domains, such as temporality, fuzzyness, or provenance. 
+%
+Furthermore, we presented a semantics for an extension of the SPARQL query language, AnQL, that enables querying
+\ac{RDF} with annotations.
+
+
+In the proposed data integration setting, this \ac{RDF} extension can be used as a target data model, allowing to
+represent meta-information about the integrated data and thus allowing to resolve conflicts arising from the data
+integration process.
+%
+In the next chapter we present a complete \usecase scenario where the defined language and data model are used to
+integrate data from different enterprise sources that may be protected by access control information.  We also introduce
+the access control annotation domain that allows us to represent such annotated data and to enable sharing and querying
+only restricted sets of triples, on a per-user basis.
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "../thesis"
+%%% End:

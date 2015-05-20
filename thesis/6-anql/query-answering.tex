@@ -1,0 +1,188 @@
+\subsection{Query Answering} 
+\label{aqa}
+%
+Informally, queries are as for the classical case where triples are replaced with annotated triples in which
+\emph{annotation variables} (taken from an appropriate alphabet and denoted~$\Lambda$) may occur.  We allow built-in
+triples of the form $\triple{s,p,o}$, where~$p$ is a built-in predicate taken from a reserved vocabulary and having a
+\emph{fixed interpretation} on the annotation domain~$D$, such as~$\triple{\lambda, \preceq , l}$ stating that the value
+of $\lambda$ has to be~$\preceq$ than the value~$l \in L$. We generalise the built-ins to any~$n$-ary predicate~$p$,
+where $p$'s arguments may be annotation variables,~$\rhodf$ variables, domain values of~$D$, values from~$\AUL$, and~$p$
+has a fixed interpretation. We will assume that the evaluation of the predicate can be decided in finite time. As for
+the crisp case, for convenience, we write ``functional predicates'' as \emph{assignments} of the form~$x\assign
+\funcCall{f}{\vec{z}}$ and assume that the function~$\funcCall{f}{\vec{z}}$ is safe. Furthermore, we also assume that
+any non functional built-in predicate~$\funcCall{p}{\vec{z}}$ should be safe as well.
+
+For instance, informally for a given time interval~$[t_{1}, t_{2}]$, we may define~$x\assign length([t_{1}, t_{2}])$ as
+true \iff the value of~$x$ is~$t_{2} - t_{1}$.
+
+\begin{example}[Annotated query]
+  \label{exUs4}
+  % 
+  \noindent Considering our dataset from \cref{fig:dataset-example} as input and the query asking for artists that
+  were members of the Nightwish band between 2000 and 2010 and the temporal term at which this was true:
+  %
+  \vspace{-\abovedisplayskip}
+  %
+  \begin{align*}
+    q(x, \Lambda) \leftarrow \fuzzyg{\triple{\qname{dbpedia}{Nightwish}, \qname{foaf}{member}, x}}{\Lambda'},
+    \Lambda\assign (\Lambda' \land [2000,2010]) 
+  \end{align*}
+  %
+  \noindent will get the following answers:
+  \[ \begin{array}{l}
+    \tuple{\qname{dbpedia}{Marco\mathunderscore{}Hietala}, [2001, 2010]}\\
+    \tuple{\qname{dbpedia}{Tarja\mathunderscore{}Turunen}, [2000, 2005]} \enspace .
+  \end{array} \]
+  %
+\end{example}
+
+\noindent Formally, an \emph{annotated query} is of the form
+\[
+q(\vec{x},\vec{\Lambda}) \leftarrow \exists \vec{y}\exists\mathbf{\Lambda}'.\varphi(\vec{x},\vec{\Lambda},\vec{y},\vec{\Lambda}')
+\]
+in which~$\varphi(\vec{x}, \vec{\Lambda},\vec{y},\vec{\Lambda}')$ is a conjunction (as for the crisp case, we use
+\character{,} as conjunction symbol) of annotated triples and built-in predicates,~$\vec{x}$ and~$ \vec{\Lambda}$ are
+the distinguished variables,~$\vec{y}$ and~$\vec{\Lambda}'$ are the \emph{non-distinguished variables} (existential
+quantified variables), and~$\vec{x}$,~$\vec{\Lambda}$,~$\vec{y}$ and $\vec{\Lambda}'$ are pairwise disjoint.
+%
+Variables in~$\vec{\Lambda}$ and~$\vec{\Lambda}'$ can only appear in annotations or built-in predicates and furthermore,
+the query head must contain at least one variable.
+
+Given an annotated graph~$G$, a query~$q(\vec{x}, \vec{\Lambda}) \leftarrow \exists
+\vec{y}\exists\mathbf{\Lambda}'.\varphi(\vec{x}, \vec{\Lambda}, \vec{y},\vec{\Lambda}')$, a vector~$\vec{t}$ of terms in
+$uni\-verse(G)$ and a vector~$\vec{\lambda}$ of annotated terms in~$L$, we say that~$q(\vec{t}, \vec{\lambda})$ is
+\emph{entailed} by~$G$, denoted~$G \models q(\vec{t}, \vec{\lambda})$, \iff in any model~$\I$ of~$G$, there is a vector
+$\vec{t}'$ of terms in~$ \universe(G)$ and a vector~$\vec{\lambda}'$ of annotation values in~$L$ such that~$\I$ is a
+model of~$\varphi(\vec{t}, \vec{\lambda}, \vec{t}', \vec{\lambda}')$. If~$G \models q(\vec{t}, \vec{\lambda})$ then
+$\tuple{\vec{t}, \vec{\lambda}}$ is called an \emph{answer} to~$q$. The \emph{answer set} of~$q$ \wrt~$G$ is ($\preceq$
+extends to vectors point-wise)
+%
+\[
+ans(G, q) = \set{ \tuple{\vec{t}, \vec{\lambda}} \mid G \models  q(\vec{t}, \vec{\lambda}), \vec{\lambda} \neq \vec{\bot}
+  \mbox { and for any }  \vec{\lambda}' \neq \vec{\lambda}
+  \mbox { such that } G \models  q(\vec{t}, \vec{\lambda}'), \vec{\lambda}' \preceq \vec{\lambda}  \mbox { holds} } \enspace .
+\]
+%
+\noindent That is, for any tuple~$\vec{t}$, the vector of annotation values~$\vec{\lambda}$ is as large as
+possible. This is to avoid that redundant/subsumed answers occur in the answer set.  The following can be shown:
+%
+\begin{proposition}\label{propU2}
+  Given a graph~$G$,~$\tuple{\vec{t}, \vec{\lambda}}$ is an \emph{answer} to~$q$ \iff~$\exists
+  \vec{y}\exists\mathbf{\Lambda}'.\varphi(\vec{t}, \vec{\lambda}, \vec{y},\vec{\Lambda}')$ is true in the closure of~$G$
+  and~$\lambda$ is~$\preceq$-maximal.\footnote{$\exists \vec{y}\exists\mathbf{\Lambda}'.\varphi(\vec{t}, \vec{\lambda},
+    \vec{y},\vec{\Lambda}')$ is true in the closure of~$G$ \iff for some~$\vec{t}'$,~$\vec{\lambda}'$ for all triples
+    in~$\varphi(\vec{t},\vec{\lambda},\vec{t}',\vec{\lambda}')$ there is a triple in~$cl(G)$ that subsumes it and the
+    built-in predicates are true, where an annotated triple~$\fuzzyg{\tau}{\lambda_{1}}$
+    subsumes~$\fuzzyg{\tau}{\lambda_{2}}$ \iff~$\lambda_{2} \preceq \lambda_{1}$.}
+\end{proposition}
+
+
+
+\subsubsection*{Queries with Aggregates} 
+\label{sec:aggr}
+
+Next we extend the query language by allowing so-called aggregates to occur in a query. Essentially, aggregates may be
+like the usual SQL aggregate functions such as~$\keyword{SUM}, \keyword{AVG}, \keyword{MAX}, \keyword{MIN}$. But, we
+have also domain specific aggregates such as~$\oplus$ and~$\otimes$.
+%
+The following examples present some queries that can be expressed with the use of built-in queries and aggregates.
+
+\begin{example}[Assignment query]
+  Using a built-in aggregate we can pose a query that, for each band member, retrieves his maximal time of employment
+  for any band in the following way:
+  \[
+  \funcCall{q}{x, \mathit{maxL}} \leftarrow \fuzzyg{\triple{y, \qname{foaf}{member}, x}}{\lambda}, \mathit{maxL} \assign
+  \funcCall{maxlength}{\lambda} \enspace .
+  \]
+  \nd Here, the~$\funcName{maxlength}$ built-in predicate returns, given a set of temporal intervals, the maximal interval
+  in the set.
+  % 
+\end{example}
+
+\begin{example}[Aggregation query]
+  \label{exAA}
+  Suppose we are looking for artists that are members of some \qname{mo}{MusicGroup} for a certain time period and we
+  would like to know the average length of their membership. Then such a query will be expressed as
+  \[
+    \funcCall{q}{x, avgL} \leftarrow~  \fuzzyg{\triple{y, \qname{foaf}{member}, x}}{\lambda},\funcCall{\mathsf{GroupedBy}}{x},
+                            avgL \assign \keyword{AVG}[\funcCall{length}{\lambda}] \enspace .
+  \]
+  \nd Essentially, we group by the artist, compute for each artist the time he was a member of the
+  \qname{mo}{MusicGroup} (by means of the built-in function~\funcName{length}), and finally compute the average value
+  for each group.
+  %
+  That is,~$g = \{\tuple{t, t_{1}},\ldots, \tuple{t, t_{n}}\}$ is a group of tuples with the same value~$t$ for
+  artist~$x$, and value~$t_{i}$ for~$y$, where each length of membership for~$t_{i}$ is~$l_{i}$ (computed
+  as~$\funcCall{length}{\cdot}$), then the value of~$avgL$ for the group~$g$ is~$(\sum_{i} l_{i})/n$.
+  % 
+\end{example}
+
+\nd Formally, let~$\aggr$ be an aggregate function with~$\aggr \in \{\keyword{SUM}, \keyword{AVG}, \keyword{MAX},
+\keyword{MIN}, \keyword{COUNT}, \oplus, \otimes\}$ then a query with aggregates is of the form
+\begin{align*}
+  \funcCall{q}{\vec{x}, \vec{\Lambda},\alpha} \leftarrow~ & \exists \vec{y}\exists\mathbf{\Lambda}'.\funcCall{\varphi}{\vec{x}, \vec{\Lambda}, \vec{y},\vec{\Lambda}'},\\
+  & \funcCall{\mathsf{GroupedBy}}{\vec{w}},\\
+  & \alpha \assign\aggr[\funcCall{f}{\vec{z}}]
+\end{align*}
+
+\nd where~$\vec{w}$ are variables in~$\vec{x}$,~$\vec{y}$ or~$\vec{\Lambda}$, each variable in~$\vec{x}$
+and~$\vec{\Lambda}$ must occur in~$\vec{w}$ and any variable in~$\vec{z}$ occurs in~$\vec{y}$ or~$\vec{\Lambda'}$.
+%
+From a semantics point of view, we say that~$\I$ \emph{is a model of} (\emph{satisfies})~$q(\vec{t},\vec{\lambda}, a)$,
+denoted $\I \models q(\vec{t},\vec{\lambda}, a)$ \iff
+%
+$a = \aggr [a_{1}, \ldots, a_{k}]$, where~$g = \{ \tuple{\vec{t}, \vec{\lambda}, \vec{t}'_{1},\vec{\lambda}'_{1}},
+\ldots , \tuple{\vec{t}, \vec{\lambda}, \vec{t}'_{k},\vec{\lambda}_{k}'} \}$ is a group of~$k$ tuples with identical
+projection on the variables in~$\vec{w}$,~$\varphi(\vec{t}, \vec{\lambda}, \vec{t}'_{r},\vec{\lambda}'_{r})$ is true in~\I
+and~$a_{r} =f(\vec{\vec{t}})$ where~$\vec{\vec{t}}$ is the projection of~$\tuple{\vec{t}'_{r}, \vec{\lambda}'_{r}}$ on the
+variables~$\vec{z}$.
+%
+Now, the notion of~$G \models q(\vec{t},\vec{\lambda}, a)$ is as usual, any model of~$G$ is a model
+of~$q(\vec{t},\vec{\lambda}, a)$.
+
+Eventually, we further allow to order answers according to some ordering functions.
+
+\begin{example}[Ordering query]
+  \label{exx} 
+  % 
+  Consider \cref{exAA}. We additionally would like to order the artists according to the average length of
+  membership to a band.  Then such a query will be expressed as: \vspace{-\abovedisplayskip}
+  %
+  \begin{align*}
+    \funcCall{q}{x,avgL} \leftarrow~& \fuzzyg{\triple{y, \qname{foaf}{member}, x}}{\lambda}, \funcCall{\mathsf{GroupedBy}}{x},\\
+    & avgL \assign \keyword{AVG}[\funcCall{length}{\lambda}],\funcCall{\mathsf{OrderBy}}{avgL} \enspace .
+  \end{align*}
+  % 
+\end{example}
+
+\nd Formally, a query with ordering is of the form
+\[
+\begin{array}{lcl}
+q(\vec{x}, \vec{\Lambda}, z) & \leftarrow & \exists \vec{y}\exists\mathbf{\Lambda}'.\varphi(\vec{x}, \vec{\Lambda}, \vec{y},\vec{\Lambda}'), \mathsf{OrderBy}(z)
+\end{array}
+\]
+
+
+\nd or, in case grouping is allowed as well, it is of the form
+\[
+\begin{array}{lcl}
+  q(\vec{x}, \vec{\Lambda},z, \alpha) & \leftarrow & \exists \vec{y}\exists\mathbf{\Lambda}'.\varphi(\vec{x}, \vec{\Lambda}, \vec{y},\vec{\Lambda}'),\\
+                                      &            & \mathsf{GroupedBy(\vec{w})},\\
+                                      &            & \alpha \assign\aggr[f(\vec{z})],\\
+                                      &            & \mathsf{OrderBy}(z)
+\end{array}
+\]
+
+\nd From a semantics point of view, the notion of~$G \models q(\vec{t},\vec{\lambda}, z, a)$ is as before, but the
+notion of answer set has to be enforced with the fact that the answers are now ordered according to the assignment of
+the variable~$z$. Of course, we require that the set of values over which~$z$ ranges can be ordered (like string,
+integers, reals).
+%
+In case the variable~$z$ is an annotation variable, the order is induced by~$\preceq$.  
+
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "../thesis"
+%%% End:

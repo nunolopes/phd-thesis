@@ -1,0 +1,157 @@
+
+\newif\ifclassicthesis\classicthesisfalse
+\newif\iftwoside\twosidetrue
+
+% % uncomment to use classicthesis
+% \classicthesistrue
+
+% uncomment for single side
+\twosidefalse
+
+\ifclassicthesis
+\documentclass[ twoside,openright,titlepage,numbers=noenddot,headinclude,%
+                beramono,eulermath,parts,pdfspacing,subfig,%
+                footinclude=true,cleardoublepage=empty,abstractoff,%
+                BCOR=5mm,paper=a4,fontsize=10pt,%
+                british,%
+%                draft
+                ]{scrreprt}
+\else
+\documentclass[10pt,titlepage,%
+                twoside,openright,%
+%               draft
+               ]{scrreprt}
+\fi
+
+\input{0-config/0-config}
+
+\begin{document}
+
+\setstretch{1.162}
+
+\pagenumbering{alph}
+\include{00-frontpage}
+
+\pagenumbering{roman} \setcounter{page}{1}
+\pagestyle{empty}
+
+\include{0a-acknowledgements}
+\include{0b-abstract}
+\include{0c-declaration}
+
+\clearpage
+
+\pagestyle{plain}
+
+\raggedbottom
+
+% % \startVLCompact %reduce line spacing to fit on two pages [hack]
+\tableofcontents
+
+\cleardoublepage
+
+\ifdraft{\input{todos}}{}
+
+\pagestyle{fancy}
+\pagenumbering{arabic} \setcounter{page}{1}
+
+
+\include{1-introduction/0-introduction}
+
+\part{State of the Art}
+\label{part:state-art}
+
+\include{2-data-models/0-data-models}
+
+\include{3-query-languages/0-query-languages}
+
+\part{Contributions}
+\label{part:contributions}
+
+\include{4-xsparql/0-xsparql}
+
+\include{5-optimisations/0-optimisations}
+
+\include{6-anql/0-anql}
+
+\part{An Integrated \Usecase{}}
+\label{part:usecase}
+
+\include{7-usecase/0-usecase}
+
+
+\part{Conclusion}
+\label{part:conclusion}
+
+\include{8-conclusion/0-conclusion}
+
+
+%--------------
+
+\printbibliography
+
+\appendix
+\cleardoublepage
+
+
+%*******************************************************
+% List of Figures and of the Tables
+%*******************************************************
+\clearpage
+
+\newcounter{dummy} % necessary for correct hyperlinks (to index, bib, etc.)
+\begingroup 
+
+    %*******************************************************
+    % List of Figures
+    %*******************************************************    
+    \refstepcounter{dummy}
+    \pdfbookmark[1]{\listfigurename}{lof}
+    \listoffigures
+
+    \vspace*{8ex}
+
+    % *******************************************************
+    % List of Tables
+    % *******************************************************
+    \refstepcounter{dummy}
+    \pdfbookmark[1]{\listtablename}{lot}
+    \listoftables
+        
+    \vspace*{8ex}
+
+    \listof{data}{List of Data}
+
+    \listof{query}{List of Queries}
+    
+    % *******************************************************
+    % List of Listings
+    % *******************************************************
+    \refstepcounter{dummy}
+    \pdfbookmark[1]{\lstlistlistingname}{lol}
+    {\renewcommand\listtheoremname{List of Examples}%
+      \listoftheorems[ignoreall,show={example}]%
+    }
+
+    \vspace*{8ex}
+
+
+    %*******************************************************
+    % Acronyms
+    %*******************************************************
+    {  
+      \setlength{\itemsep}{0pt}%
+      \setlength{\parskip}{0pt}%
+      \input{acronyms}
+    }
+    
+\endgroup
+
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% mode: flyspell
+%%% mode: reftex
+%%% End:

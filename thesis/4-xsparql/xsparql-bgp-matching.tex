@@ -1,0 +1,41 @@
+
+\input{4-xsparql/412-xsparql-types}
+
+
+\subsection{XSPARQL Semantics for Querying Relational and RDF data}
+\label{sec:query-heter-data}
+
+We now define the semantics of \SQLForClause{s} and \SparqlForClause{s} by relying on the evaluation semantics of their
+original query languages, namely \ac{SQL} (presented in \cref{sec:sql}) and SPARQL (presented in
+\cref{sec:sparql-preliminaries}).
+%
+The approach we take is to rely on the translation of each language into their respective algebra expressions and
+further combine these algebra expressions with any existing XSPARQL variable bindings.
+%
+Since XSPARQL is based on the semantics of XQuery, variable bindings are stored in the \ecomp{varValue} environment
+component of the dynamic environment (\cf~\cref{sec:xquery}), that maps variable names to their value.
+%
+Next we present how we interpret these variable mappings as a relation and as a solution sequence, thus allowing to
+combine the results of \ac{SQL} and SPARQL queries with the existing variable bindings.
+
+
+\input{4-xsparql/sql-for-clause-semantics}
+
+
+\input{4-xsparql/sparql-for-clause-semantics}
+
+
+
+%%% Local Variables:
+%%% fill-column: 120
+%%% TeX-master: t
+%%% TeX-PDF-mode: t
+%%% TeX-debug-bad-boxes: t
+%%% TeX-parse-self: t
+%%% TeX-auto-save: t
+%%% reftex-plug-into-AUCTeX: t
+%%% mode: latex
+%%% mode: flyspell
+%%% mode: reftex
+%%% TeX-master: "../thesis"
+%%% End:

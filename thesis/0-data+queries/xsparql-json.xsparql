@@ -1,0 +1,2 @@
+for $member in xsparql:json-doc("file:bands.json")//Nightwish/members/* (:@\label{qr:xsparql-json-xml-line1}@:)
+return data($member)

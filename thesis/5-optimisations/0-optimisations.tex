@@ -1,0 +1,161 @@
+\chapter{XSPARQL Evaluation and Optimisations}
+\label{cha:optimisations}
+
+\def\plotsDir{5-optimisations/benchmarks/results/2012.08.13-10.06/plots/}
+
+
+This chapter describes our prototype implementation of the XSPARQL language presented in the previous chapter.
+%
+We then describe a benchmark suite that will be used to evaluate our XSPARQL implementation.  This benchmark is based on
+a widely used \ac{XML} benchmark suite (XMark), and extends it to cater for \ac{XML} and \ac{RDF} data. 
+%
+The experimental evaluation will show that, in our current implementation, nested queries with an inner \SparqlForClause
+present the highest overhead when compared to their XQuery counterpart.
+
+To tackle this issue, \cref{sec:optimisation} details different possible approaches for evaluating nested queries
+in our prototype and compares these approaches regarding their evaluation times.  
+%
+In \cref{sec:related-work-optimisations} we present an overview of work related to the optimisations presented in
+this chapter.
+
+
+\input{5-optimisations/4-xsparql-implementation}
+
+\input{5-optimisations/xmarkRDF-description}
+
+\input{5-optimisations/6-xsparql-optimisations}
+
+
+\section{Related Work}
+\label{sec:related-work-optimisations}
+
+
+In this related work section we present a comparison of different approaches for nesting in SPARQL, including the
+proposal from the new version of SPARQL, SPARQL~1.1.
+
+The new version of SPARQL was presented in \cref{sec:sparql-11} and introduces many new features that we already
+support in XSPARQL.
+%
+Most notably:
+%
+\begin{enumerate*}[label=(\roman*), noitemsep]
+\item construction of values in \SELECT expressions;
+\item variable assignment;
+\item remote endpoint querying; and
+\item subqueries (or query nesting).
+\end{enumerate*}
+%
+The value construction and variable assignment features behave similar to the features in XSPARQL. 
+%
+However, the XSPARQL language provides a convenient syntax for mapping between different \ac{RDF} vocabularies, \eg~by
+generating blank node labels, a task that can otherwise be cumbersome even in SPARQL~1.1.
+% 
+\begin{query}
+  \lstinputlisting[language=XSPARQL]{0-data+queries/rdf2rdf-bands.xsparql}%
+  \caption{Transformation between RDF representations in XSPARQL}%
+  \label{qr:rdf2rdf-xsparql}%
+\end{query}
+%
+\begin{query}
+  \lstinputlisting[language=XSPARQL]{0-data+queries/bnode.sparql}%
+  \caption{Transformation between RDF representations in SPARQL~1.1}%
+  \label{qr:rdf2rdf-sparql}%
+\end{query}
+%
+\begin{example}[Translation between RDF vocabularies]
+  \Cref{qr:rdf2rdf-xsparql} presents a simple transformation between different \ac{RDF} vocabularies: from using
+  \acp{URI} to identify bands to blank nodes, where we create a blank node that identifies each band and replicate its
+  members.
+  % 
+  A more involved but equivalent query written in SPARQL~1.1 is presented in~\cref{qr:rdf2rdf-sparql}.
+  % 
+\end{example}
+%
+Subqueries (along with the special form of subquery that is the remote endpoint query) still presents noteworthy
+differences between our approach in XSPARQL and the approach proposed in SPARQL~1.1.
+%
+These differences, also briefly highlighted in \cref{sec:external-endpoint}, are mostly related to the evaluation
+method of the different languages, while SPARQL follows a bottom up approach, XQuery and thus XSPARQL follow a top-down
+approach.
+%
+In SPARQL, the subqueries are evaluated and the produced bindings are then merged with the bindings from the outer query and
+such subqueries must be executed over the same dataset as the outer query, \ie~\FROM and \FROMNAMED clauses are not
+allowed in subqueries.
+%
+However, this evaluation method prevents the reuse of variables declared in the inner query.
+%
+The different evaluation models cater for different and complementary \usecases.  While the method followed by \ac{SQL}
+and SPARQL is suitable for parallel and distributed computing, the model followed by XQuery (and thus XSPARQL), allowing
+to inject values into the inner expressions, can be a necessary feature.
+
+Also related to our nested queries optimisation,~\citet{AnglesGutierrez:2010aa} presented initial work on an extension
+of SPARQL that caters for nested queries and presented preliminary equivalences between types of nested queries with the
+aim of determining if query unnesting can be successfully applicable.
+%
+The same authors then extended this work in~\citet{AnglesGutierrez:2011aa}, where they consider different forms of
+nesting, namely nesting in \FROM clauses, nesting in graph patterns, and nesting in filter expressions.
+%
+In XSPARQL, we easily support the nesting in \FROM clauses by assigning the result of a \CONSTRUCT query to a variable
+and reusing this variable in a \FROM clause.  Nesting in graph patterns can also be simulated in XSPARQL by using the
+standard XQuery nesting of expressions, in this case nesting \SparqlForClause{s}.  
+%
+Regarding nesting in \FILTER expressions, although possible to implement in XSPARQL, this would require processing of
+the results from the SPARQL query in XSPARQL.
+
+
+
+
+The presented approaches for query rewriting applied to XSPARQL nested queries is similar to already known optimisations
+from the relational databases realm and also presented for XQuery queries by~\citet{MayHelmerMoerkotte:2003aa}.  
+%
+This work proposes unnesting equivalences that, while maintaining the element order, provide significant performance
+gains.  For the original XMark nested queries~$q_{8}$ and~$q_{11}$, we can consider using the equivalences described for
+the ``Grouping and Aggregation'' unnesting equivalences, whereas~$q_{9}$ and~$q_{10}$ rely on the ``Grouping''
+equivalences.  Hence, the nested-loop rewriting of the queries we present replicates the unnested query plans for these
+optimisations.
+
+
+
+
+\section{Conclusion}
+\label{sec:conclusions-optimisations}
+
+In this chapter we presented our implementation of the XSPARQL language presented in \cref{cha:xsparql}.  Our
+implementation attempts to reuse \emph{off-the-shelf} components, where we translate each XSPARQL query into an XQuery
+containing interleaved calls to a \ac{SQL} and/or SPARQL engine.
+%
+The benchmark evaluation of our implementation has shown that nested queries incur the highest evaluation overhead and
+thus we presented different rewritings that aim at reducing this overhead.
+
+%
+The presented optimisations are based on reordering the expressions in the XQuery rewriting to minimise the number of
+calls to the SPARQL endpoint or based on performing a more complex SPARQL query that takes care of joining the
+variables.
+%
+The benchmarks that were carried out to determine the impact of our optimisations have shown encouraging results for
+nested expressions whose inner expressions access \ac{RDF} data, hinting at a large potential for optimisations in
+XSPARQL.
+%
+However, similar rewritings do not produce the excepted improvements for nested expressions that access relational
+data.   This indicates that different optimisations need to be considered for accessing relational data.
+
+Among the rewriting strategies presented in this chapter and on our test data, pushing joins into a SPARQL engine appeared
+the most promising strategy.
+%
+Our benchmark results showed that our optimisations are not only specific to XSPARQL having also improved the response
+times of the SPARQL2XQuery system to which we compared XSPARQL.
+
+%
+Also according to our benchmarks, encoding SPARQL in XQuery seems a viable option -- assuming that we have access to the
+\ac{RDF} dataset beforehand -- that would allow to compile XSPARQL to pure XQuery without the use of a separate SPARQL
+engine.
+
+
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% mode: flyspell
+%%% mode: reftex
+%%% TeX-master: "../thesis"
+%%% End:

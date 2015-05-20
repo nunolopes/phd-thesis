@@ -1,0 +1,5 @@
+SELECT $l WHERE {
+    { dbpedia:Nightwish foaf:member dbpedia:Marco_Hietala $l1 . }
+    UNION
+    { dbpedia:Tarot_(band) foaf:member dbpedia:Marco_Hietala $l2 . }
+    ASSIGN $l1 %$\lor$% $l2 as $l }

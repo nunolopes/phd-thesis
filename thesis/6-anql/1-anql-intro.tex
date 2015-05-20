@@ -1,0 +1,124 @@
+
+
+
+In this chapter, we present an extension of the \ac{RDF} model to support meta-information in the form of annotations
+attached to \ac{RDF} triples.  On a high-level, we attach this meta-information to an \ac{RDF} triple according to a
+predetermined annotation domain: \emph{temporal}, \emph{fuzzy}, \emph{provenance}, and possibly others (as we will see
+in the next chapter).
+%
+We specify the semantics of this extension by conservatively extending the \ac{RDFS} semantics and provide a deductive
+system for Annotated RDFS.
+%
+Furthermore, we define a query language that extends SPARQL to query this meta-information and include advanced features
+such as aggregates, nested queries and variable assignments, which are part of the SPARQL~1.1 specification.
+
+Meta-information about relational tuples was investigated as an important aspect of the relational model.
+%
+For instance, maintaing temporal information for representing the validity of the triple or provenance information to
+determine the origin of tuples.
+%
+Similarly, meta-information in \ac{RDF} is similar importance.  Temporal information was acknowledged in the \ac{W3C}
+\ac{RDF} specification~\cite{Hayes:2004aa} but deliberately left out, stating:
+%
+\begin{quote}
+  ``There are several aspects of meaning in RDF which are ignored by this semantics; in particular, it treats URI
+  references as simple names, ignoring aspects of meaning encoded in particular URI forms and does not provide any
+  analysis of time-varying data or of changes to URI references.''
+\end{quote}
+%
+The \ac{W3C} provenance working group is also investigating how to define a vocabulary that allows for provenance
+information to be interchanged and also to attach provenance information to specific \ac{RDF}
+resources~\cite{BelhajjameDeusGarijo:2012aa}.
+
+
+
+For the context of this thesis, we are particularly interested in the role that meta-information can play in a data
+integration system, for example by allowing to resolve conflicts in the integrated information.  This is acknowledged
+by~\citet{HalevyRajaramanOrdille:2006aa}, who identify the inclusion of uncertain and provenance information during data
+integration as a challenge that needs to be overcome.
+
+
+
+\subsubsection*{Meta-Information in Legacy Data Models}
+
+Shortly after the introduction of the relational model research began to focus on extending it towards temporal
+information~\cite{WiederholdFriesWeyl:1975aa,Snodgrass:1990aa,AbiteboulHullVianu:1995aa,Snodgrass:1999aa}.
+%
+Temporal information is commonly attached to relational tuples in order to represent \emph{valid time}: the time period
+for which the information that a tuple represents is considered valid.  Another form of temporal information that can be
+attached to tuples is the so-called \emph{transaction time}, where information regarding when a specific tuple was
+inserted into the relational database is stored.  This form of temporal information is important specifically for
+defining operations like \emph{transactions} and \emph{rollbacks} of information in a database management system,
+\eg~reverting the contents of the database to a specific time.  In the present chapter we are concerned only with
+validity time.
+%
+Regarding query languages, a temporal extension of the \ac{SQL} query language, named TSQL2, was also presented
+by~\citet{SnodgrassAhnAriav:1994aa}.  This extension aims at being compatible with the \ac{SQL} query language and
+introduces datatypes and keywords to the language that allow to query the temporal aspects of the database.
+
+Similar extensions have also been proposed for \ac{XML}~\cite{AmagasaYoshikawaUemura:2000aa,RizzoloVaisman:2008aa}.
+\citet{AmagasaYoshikawaUemura:2000aa} propose an extension of the \ac{XDM} where edges are labelled with a time validity
+and consider a hierarchical time structure: the time validity of all the children of a node must be contained within the
+time validity of the current node and among siblings there cannot exist time intersection.
+%
+Targeted at modelling transaction time, a similar approach is followed by~\citet{RizzoloVaisman:2008aa}.  Furthermore,
+the authors present TXPath, an extension to the \ac{XPath} query language to support the new temporal \ac{XML} data.
+%
+
+
+However temporal information is not the only kind of meta-information we can represent and other extensions to the
+relational model also allow to represent ambiguous or approximate data in the form of fuzzy information.  
+%
+An overview of fuzzy databases is provided by~\citet{MaYan:2008aa}, and also for fuzzy meta-information, extensions were
+proposed for \ac{XML}~\cite{MaYan:2007aa}. 
+
+Other extensions to querying \ac{XML}, also related to the XSPARQL language, include the SXPath
+language~\cite{OroRuffoloStaab:2010aa}, which focuses on information extraction from \ac{HTML} pages and thus provides
+spatial extensions of the XPath language that allow to locate elements in the rendered \ac{HTML} page.
+
+
+
+
+\subsubsection*{Meta-Information in RDF}
+
+Several extensions of \ac{RDF} were proposed in order to deal with
+time~\cite{GutierrezHurtadoVaisman:2007aa,PuglieseUdreaSubrahmanian:2008aa,TappoletBernstein:2009aa}, truth or imprecise
+information~\cite{MazzieriDragoni:2008aa,Straccia:2009aa}, trust~\cite{Hartig:2009ab,Schenk:2008aa}, and combinations of
+the previous extensions~\cite{DividinoSizovStaab:2009aa}. 
+%
+All of these proposals share a common approach: extending the \ac{RDF} language by attaching meta-information about the
+\ac{RDF} graph or about individual triples.
+
+
+
+The basis of Annotated RDFS, allowing to represent the kinds of meta-information we have described, were first
+established by~\citet{UdreaRecuperoSubrahmanian:2006aa,UdreaRecuperoSubrahmanian:2010aa}, where the authors introduce
+\ac{RDF} triples annotated with values taken from an \emph{annotation domain}, defined as a \emph{finite partial order}.
+%
+This annotation domain may contain information regarding the temporal validity of the triple or the level of uncertainty
+of the triple.
+%
+Notably, the inference capabilities presented in their work are limited to a small subset of \ac{RDFS}.\footnote{To
+  distinguish our work from the original Annotated RDF by~\citeauthor{UdreaRecuperoSubrahmanian:2006aa}, we call our
+  framework Annotated RDFS.  However, when referring to specific graphs we will keep the original Annotated RDF name.}
+
+
+In this chapter we introduce a richer, not necessarily finite, structure that is backwards-compatible with \ac{RDF} and
+\ac{RDFS}.  Our proposed inference system, in the form of an extension of the \ac{RDFS} rules, provides support for more
+inference rules when compared to~\citet{UdreaRecuperoSubrahmanian:2010aa} and also a more fine-grained propagation of
+annotation values through the inferred triples.
+%
+Furthermore we introduce an extension of SPARQL~\cite{PrudhommeauxSeaborne:2008aa}, the W3C-standardised query language
+for \ac{RDF} (\cf~\cref{sec:sparql-preliminaries}), that allows us to query this extended representation of \ac{RDF}
+triples.
+%
+Although the respective \ac{RDF} graphs, datasets, and queries are domain-specific, \ie~the annotations included in
+these graphs and queries must correspond to a specific domain, the proposed extension of the \ac{RDFS} rules and SPARQL
+query language is domain-independent, \ie~we can define this as an extension that covers all domains.
+
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "../thesis"
+%%% End:

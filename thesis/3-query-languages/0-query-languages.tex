@@ -1,0 +1,64 @@
+\chapter{Query Languages}
+\label{cha:query-languages}
+
+Query languages allow users to select and transform data from large sources.  The ability to select only relevant data
+is an essential feature to minimise serialisation and communication overheads, especially when we consider the
+transmission of data over the Web.
+%
+
+Due to the specific characteristics of each data model, query languages are usually tailored to work with a single data
+model.
+%
+For the data models presented in the previous section, the respective query languages are \acs{SQL}, XQuery and SPARQL,
+for which we will give an overview next.
+%
+We also present the closely related \acs{XSLT} transformation language for \ac{XML} data.
+%
+
+In \cref{fig:data-models-overview} we presented a high-level overview of the available languages for each data model.
+Data and schema manipulation languages are widely available for relational data, for \ac{XML} an update language has
+been recently standardised~\cite{RobieChamberlinDyck:2011aa} while for \ac{RDF} data this feature is only included in
+the upcoming version of SPARQL~1.1~\cite{GearonPassantPolleres:2012aa}.
+
+In the following sections we start by presenting a short overview of the possible forms of querying relational
+databases, including the \ac{SQL} query language, before turning to the different query languages for \ac{XML} in
+\cref{sec:prelim-xquery}.  In this section we again present a short overview of the XPath and \ac{XSLT} languages and
+then focus in more detail on the XQuery language, which will be the basis for the XSPARQL language in
+\cref{cha:xsparql}.
+%
+Finally, \cref{sec:sparql-preliminaries} provides a detailed description of the SPARQL query language for
+\ac{RDF} (which we will extend in \cref{cha:anql}).
+
+
+\input{3-query-languages/1-sql}
+
+\input{3-query-languages/2-querying-xml}
+
+\input{3-query-languages/3-sparql }
+
+
+
+\section{Conclusion}
+\label{sec:conclusion-query-languages}
+
+This chapter introduced the \ac{SQL}, XQuery, and SPARQL query languages that allow to access data in the formats
+presented in \cref{cha:data-models}.
+%
+Each query language focuses on a specific data model, namely \ac{SQL} for relational data, XQuery for \ac{XML} data, and
+SPARQL for \ac{RDF} data.  For \ac{XML}, we briefly presented the \ac{XPath} and \ac{XSLT} languages, which are closely
+related to XQuery.
+
+We briefly introduced the syntax and semantics of each language, with special focus on XQuery and SPARQL, which will be
+used in the next chapters to define the novel transformation language, called XSPARQL, and the extension of SPARQL
+towards querying meta-information.
+%
+XSPARQL integrates the \ac{SQL}, XQuery, and SPARQL query languages presented in this chapter, thus allowing to combine
+data from the different data models.
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% mode: flyspell
+%%% mode: reftex
+%%% TeX-master: "../thesis"
+%%% End:

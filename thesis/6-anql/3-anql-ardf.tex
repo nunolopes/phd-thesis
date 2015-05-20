@@ -1,0 +1,491 @@
+\section{RDF(S) with Annotations}
+\label{sec:annotated-rdfs}
+
+
+For extending our running example we use the temporal domain, which allows us to annotate the RDF data with temporal
+information. For instance, we can annotate the band members' triples to reflect their active years with the band. 
+%
+A possible temporal query that can be easily performed over data represented in this format is ``What were the members
+of a band at a certain time?''
+%
+The use of other domains would allow to represent different views on the data, for example in the fuzzy domain, we can
+represent information regarding part-time members of bands.
+
+
+
+\begin{data}[t]
+  \centering
+  \lstinputlisting[basicstyle=\ttfamily\footnotesize]{0-data+queries/usecasedata-temporalRDF.ttl}
+  %
+  \caption{Temporal Annotated RDFS}
+  \label{fig:dataset-example}
+\end{data}
+
+
+
+\cref{fig:dataset-example} represents an extension of our \usecase data from Data~\ref{fig:bands-turtle} annotated
+with information from the temporal domain, which intuitively means that the annotated triple is valid in dates contained
+in the annotation interval (the exact meaning of the annotations will be explained later).
+%
+In \cref{fig:dataset-example}, we are representing the annotated triples using N-Quads~\cite{CyganiakHarthHogan:2009aa},
+a format that allows to attach a forth element to an \ac{RDF} triple.\footnote{A similar approach is followed for
+  extending SPARQL's syntax.}
+%
+However, in examples and definitions of the rest of this chapter we will use a representation of the
+form~$\fuzzyg{\triple{s,p,o}}{\lambda}$, which is considered equivalent to its N-Quad counterpart. 
+
+
+
+
+
+\newif\ifnormalisedardf\normalisedardftrue
+% \normalisedardffalse
+
+\subsection{Syntax}
+
+Our approach is to extend triples with annotations, where an annotation is taken from a specific domain.
+%
+This extension follows a similar approach to the annotated logic programming framework~\cite{KiferSubrahmanian:1992aa}.
+
+\ifnormalisedardf%
+\begin{definition}[Annotated RDF triple and graph]
+  An \emph{annotated triple} is an expression~$\fuzzyg{\tau}{\lambda}$, where~$\tau$ is an \ac{RDF} triple and~$\lambda$
+  is an \emph{annotation value} (defined below). An \emph{annotated graph} is a finite set of annotated triples.
+  % 
+  Furthermore we call an annotated graph~$G$ a \emph{normalised annotated graph}
+  iff~$\not\exists\fuzzyg{\tau}{\lambda_{1}},\fuzzyg{\tau}{\lambda_{2}} \in G$ s.t.~$\lambda_{1}\neq\lambda_{2}$.
+\end{definition}
+% 
+\else%
+An \emph{annotated triple} is an expression~$\fuzzyg{\tau}{\lambda}$, where~$\tau$ is an \ac{RDF} triple and~$\lambda$
+is an \emph{annotation value} (defined below). An \emph{annotated graph} is a finite set of annotated triples.
+% 
+\fi
+%
+The intended semantics of annotated triples depends of course on the meaning we associate to the annotation values. For
+instance, in a temporal setting~\cite{GutierrezHurtadoVaisman:2007aa},
+\[
+\fuzzyg{\triple{\qname{dbpedia}{Nightwish}, \qname{foaf}{member}, \qname{dbpedia}{Marco\mathunderscore{}Hietala}}}{{[2001,2012]}}
+\]
+\nd has the intended meaning ``Marco Hietala was a member of Nightwish during the period from~$2001$ to~$2012$'',
+% 
+while in the fuzzy setting~\cite{Straccia:2009aa}, we can represent part-time members of a band:
+\[
+\fuzzyg{\triple{\qname{dbpedia}{Nightwish}, \qname{foaf}{member}, \qname{dbpedia}{Troy\mathunderscore{}Donockley}}}{0.7}
+\]
+\nd with the intended meaning ``Troy Donockley is a member of Nightwish to a degree not less than 0.7''.\footnote{The
+  membership degree was chosen as an example, Troy has collaborated with Nightwish on different albums and live
+  concerts.}
+
+
+\subsection{Annotation Domain Specification}
+\label{sec:rdfs-annot-doma}
+
+
+
+To start with, let us consider a non-empty set~$L$, where the elements in~$L$ are our annotation values. For example, in
+a fuzzy setting,~$L = [0,1]$, while in a typical temporal setting,~$L$ may be time points or time intervals.  In our
+annotation framework, we extend the notion of interpretation (presented in \cref{def:interpretation}) to map
+statements to elements of the annotation domain.  
+%
+But first let us define an annotation domain:
+
+
+
+
+\begin{definition}[Annotation Domain]
+  We say that an \emph{annotation domain} for \ac{RDFS} is an idempotent, commutative semi-ring
+  \[
+  D = \tuple{L,  \oplus, \otimes, \bot, \top} \ ,
+  \]
+  \nd where,~$\top,\bot$ are specific annotation values and~$\oplus$
+  is~$\top$-annihilating~\citep{BunemanKostylev:2010aa}. That is, for~$\lambda, \lambda_{i} \in L$:
+
+  \begin{enumerate}[noitemsep]
+  \item $\oplus$ is idempotent, commutative, associative;
+  \item $\otimes$ is commutative and associative;
+  \item $\bot \oplus \lambda = \lambda$,~$\top \otimes \lambda = \lambda$,~$\bot \otimes \lambda = \bot$, and~$\top \oplus \lambda = \top$;
+  \item $\otimes$ is distributive over~$\oplus$, \ie~$\lambda_{1} \otimes (\lambda_{2} \oplus \lambda_{3}) =
+    (\lambda_{1} \otimes \lambda_{2}) \oplus (\lambda_{1} \otimes \lambda_{3})$.
+  \end{enumerate}
+\end{definition}
+%
+\nd Please note that there is a natural partial order on any idempotent semi-ring: an annotation domain~$D = \tuple{L,
+  \oplus, \otimes, \bot, \top}$ induces a partial order~$\preceq$ over~$L$ defined as:
+%
+\[
+\lambda_{1} \preceq \lambda_{2} \mbox{ \ \iff  \ }  \lambda_{1} \oplus \lambda_{2} = \lambda_{2} \ .
+\]
+%
+The~$\top$ and~$\bot$ respective represent the highest and lowest element in the partial order.  This partial
+order~$\preceq$ is used to express redundant information: for instance, for temporal intervals, an annotated
+triple~$\fuzzyg{\triple{s,p,o}}{[2000,2006]}$ includes~$\fuzzyg{\triple{s,p,o}}{[2003,2004]}$, since~$[2003,2004]
+\subseteq [2000,2006]$ (here,~$\subseteq$ plays the role of~$\preceq$).
+
+
+In previous work~\cite{StracciaLopesLukacsy:2010aa,LopesPolleresStraccia:2010aa}, an annotation domain was assumed to be
+a more specific structure, namely a residuated bounded lattice.  In~\citet{BunemanKostylev:2010aa} it was shown that we
+may use a slightly weaker structure than residuated lattices for annotation domains.
+
+
+
+
+We use~$\oplus$ to combine information about the same statement.  For instance, in temporal logic,
+from~$\fuzzyg{\tau}{[2000,2006]}$ and~$\fuzzyg{\tau}{[2003,2008]}$, we infer~$\fuzzyg{\tau}{[2000,2008]}$,
+as~$[2000,2008] = [2000,2006]\cup [2003,2008]$ (where~$\cup$ plays the role of~$\oplus$).
+%
+In the fuzzy context, from~$\fuzzyg{\tau}{0.7}$ and~$\fuzzyg{\tau}{0.6}$, we infer~$\fuzzyg{\tau}{0.7}$, since~$0.7 =
+\max(0.7, 0.6)$ (here,~$\max$ plays the role of~$\oplus$).
+
+We use~$\otimes$ to model the ``conjunction'' of information, where~$\otimes$ is a generalisation of boolean conjunction
+to the many-valued case. In fact,~$\otimes$ satisfies also that:
+%
+\begin{enumerate}[noitemsep]
+\item $\otimes$ is bounded: \ie~$\lambda_{1} \otimes \lambda_{2} \preceq \lambda_{1}$.
+\item $\otimes$ is~$\preceq$-monotone, \ie~for~$\lambda_{1} \preceq \lambda_{2}$,~$\lambda \otimes \lambda_{1} \preceq
+  \lambda \otimes \lambda_{2}$
+\end{enumerate}
+%
+For instance, on interval-valued temporal logic, from~$\fuzzyg{\triple{a, \subclass, b}}{[2000,2006]}$ and
+$\fuzzyg{\triple{b, \subclass, c}}{[2003,2008]}$, we will infer~$\fuzzyg{\triple{a, \subclass, c}}{[2003,2006]}$, as
+$[2003,2006] = [2000,2006] \cap [2003,2008]$ (where~$\cap$ plays the role of~$\otimes$).
+%
+In the fuzzy context, one may chose any triangular norm (t-norm)~\cite{KlementMesiarPap:2000aa}, \eg~product, and, thus,
+from~$\fuzzyg{\triple{a, \subclass, b}}{0.7}$ and~$\fuzzyg{\triple{b, \subclass, c}}{0.6}$, we will
+infer~$\fuzzyg{\triple{a, \subclass, c}}{0.42}$, as $0.42 = 0.7 \cdot 0.6$ (here,~$\cdot$ plays the role of~$\otimes$).
+
+The distributivity condition guarantees that we obtain the same annotation~$\lambda_{1} \otimes (\lambda_{2} \oplus
+\lambda_{3}) = (\lambda_{1} \otimes \lambda_{2}) \oplus (\lambda_{1} \otimes \lambda_{3})$ of the triple~$\triple{a,
+  \subclass, c}$ that can be inferred from triples~$\fuzzyg{\triple{a, \subclass, b}}{\lambda_{1}}$, $\fuzzyg{\triple{b,
+    \subclass, c}}{\lambda_{2}}$ and~$\fuzzyg{\triple{b, \subclass, c}}{\lambda_{3}}$.
+%
+Finally, note that, conceptually, in order to build an annotation domain, one has to:
+% 
+\begin{enumerate}[noitemsep]
+\item determine the set of annotation values~$L$ (typically a countable set\footnote{Note that one may use \ac{XML}
+    decimals in~$[0,1]$ in place of real numbers for the fuzzy domain.}),
+  identifying the top and bottom elements;
+
+\item define suitable operations~$\otimes$ and~$\oplus$ that acts as ``conjunction'' and ``disjunction'' functions, to
+  support the intended inference over schema axioms, such as
+  \begin{quote}
+    ``from~$\fuzzyg{\triple{a, \subclass, b}}{\lambda}$ and~$\fuzzyg{\triple{b, \subclass,
+        c}}{\lambda'}$ infer~$\fuzzyg{\triple{a, \subclass, c}}{\lambda \otimes \lambda'}$''
+  \end{quote}
+
+  \nd and
+  \begin{quote}
+    ``from~$\fuzzyg{\tau}{\lambda}$ and~$\fuzzyg{\tau}{\lambda'}$ infer~$\fuzzyg{\tau}{\lambda \oplus \lambda'}$''
+  \end{quote}
+\end{enumerate}
+
+Another desirable feature is to use annotated and non-annotated triples in parallel, possibly even in the same dataset.
+In~\citet{ZimmermannLopesPolleres:2012aa}, we presented several approaches for combining annotated and non-annotated
+triples, such as assuming a default annotation for any non-annotated triple or creating a new compound domain.
+% 
+For simplicity, and since we are considering the issue of compound domains as out of scope for this thesis, we follow
+the approach of assuming a default annotation for non-annotated triples. 
+%
+This default annotation can be specified on a per-domain basis however, if unspecified, we assume the~$\top$ element
+from the domain as the default annotation.
+
+
+
+
+
+\subsection{Semantics}
+\label{sec:anql-semantics}
+%
+For this section, we fix an annotation domain~$D = \tuple{L, \oplus, \otimes, \bot, \top}$.
+%
+Similar to \cref{sec:rdf-semantics} we rely on the \rhodf fragment of \ac{RDFS} and do not consider datatype
+interpretations.
+%
+\begin{definition}[Annotated Map]
+  An \emph{annotated map} is a function~$\theta : \AUBL \to \AUBL$ preserving \acp{URI} and literals,
+  \ie~$\fc{\theta}{t} = t$, for all~$t \in \AUL$.
+  % 
+  Given an annotated graph~$G$, we define~$\fc{\theta}{G} = \set{ \fuzzyg{\triple{\fc{\theta}{s}, \fc{\theta}{p},
+        \fc{\theta}{o}}}{\lambda'} \mid \fuzzyg{\triple{s, p, o}}{\lambda} \in G }$, where~$\lambda' \in \AL$
+  and~$\lambda' \preceq \lambda$.
+  %
+  Similarly to the classical case, we speak of an annotated map~$\theta$ from~$G_{1}$ to~$G_{2}$, and write~$\theta :
+  G_{1} \to G_{2}$, if~$\theta$ is such that~$\forall \fuzzyg{\tau}{\lambda_{2}} \in G_{2},
+  \exists\fuzzyg{\tau}{\lambda_{1}} \in G_{1}$ such that~$\lambda_{2} \preceq \lambda_{1}$.\footnote{As a shorthand
+    notation, from herein we will use~$G_{2} \preceq G_{1}$ to denote~$\forall \fuzzyg{\tau}{\lambda_{2}} \in G_{2},
+    \exists\fuzzyg{\tau}{\lambda_{1}} \in G_{1}$ such that~$\lambda_{2} \preceq \lambda_{1}$.}
+  %
+\end{definition}
+%
+Informally, an interpretation~$\I$ will assign to a triple~$\tau$ an element of the annotation domain~$\lambda \in L$:
+%
+\begin{definition}[Annotated Interpretation, extends \cref{def:interpretation}]
+  An \emph{annotated interpretation}~$\I$ over a vocabulary~$V$ is a tuple
+  % 
+  \[\I=\tuple{\Delta_{R}, \Delta_{P}, \Delta_{C}, \Delta_{L}, \intP{\cdot}, \intC{\cdot}, \int{\cdot}}\]
+  % 
+  where~$\Delta_{R}, \Delta_{P}, \Delta_{C}, \Delta_{L}$ are interpretation domains of~$\I$ and~$\intP{\cdot},
+  \intC{\cdot}, \int{\cdot}$ are interpretation functions of~$\I$.
+  %
+  They have to satisfy:
+  \begin{enumerate}
+  \item $\Delta_{R}$ is a nonempty finite set of resources, called the domain or universe of~$\I$;
+  \item $\Delta_{P}$ is a finite set of property names (not necessarily disjoint from~$\Delta_{R}$);
+  \item $\Delta_{C} \subseteq \Delta_{R}$ is a distinguished subset of~$\Delta_{R}$ identifying if a resource denotes a
+    class of resources;
+  \item $\Delta_{L} \subseteq \Delta_{R}$, the set of literal values,~$\Delta_{L}$ contains all plain literals in~$\AL
+    \cap V$;
+  \item\label{item5} $\intP{\cdot}$ maps each property name~$p \in \Delta_{P}$ into a function~$\intP{p}: \Delta_{R}
+    \times \Delta_{R}\to L$, \ie~assigns an annotation value to each pair of resources;
+  \item\label{item6} $\intC{\cdot}$ maps each class~$c \in \Delta_{C}$ into a function~$\intC{c} : \Delta_{R} \to L$,
+    \ie~assigns an annotation value representing class membership in~$c$ to every resource;
+  \item $\int{\cdot}$ maps each~$t \in \AUL \cap V$ into a value~$\int{t} \in \Delta_{R} \cup \Delta_{P}$ and such
+    that~$\int{\cdot}$ is the identity for plain literals and assigns an element in~$\Delta_{R}$ to each element
+    in~$\AL$.
+  \end{enumerate}
+\end{definition}
+
+
+Similar to the classical case we provide a single notion of interpretation that covers Simple, \ac{RDF}, and \ac{RDFS}
+(\rhodf) entailment.  Furthermore, we extend the definition of model:
+%
+\begin{definition}[Model, extends \cref{def:rdf-model}]
+  \label{def:annotated-model}%
+  \nd An interpretation~$\I$ is a \emph{model} of an annotated ground graph~$G$, denoted~$\I \models G$, \iff~$\I$ is an
+  interpretation over the vocabulary~$\rhodf \cup \fc{\universe}{G}$ that satisfies the following conditions, where~$A
+  \colon \AB \maps \Delta_{R}$ and~$\I_{A}$ is the extension of~$\I$ with~$A$:
+  %
+  \begin{description}
+  \item[Simple:] \
+    \begin{enumerate}
+    \item $\fuzzyg{\triple{s, p, o}}{\lambda} \in G$ implies~$\intA{p} \in\Delta_{P}$ and~$\intP{\intA{p}}(\intA{s}, \intA{o})
+      \succeq \lambda$;
+    \end{enumerate}
+  \item[Subproperty:] \
+    \begin{enumerate}
+    \item $\intP{\int{ \spp}}(p, q) \otimes \intP{\int{ \spp}}(q, r) \preceq \intP{\int{ \spp}}(p, r)$;
+    \item $\intP{\int{ p}}(x, y) \otimes \intP{\int{ \spp}}(p, q) \preceq \intP{\int{ q}}(x, y)$;
+    \end{enumerate}
+  \item[Subclass:] \
+    \begin{enumerate}
+    \item $\intP{\int{ \subclass}}(c, d) \otimes \intP{\int{ \subclass}}(d, e) \preceq \intP{\int{ \subclass}}(c, e)$;
+    \item $\intC{\int{c}}(x) \otimes \intP{\int{ \subclass}}(c, d) \preceq \intC{\int{ d}}(x)$;
+    \end{enumerate}
+  \item[Typing I:] \
+    \begin{enumerate}
+    \item $\intC{c}(x) =  \intP{\int{\typeR}}(x,c)$;
+    \item $\intP{\int{\domR}}(p, c) \otimes  \intP{p}(x,y) \preceq  \intC{c}(x)$;
+    \item $\intP{\int{\range}}(p, c) \otimes  \intP{p}(x,y) \preceq  \intC{c}(y)$;
+    \end{enumerate}
+  \item[Typing II:] \
+    \begin{enumerate}
+    \item For each~$\eee \in \rhodf$,~$\int{\eee} \in \Delta_{P}$; 
+    \item $\intP{\int{\spp}}(p, q)$ is defined only for~$p,q \in \Delta_{P}$;
+    \item $\intC{\int{\subclass}}(c, d)$ is defined only for~$c,d \in \Delta_{C}$;
+    \item $\intP{\int{\domR}}(p, c)$ is defined only for~$p \in \Delta_{P}$ and~$c \in \Delta_{C}$;
+    \item  $\intP{\int{\range}}(p, c)$ is defined only for~$p \in \Delta_{P}$ and~$c \in \Delta_{C}$;
+    \item $\intP{\int{\typeR}}(s, c)$ is defined only for~$c \in \Delta_{C}$.
+    \end{enumerate}
+  \end{description}
+\end{definition}
+%
+\nd Intuitively, a triple~$\fuzzyg{\triple{s, p, o}}{\lambda}$ is satisfied by $\I$ if~$(s, o)$ belongs to the extension
+of~$p$ to a ``wider'' extent than~$\lambda$.
+%
+Note that the major differences from the classical setting reside on \cref{item5,item6}.
+
+
+Finally, entailment among annotated ground graphs~$G$ and~$H$ is as usual.
+Now,~$G \models H$, where~$G$ and~$H$ may contain blank nodes, \iff for any grounding~$G'$ of~$G$ there is a grounding~$H'$ of~$H$ such that~$G' \models H'$.
+
+Please note that we always have that~$G \models \fuzzyg{\tau}{\bot}$, however, triples of the form~$\fuzzyg{\tau}{\bot}$
+are uninteresting and, thus, in the following we do not consider them as part of the language.
+
+
+\subsection{Examples of Annotation Domains}
+\label{sec:domain-examples}
+
+
+Next we specify some domains in Annotated RDFS, namely the classical domain, fuzzy~\cite{Straccia:2009aa},
+temporal~\cite{GutierrezHurtadoVaisman:2007aa}, and provenance.
+
+\subsubsection{The Classical Domain}
+\label{sec:crisp}
+
+The classical \ac{RDF} setting corresponds to the case in which the annotation values are~$L = \set{0,1}$.
+%
+Thus, the classical domain can be specified as~$D_{01} = \tuple{\set{0, 1}, \max, \min, 0, 1}$.  In this case, Annotated
+RDFS turns out to be the same as standard \ac{RDFS}.
+
+
+\subsubsection{The Temporal Domain}
+\label{sec:temporal}
+
+
+For our representation of the temporal domain we aim at using non-discrete time as it is necessary to model temporal
+intervals with any precision.
+% 
+However, for presentation purposes we will show the dates as years only.
+%
+To start with, \emph{time points} are elements of the value space~$\mathbb{Q} \cup\ \set{-\infty, +\infty}$ and a
+\emph{temporal interval} is a non-empty interval~$[\alpha_1, \alpha_2]$, where $\alpha_{i}$ are time points.  An empty
+interval is denoted as~$\emptyset$.
+%
+We define the partial order on intervals as~$I_{1} \leq I_{2} \mbox{ \iff\ } I_{1} \subseteq I_{2}$.  The intuition here
+is that if a triple is true at time points in~$I_{2}$ and~$I_{1} \leq I_{2}$ then, in particular, it is true at any time
+point in~$I_{1} \neq \emptyset$.
+
+Now, apparently the set of intervals would be a candidate for~$L$, however, in order to represent the upper bound
+interval of~$\fuzzyg{\tau}{[2001,2005]}$ and~$\fuzzyg{\tau}{[2008,2009]}$ we rather need the union of intervals,
+denoted~$\set{[2001,2005], [2008,2009]}$, meaning that a triple is true both in the former as well as in the latter
+interval.
+%
+Now, we define~$L$ as:
+%
+\[
+L = \set{t \mid t \mbox{ is a finite set of disjoint temporal intervals} } \cup \set{\bot,\top} \enspace ,
+\]
+%
+where~$\bot = \{\emptyset\}, \top = \{[-\infty,+\infty]\}$.
+%
+Therefore, a \emph{temporal term} is an element~$t \in L$, \ie~a set of pairwise disjoint time intervals. 
+% 
+We allow the following variations:
+\begin{enumerate}[noitemsep,label=(\roman*)]
+\item $[\alpha]$ as a shorthand for~$[\alpha, \alpha]$;
+\item $\fuzzyg{\tau}{\alpha}$ as a shorthand of $\fuzzyg{\tau}{\{[\alpha]\}}$; and
+\item $\fuzzyg{\tau}{[\alpha, \alpha']}$ as a shorthand of~$\fuzzyg{\tau}{\{[\alpha, \alpha']\}}$.
+\end{enumerate}
+%
+Furthermore, on~$L$ we define the following partial order:
+\[
+t_1 \preceq t_2 \mbox{ \iff }~ \forall I_{1} \in t_1 \exists I_2 \in t_2, \mbox{ such that } I_1 \leq I_2 \enspace .
+\]
+%
+\noindent 
+%
+\begin{comment}
+  \todo{check pre-order vs partial order} 
+  % 
+  Please note that~$\preceq$ is the Hoare order on power sets~\cite{AbramskyJung:1994aa}, which is a pre-order.
+  % 
+  For the anti-symmetry property, assume that~$t_1 \preceq t_2$ and~$t_2 \preceq t_1$: so for an~$I_{1} \in t_{1}$,
+  there is $I_{2} \in t_{2}$ for which there is~$I_{3} \in t_{1}$ such that~$I_{1} \subseteq I_{2} \subseteq I_{3}$.
+  % 
+  But,~$t_{1}$ is maximal and, thus,~$I_{1} = I_{3} = I_{2}$. So,~$t_{1} = t_{2}$ and, thus,~$\preceq$ is a partial
+  order.
+\end{comment}
+
+Similarly as for time intervals, the intuition for~$\preceq$ is that if a triple is true during the time points in all
+the intervals in~$t_{2}$ and~$t_{1} \preceq t_{2}$, then, in particular, the triple is true at any time point in
+intervals of~$t_{1}$. 
+%
+Essentially, if~$t_{1} \preceq t_{2}$ then a temporal triple~$\fuzzyg{\tau_{2}}{t_{2}}$ is true to a larger ``temporal
+extent'' than the temporal triple~$\fuzzyg{\tau_{1}}{t_{1}}$. 
+
+The partial order~$\preceq$ induces the following join ($\oplus$) operation on~$L$. Intuitively, if a triple is true
+at~$t_{1}$ and also true at~$t_{2}$ then it will be true also for time points specified by~$t_{1} \oplus t_{2}$ (a kind
+of union of time points).
+%
+As an example, if $\fuzzyg{\tau}{\{[2002,2005], [2008,2010]\}}$ and~$\fuzzyg{\tau}{\{[2004,2006], [2009,2012]\}}$ are
+true then we expect that this is the same as saying that~$\fuzzyg{\tau}{\{[2002,2006], [2008,2012]\}}$ is true. 
+%
+The join operator will be defined in such a way that~$\{[2002,2005], [2008,2010]\} \oplus \{[2004,2006], [2009,2012]\} =
+\{[2002,2006], [2008,2012]\}$.
+%
+Operationally, this means that~$t_{1} \oplus t_{2}$ will be obtained as follows: 
+\begin{enumerate*}[label=(\roman*)]
+\item take the union of the sets of intervals~$t = t_{1} \cup t_{2}$; and
+\item join overlapping intervals in~$t$ until no more overlapping intervals can be obtained.
+\end{enumerate*}
+%
+Formally,
+%
+\[
+t_1 \oplus t_2 = \mathrm{infimum }\set{t \mid t \succeq t_{i}, i=1,2} \enspace .
+\]
+\nd It remains to define the~$\otimes$ over sets of intervals.
+%
+Intuitively, we would like to support inferences such that
+%
+from the triples~$\fuzzyg{\triple{a, \subclass, b}}{\{[2002,2005], [2008,2010]\}}$ and~$\fuzzyg{\triple{b, \subclass,
+    c}}{\{[2004,2006], [2009,2012]\}}$, we can infer $\fuzzyg{\triple{a, \subclass, c}}{\{[2004,2005], [2009,2010]\}}$,
+%
+where~$\{[2002,2005], [2008,2010]\} \otimes \{[2004,2006]$, $[2009,2012]\} = \{[2004,2005], [2009,2010]\}$.
+%
+We get it by means of
+% 
+\[
+t_1 \otimes t_2 = \mathrm{supremum }\set{t \mid t \preceq t_{i}, i=1,2 }  \enspace .
+\]
+
+
+\begin{example}[Temporal domain~$\otimes$]
+  \label{exU1}
+  %
+  Using the following triples regarding another member of the Nightwish band
+  %
+  \[
+  \begin{array}{l}
+    \fuzzyg{\triple{\qname{}{NightwishMember}, \subclass, \qname{mo}{MusicArtist}}}{[1992,2012]}\\
+    \fuzzyg{\triple{\qname{dbpedia}{Troy\mathunderscore{}Donockley}, \typeR, \qname{}{NightwishMember}}}{[1996, 1999]} \enspace ,
+  \end{array} 
+  \]
+  % 
+  we can infer that \vspace{-\abovedisplayskip}
+  \[
+    \fuzzyg{\triple{\qname{dbpedia}{Troy\mathunderscore{}Donockley}, \typeR, \qname{mo}{MusicArtist}}}{[1996, 1999]} \enspace ,
+  \]
+  where
+  \(
+  \{[1992,2012]\} \otimes \{[1996, 1999]\} = \{[1996, 1999]\}
+  \).
+  %
+\end{example}
+
+
+
+
+\subsubsection{The Fuzzy Domain}
+To model fuzzy \ac{RDFS}~\cite{Straccia:2009aa} we may define the annotation domain as~$D_{[0,1]} = \tuple{[0,1], \max,
+  \otimes, 0, 1}$ where~$\otimes$ is any continuous t-norm on~$[0,1]$.
+%
+\begin{example}[Fuzzy domain~$\otimes$]
+  \label{exUSf}
+  Adapting our running example to the fuzzy domain we can state the following:
+  %
+  Nightwish collaborators are partial members of the band (50\%), and since Troy is a Nightwish collaborator:
+  %
+  \[
+  \begin{array}{l}
+    \fuzzyg{\triple{\qname{}{NightwishCollaborator}, \subclass, \qname{}{NightwishMember}}}{0.5} \\
+    \fuzzyg{\triple{\qname{dbpedia}{Troy\mathunderscore{}Donockley}, \typeR, \qname{}{NightwishCollaborator}}}{0.7}
+  \end{array}
+  \]
+  \nd Then, \eg~under the product t-norm~$\otimes$, we can infer the following triple:
+  \[
+  \begin{array}{l}
+    \fuzzyg{\triple{\qname{dbpedia}{Troy\mathunderscore{}Donockley}, \typeR, \qname{}{NightwishMember}}}{0.35}
+  \end{array}
+  \]
+  %
+\end{example}
+
+
+
+\input{6-anql/provenance-domain-model}
+
+
+\input{6-anql/deductive-system}
+
+
+
+\input{6-anql/query-answering}
+
+
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "../thesis"
+%%% End:

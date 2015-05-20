@@ -1,0 +1,276 @@
+\chapter{Conclusions}
+\label{cha:conclusions}
+
+
+\begin{comment}
+  I have started marking up some stuff with pen (see attached, but I have some more fundamental concerns:
+  
+  1) first of all, after re-stating your hypothesis, you shouldn't first say that you haven't achieved it
+  ("Hovever,...")  but rather: restate your contributions in regards to the hypothesis and systematically (i.e. in a
+  clear line of thought) re-emphasize that they address the hypothesis.
+
+  Essentially, what you do is that you restate what you had under contributions in future tense in past tense here,
+  i.e. instead of "we will do this and that" to support your hypothesis in the beginning", you now say again "we have
+  done this and that" to confirm your hypothesis... in slightly different words of course.
+
+  at the moment you more start immediately with musings that rather sound like (overly) "critial assessment"... i.e. I
+  would move thos musings to the critical assessment section.
+
+  2) what you have in the "critical assessment" section now partially is rather future directions, and you start
+  immediately very specifically with self-attacking you work rather, than stressing the weaknesses, you should emphasize
+  the strenghts first... and say that optimisations in terms of "lifting" is a future direction, since it turned out
+  that this use case is equally important(rather than saying it is more important... ;-)).)
+
+  So: overall, I'd like you to put a bit more confidence and a clearer line of argument/thought into the conclusions, as
+  at the moment it seems to be a bit mixed up.
+
+  hope that makes sense (I think the content necessary for the conclusions is essentially there, but it needs to be all
+  brought in a clearer order), Axel
+
+  p.s.: HTH, let me see how far I get with other chapters, but not sure what I can achieve (we're moving house next
+  weekend ;-)) Anyways, I guess we're on track and this just needs half a day of concentrated work, or so.
+\end{comment}
+
+
+
+
+
+In this thesis we presented a novel query language, called XSPARQL, that combines the \ac{SQL}, XQuery, and SPARQL query
+languages in order to provide transformations between relational, \ac{XML}, and \ac{RDF} data.  We also presented
+extensions of the \ac{RDF} data model, called Annotated RDFS, and of the SPARQL query language, called AnQL, that cater
+for fine-grained meta-information, which we consider necessary to accurately represent integrated data.
+% 
+We included initial optimisation strategies for a particular category of XSPARQL queries, namely those containing nested
+\FOR expressions that improved the evaluation times for transformations between the different data models.
+
+
+The main hypothesis of this thesis, presented in \cref{sec:hypothesis}, states that:
+%
+\begin{quotation}
+  \noindent
+  % 
+  \textbf{%
+    %
+    Efficient data integration over heterogeneous data sources can be achieved by
+    \begin{enumerate*}[label=(\roman*), noitemsep, before=\unskip{: }, after=\unskip{.}, itemjoin={{; }}, itemjoin*={{; and }}]
+    \item\label{conc-hip:a} a query language that allows to access data adhering to different formats in the original sources (without the
+      need for data transformation)
+    \item\label{conc-hip:b} a set of optimisations that allow for efficient query evaluation in such a query language
+    \item\label{conc-hip:c} an interchange representation format with support for meta-information, allowing to
+      represent temporal, uncertain, provenance, or even access-control information
+    \end{enumerate*}
+  }
+\end{quotation}
+%
+
+The core chapters of this thesis present the components that validate this hypothesis:
+\begin{description}
+
+\item[\cref{cha:xsparql}] introduced the XSPARQL query language, which allows us to easily bridge the heterogeneous data
+  sources and perform transformations between data adhering to different models.
+  %
+  This language combines the syntax and semantics of different query languages: it is based on the syntax of the XQuery
+  language and defines new expressions that access the heterogeneous data models.  The result is an expressive language
+  that enables writing arbitrary transformations between data adhering to the different models and thus can be used in
+  several data integration scenarios.
+  %
+  In this chapter, we have introduced several examples for such transformations and have also shown that XSPARQL can be
+  used to implement the new \ac{W3C} specification for converting relational data to \ac{RDF}: RDB2RDF.
+
+\item[\cref{cha:optimisations}] describes our implementation of the XSPARQL language, along with an experimental
+  evaluation of this language using a newly proposed benchmark suite.
+  %
+  This evaluation has revealed the queries that incur a greater penalty for accessing the heterogeneous sources: nested
+  \FOR expressions in which the inner clause accesses an \ac{RDF} source.
+  % 
+  For these cases we have proposed different optimisations, for which we also presented a benchmark evaluation with the
+  obtained performance increases.
+  % 
+  The different optimisations rely on applying techniques from \ac{SQL} or XQuery for nested expressions, such as
+  performing query unnesting or, when possible, pushing the query into a single format.
+
+\item[\cref{cha:anql}] presents our proposed extension of the \ac{RDF} data model where it is possible to annotate
+  \ac{RDF} triples with meta-information from a specific domain.  The domains we defined in this chapter allow for
+  attaching temporal information to a triple specifying time periods when the triple is considered valid, fuzzy
+  information that specifies a degree to which the triple is considered valid, or provenance information that can be
+  used to determine which data sources contributed to the generation of the triple.
+  % 
+  We proposed a general extension that is able to encapsulate all of these domains and also extends the \ac{RDFS}
+  inference rules and SPARQL query language in a domain-independent fashion.
+
+\end{description}
+
+Although \ac{RDF} is being increasingly used for representing integrated data, as we have argued in this thesis,
+\ac{RDF} alone is not enough.
+%
+The proposed extension of \ac{RDF} caters for necessary dimensions of the integration process.  Especially the presented
+Access Control domain, has not been tackled before to such granularity.
+%
+As highlighted in~\citet{HalevyAshishBitton:2005aa} this is a much needed feature:
+\begin{quote}
+  When retrieving information from diverse sources, ensuring security, e.g. ensuring that only authorised users get
+  access to the information they seek, continues to be an underserved area.
+\end{quote}
+%
+The Linked Open Data community has so far focused on freely available data, emphasising the ``Open'' part.  However, in
+order for \ac{RDF} to become widely adopted in enterprise environments, it requires mechanisms to secure and protect
+data.  
+%
+\begin{description}
+\item[\cref{cha:usecase}] presented an approach that is a stepping stone towards such a system:
+  % 
+  we defined a new annotation domain where \ac{RDF} triples can be annotated with information regarding which entities
+  are allowed to access it.
+  % 
+  In \cref{cha:usecase} we used XSPARQL to access the different underlying sources, transform the data into Annotated
+  RDF with access control information, and introduced some possible AnQL queries over this annotated data.
+  % 
+  The presented framework also defines a rewriting step in which SPARQL queries can be automatically expanded into AnQL
+  queries to provide secure access to the \ac{RDF} data.
+\end{description}
+
+
+
+
+\section{Critical Assessment}
+\label{sec:critical-assesment}
+
+
+Even after this thesis, the problem of data integration is not yet solved!
+%
+The presented XSPARQL transformation language enables existing data warehousing and mediator approaches to integrate
+information via a query and transformation language.
+%
+However, no \emph{one-size-fits-all} solution exists today nor is it likely to exist in the near future. 
+%
+As~\citet{HalevyAshishBitton:2005aa} state:
+\begin{quote}
+  (...) the greatest cost in an ETL model is the human cost of setup and administration: understanding the query
+  requirements, understanding the data sources, building and maintaining the complex processes that clean and integrate
+  the data.
+  %
+\end{quote}
+%
+For an enterprise scenario, a proper analysis of the benefits and drawbacks of each approach needs to be carried out.
+One problem is that applications for data integration rapidly become outdated; \eg~as enterprise software applications
+evolve, the data integration applications need to be updated accordingly.
+%
+Although a similar drawback is still present when the integration is performed via a query language, a clear evaluation
+semantics can improve the data integration task not only by enabling optimisations but also in the subsequent adaptation
+of the query to changes in the underlying data sources.
+
+
+In our optimisations chapter (\cref{cha:optimisations}) we also asserted that we need different kinds of optimisations
+for different data models.  We have observed this fact when we tried to apply the optimisations for SPARQL nested
+expressions to \ac{SQL} nested expressions.
+%
+It is possible that this is a simple implementation issue and that different implementations of the XSPARQL language
+would not present these results.  Further investigation would be required to determine why these optimisations do not
+cary over across different data models.  Most likely this discrepancy is due to the support structures in place in the
+database management system, ranging from the persistent storing of data to the indexing provided over the stored data.
+Such structures allow for the efficient evaluation of nested simple queries, as opposed to our optimised implementation
+that collects and joins the data in XQuery. 
+%
+For the nested queries over \ac{RDF} data, each iteration incurs the increased cost of loading the dataset alongside the
+normal query evaluation.
+
+\section{Future Directions}
+\label{sec:future-directions}
+
+Some possible future directions for the work presented in this thesis include improvements to the data lifting direction
+and the definition of a core declarative model for the XSPARQL language that caters for accessing the relational,
+\ac{XML}, and (Annotated) \ac{RDF} data.
+%
+Another necessary, yet challenging future topic is to devise an update language over the different data models.
+Finally, a declarative description of data sources would allow an XSPARQL-based integration framework to be built.
+%
+These topics are now briefly described.
+
+\subsubsection*{Data Lifting}
+
+The roots of the XSPARQL language have come from the need to transform existing \ac{RDF} data into (arbitrary) \ac{XML}
+and, as such we have focused on the \emph{lowering} direction.  The wider community adoption of the XSPARQL language has
+also highlighted interest in the \emph{lifting} direction (which is reflected in this thesis).
+%
+For this features, several extensions can be made to the language with respect to the implementation, moving beyond our
+current representation for \ac{RDF} graphs (based on strings) into a more integrated approach -- for example, relying on
+representations for \ac{RDF} graphs from existing \ac{RDF} stores -- would allow a more direct translation to be
+implemented, \eg~inserting the generated \ac{RDF} graph directly into the store.
+%
+
+Regarding the language, new approaches for lifting can be devised, for instance, support for the construction of nested
+predicate-object pairs when the subject has already been determined.
+%
+Furthermore, it remains to be determined if optimisations for the lifting process are necessary.
+
+
+
+\subsubsection*{Declarative Model}
+%
+In \cref{cha:optimisations} we have shown that nested queries can be evaluated efficiently by applying different
+rewriting strategies for XSPARQL queries.  However, all of these rewriting strategies were ad-hoc whereas the definition
+of a declarative algebra model would help to correctly and systematically study further optimisations for XSPARQL.
+%
+This declarative model must include a representative subset of the XSPARQL language with known complexity bounds, while
+still allowing queries over heterogeneous sources to be performed.
+%
+
+Possible starting points for such a declarative model are in the work by~\citet{Koch:2006aa}, where some complexity
+results for a non-recursive core fragment of XQuery are presented.
+%
+Another possible approach is to explore the long standing mapping from relational algebra to Datalog, where more recent
+work by~\citet{GrustMayrRittinger:2010aa} presents translations of XQuery to SQL.
+%
+Relatedly,~\citet{Polleres:2007aa,AnglesGutierrez:2008aa} present translations from SPARQL to Relational Algebra. These
+works seem to indicate valid starting points for further research on equivalences and optimisations in our language.
+
+Using the declarative model, it is also possible to check the equivalence between any proposed optimisations and also,
+in a similar approach to~\citet{LevyRajaramanOrdille:1996aa}, allow to assign a cost function to each source in order to
+be able to calculate (near) optimal query plans.
+
+
+
+\subsubsection*{Update Language}
+%
+Another important feature for a data integration language is the capability to perform updates over the original
+sources.  This is also acknowledged by~\citet{HalevyAshishBitton:2005aa}:
+\begin{quote}
+  However, there's more to data than reads. What about updates? A virtual database update model is often not the best
+  fit for enterprise integration scenarios.
+  %
+\end{quote}
+%
+The current XSPARQL language specification already allows to query data contained in relational, \ac{XML}, and \ac{RDF}
+datastores.  However, updating data in these datastores is still not possible.  
+%
+We plan to extend the XSPARQL language to a full data manipulation language allowing for the update, insert, and delete
+of data contained in RDF triplestores.
+%
+Analogously to our combination of query languages, we will aim at combining common data
+manipulation languages for XML and RDF, such as SPARQL Update~\cite{GearonPassantPolleres:2012aa} and XQuery
+Update~\cite{RobieChamberlinDyck:2011aa}.
+
+However, such an update language over integrated data is not a trivial task, since updates over the integrated data need
+to be reflected in the original sources.
+
+
+\subsubsection*{Query Language Abstraction}
+%
+The proposed query language and future declarative model can form the basis for a more complex data integration system.
+One possible approach is to devise a declarative representation for data sources, along with rules that specify how to
+integrate their data.
+%
+Based on this declarative abstraction, it is possible to provided automated mappings from the source descriptions and
+transformation rules into XSPARQL queries, thus implementing the data integration process in a straightforward fashion.
+
+For the declarative description of the data sources we can attempt to leverage existing vocabularies and ontologies that
+describe existing data sources, for example providing an abstraction layer over existing sensor readings, relational
+databases, or social web feeds.
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% mode: flyspell
+%%% mode: reftex
+%%% TeX-master: "../thesis"
+%%% End:

@@ -1,0 +1,14 @@
+prefix : <http://xsparql.deri.org/data/>
+prefix foaf: <http://xmlns.com/foaf/0.1/>
+declare ordering unordered;
+declare variable $rdf external;
+
+for $person $name from $rdf (:@\label{fig:query09:outer-start}@:)
+where { $person foaf:name $name } (:@\label{fig:query09:outer-end}@:)
+return <person name="{$name}">{ 
+  for * from $rdf where { $ca :buyer $person . (:@\label{fig:query09:inner-start}@:)
+    optional { $ca :itemRef $itemRef .
+      $itemRef :locatedIn [ :name "europe" ]. 
+      $itemRef :name $itemname } }
+  return <item>{$itemname}</item> (:@\label{fig:query09:inner-end}@:)
+}</person>

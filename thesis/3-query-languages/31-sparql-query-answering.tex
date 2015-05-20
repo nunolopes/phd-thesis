@@ -1,0 +1,91 @@
+
+\subsection*{Query Answering}
+\label{sec:query-answering}
+
+The SPARQL query language presented in the previous section can be viewed in a similar setting to the rule based
+conjunctive queries presented for relational databases in \cref{sec:querying-rdb}.
+%
+Also inspired by~\citet{GutierrezHurtadoMendelzon:2004aa}, we assume that an RDF graph~$G$ is \emph{ground}, where all
+blank nodes have been skolemised, \ie~consistently replaced with terms in~$\AUL$.
+%
+A \emph{query} is of the rule-like form:
+%
+$$q(\vec{x}) \leftarrow \exists \vec{y}.\varphi(\vec{x},\vec{y})$$
+%
+where~$q(\vec{x})$ is the \emph{head} and~$\exists \vec{y}.\varphi(\vec{x},\vec{y})$ is the \emph{body} of the query.
+%
+The body of the query is a conjunction of triples~$\tau_{i}$ ($1 \leq i \leq n$) and, similar to
+\cref{sec:querying-rdb}, we use the symbol~\character{$,$} to denote conjunction in the rule body.
+%
+The vectors~$\vec{x}$ and~$\vec{y}$ are vectors of variables occurring in the body of the rule called the
+\emph{distinguished variables} and \emph{non-distinguished variables}, respectively.  The variables in~$\vec{x}$ and~$\vec{y}$ are
+disjoint and each variable occurring in~$\tau_{i}$ must be either distinguished or non-distinguished.
+%
+
+In a query, we allow \emph{built-in triples} of the form~$\triple{s,p,o}$, where~$p$ is a \emph{built-in predicate}
+taken from a reserved vocabulary and having a \emph{fixed interpretation}. 
+%
+We generalise the built-ins to any~$n$-ary predicate~$p$, where~$p$'s arguments may be variables from~$\AV$
+%
+and values from~$\AUL$.  We will assume that the evaluation of the predicate can be decided in finite time.
+%
+For convenience, we write functional predicates\footnote{A predicate~$p(\vec{x},y)$ is functional if for any~$\vec{t}$
+  there is a \emph{unique}~$t'$ for which~$p(\vec{t},t')$ is true.} as \emph{assignments} of the form~$x\assign
+f(\vec{z})$ and assume that the function~$f(\vec{z})$ is safe (according to
+\cref{def:rule-based-conjunctive-query}). We also assume that a non functional built-in predicate~$p(\vec{z})$ should
+be safe as well.
+
+\begin{example}[RDF conjunctive query]
+  An example query is:
+  \[q(n) \leftarrow \triple{x, \term{ex{:}memberOf}, y}, \triple{x, \term{foaf{:}name}, n}, \triple{y, \typeR,
+    \term{mo{:}Band}}, \triple{y, \term{foaf{:}Name}, \stringValue{\term{Nightwish}}}\] \nd which intends to retrieve
+  all persons names~$n$ that are members of a band~$y$ with the name \stringValue{\term{Nightwish}}.
+\end{example}
+In order to define an \emph{answer} to a query we introduce the following:
+
+\begin{definition}[Query instantiation]
+Given a vector~$\vec{x} = \tuple{x_1, \dots, x_k}$ of variables, a \emph{substitution} over~$\vec{x}$ is a vector of terms~$\vec{t}$ replacing variables in~$\vec{x}$ with terms of~$\AUBL$. Then,
+given a query~$q(\vec{x}) \leftarrow \exists \vec{y}.\varphi(\vec{x},\vec{y})$, and two substitutions~$\vec{t},
+  \vec{t'}$ over~$\vec{x}$ and~$\vec{y}$, respectively, the \emph{query instantiation}~$\varphi(\vec{t}, \vec{t}')$ is derived from~$\varphi(\vec{x},
+  \vec{y})$ by replacing~$\vec{x}$ and~$\vec{y}$ with~$\vec{t}$ and~$\vec{t}'$, respectively.
+\end{definition}
+
+\nd Note that, similar to the variable substitution of a solution mapping in SPARQL
+(\cf~\cref{def:variable-substitution}), if all tripes in a query instantiation are valid \ac{RDF} triples, the
+query instantiation can be considered an RDF graph.
+
+\begin{definition}[Entailment]
+  \label{def:entailment}
+  Given a graph~$G$, a query~$q(\vec{x}) \leftarrow \exists \vec{y}.\varphi(\vec{x},\vec{y})$, and a vector~$\vec{t}$ of
+  terms in~$\universe(G)$, we say that~$q(\vec{t})$ is \emph{entailed} by~$G$, denoted~$G \models q(\vec{t})$, \iff in
+  any model~$\I$ of~$G$, there is a vector~$\vec{t}'$ of terms in~$\universe(G)$ such that~$\I$ is a model of the query
+  instantiation~$\varphi(\vec{t}, \vec{t}')$.
+\end{definition}
+
+\begin{definition}[Query Answers]
+  If~$G \models q(\vec{t})$ then~$\vec{t}$ is called an \emph{answer} to~$q$. The \emph{answer set} of~$q$ \wrt~$G$ is
+  defined as~$ans(G,q) = \set{ \vec{t} \mid G \models q(\vec{t}) }$.
+\end{definition}
+%
+\noindent The notion of a solution for \acp{BGP} in SPARQL is the same as the notion of answers for conjunctive queries:
+%
+\begin{proposition} 
+  \label{pp}
+  Given a graph~$G$ and a \ac{BGP}~$P$, the solutions of~$P$ are the same as the answers of the query~$q(var(P))
+  \leftarrow P$, \ie~$ans(G,q) = \eval{P}_{G}$.
+\end{proposition}
+
+
+
+%%% Local Variables:
+%%% fill-column: 120
+%%% TeX-PDF-mode: t
+%%% TeX-debug-bad-boxes: t
+%%% TeX-parse-self: t
+%%% TeX-auto-save: t
+%%% reftex-plug-into-AUCTeX: t
+%%% mode: latex
+%%% mode: flyspell
+%%% mode: reftex
+%%% TeX-master: "../thesis"
+%%% End:

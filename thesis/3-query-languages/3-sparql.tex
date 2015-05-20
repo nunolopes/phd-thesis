@@ -1,0 +1,494 @@
+
+
+
+\section{Querying RDF with SPARQL}
+\label{sec:sparql-preliminaries}
+
+
+This section provides an overview of the SPARQL query language, which is the \ac{W3C} recommended query language for
+\ac{RDF}.
+%
+We present the syntax and semantics of SPARQL and wrap-up with an overview of the new features introduced by the
+forthcoming update to the SPARQL language, dubbed SPARQL~1.1.
+%
+The \ac{W3C} SPARQL specification consists of the following documents:
+\begin{enumerate}[(i),noitemsep]
+\item a \emph{query language} for \ac{RDF}~\cite{PrudhommeauxSeaborne:2008aa};
+\item a protocol describing the interactions between a \emph{query engine} and \emph{query
+    clients}~\cite{ClarkFeigenbaumTorres:2008aa}; and
+\item the \ac{XML} serialisation of the results of a \SELECT and \ASK query~\cite{BeckettBroekstra:2008aa}. 
+\end{enumerate}
+% 
+We will focus on the description of the SPARQL query language for \ac{RDF} by following the \ac{W3C} specification and the
+semantics presented by~\citet{PerezArenasGutierrez:2009aa}.
+%
+
+\subsection*{Syntax}
+\label{sec:sparql-syntax}
+
+A \emph{SPARQL query} is defined by a triple~$Q=(P,G,V)$, where~$P$ is a \emph{graph pattern},~$G$ is an \ac{RDF}
+\emph{dataset} and~$V$ is the \emph{result form}.
+%
+Considering a setting similar to rule-based query answering for relational databases, a SPARQL query can also be viewed
+as:
+%
+$ V \leftarrow P$,
+%
+where~$V$ can be assumed as the \emph{head} of the query, while~$P$ is the
+\emph{body}~\cite{PerezArenasGutierrez:2009aa}.
+%
+The next sections describe each component of SPARQL queries, namely \ac{RDF} datasets, the result form, and graph
+patterns.
+
+
+\paragraph*{RDF Dataset.}% 
+%
+An \ac{RDF} \emph{dataset} forms the input data provided to a SPARQL query and is composed of:
+%
+\begin{inparaenum}[(i)]
+\item exactly one (unnamed) graph considered to be the \emph{default} graph; and
+\item a set of named graphs of the form~$\tuple{n_{i},g_{i}}$, where~$n_{i}$ is a \ac{URI} corresponding to the
+  \emph{name} of the graph and~$g_{i}$ is an \ac{RDF} graph.
+\end{inparaenum}
+%
+In a SPARQL query, the default graph is specified using \FROM clauses, while the named graphs are indicated using
+\FROMNAMED clauses.
+%
+Since a SPARQL query may contain several \FROM clauses, the default graph is taken as the \emph{RDF merge} of graphs
+specified in all \FROM clauses (\cf~\cref{def:rdf-merge}).
+
+The notion of \emph{active graph} is introduced in the evaluation semantics of SPARQL to distinguish which \ac{RDF}
+graph the basic graph pattern is matched against.  At the start of a SPARQL query evaluation, the active graph is the
+default graph and it is changed when a \GRAPH keyword is encountered in the graph pattern (as further explained below).
+% 
+
+
+\paragraph*{Result Form.}
+%
+The \emph{result form} specifies the output of a SPARQL query and may be one of the following four types:
+%
+\begin{description}[noitemsep]
+\item[\SELECT:] returns the matched values (substitutions) for variables present in the query;
+\item[\CONSTRUCT:] returns an \ac{RDF} graph that is created based on the specified \emph{template} and the
+  substitutions obtained by executing the query;
+\item[\ASK:] returns a boolean indicating if the graph pattern matches any of the data; and
+\item[\DESCRIBE:] returns an \ac{RDF} graph that contains information regarding the resources contained in
+  the query.
+\end{description}
+% 
+For this thesis we focus primarily on \SELECT and \CONSTRUCT queries.\footnote{In \cref{cha:xsparql} we will refer to
+  these result forms as \SparqlForClause and \ConstructClause, respectively.}
+%
+In the case of \SELECT queries, the result form is a set of variables and the result of the query consists of sequences
+of variable bindings for these variables, determined according to the specified graph pattern.
+%
+In a \CONSTRUCT query, as presented in~\citet[Section 10.2]{PrudhommeauxSeaborne:2008aa}, the solutions of the graph
+pattern are used to instantiate the \emph{template} provided. The result of a \CONSTRUCT query is an \ac{RDF} graph
+obtained from the union of all instantiations of variables in the template that result in valid \ac{RDF} triples.
+%
+When a \CONSTRUCT template contains blank nodes, a different blank node label will be generated for each instantiation of
+the template, \ie~blank nodes are only shared within the same solution.
+%
+
+
+\paragraph*{Graph Patterns.}% 
+%
+SPARQL is a graph-matching query language and its syntax directly reflects this.  The body (graph pattern) of a SPARQL
+query consists primarily of \emph{triple patterns} that are matched against the \ac{RDF} data.  Triple patterns are
+\ac{RDF} triples, possibly containing variables appearing in subject, predicate or object positions.
+%
+In the SPARQL syntax, a graph pattern follows the \WHERE keyword.
+
+A simple form of graph pattern is a set of triple patterns, also called a \ac{BGP}.
+%
+Here, we present the syntax of SPARQL based on the definitions provided by~\citet{PerezArenasGutierrez:2009aa}, which
+describes a normalised syntax based on 3-tuples:
+%
+\begin{definition}[Graph Patterns] 
+  \label{def:graphpattern}
+  Let~$\AU$,~$\AB$,~$\AL$ be defined as before. Furthermore, let~$\AV$ denote a set of variables disjoint from~$\AUBL$,
+  \emph{graph patterns} are inductively defined as follows:
+  % 
+  \begin{itemize}[noitemsep]
+  \item a tuple~$(s,p,o) \in \AULV \times \AUV \times \AULV$, called a \emph{triple pattern}, is a graph pattern;
+  \item a set of triple patterns, called a \emph{\acf{BGP}}, is a graph pattern;
+  \item if~$P$ and~$P'$ are graph patterns, then~$(P\ \AND\ P')$,~$(P\ \text{\OPTIONAL}\ P')$, and~$(P\ \text{\UNION}\ P')$ are graph
+    patterns;
+  \item if~$P$ is a graph pattern and~$i \in \AUV$, then~$(\text{\GRAPH}\ i\ P)$ is a graph pattern; and
+  \item if~$P$ is a graph pattern and~$R$ is a \FILTER expression, then~$(P\ \text{\FILTER}\ R)$ is a graph pattern.
+  \end{itemize}
+  % 
+  For any pattern~$P$, we write~$\vars{P}$ for the set of all variables occurring in~$P$.
+  % 
+  A \FILTER expression~$R$ can be composed from constants, elements of~$\AULV$, comparison operators~(\character{$=$},
+  \character{$<$}, \character{$>$}, \character{$\leq$}, \character{$\geq$}), logical connectives~(\character{$\neg$},
+  \character{$\land$}, \character{$\lor$}) and \emph{built-in} functions.
+  % 
+  Some of the available built-in functions include the unary functions: $\keyword{BOUND}$, $\keyword{isIRI}$,
+  $\keyword{isURI}$, $\keyword{isBLANK}$, $\keyword{isLITERAL}$, $\keyword{STR}$, $\keyword{LANG}$, and
+  $\keyword{DATATYPE}$.  A complete list of built-in functions is included
+  in~\citet[Section~11]{PrudhommeauxSeaborne:2008aa}.
+\end{definition}
+%
+\nd As is common practice in the definition of SPARQL queries, we do not consider blank nodes in graph patterns, and
+thus do not include them in our definitions. However, this restriction does not affect the expressivity of SPARQL, since
+blank nodes in query patterns can always be replaced equivalently with variables~\cite{PerezArenasGutierrez:2009aa}.
+%
+Although in definitions we rely on an algebraic formalism for the syntax of SPARQL, as
+per~\citet{PerezArenasGutierrez:2009aa}, in the examples we follow the \ac{W3C} specification, which can be naturally
+mapped to the algebraic form, where the \AND operator is represented by a dot (\character{.}).  The mapping between the
+\ac{W3C} SPARQL syntax and the algebraic form we use is presented by~\citet{ArenasGutierrezPerez:2009ab}.
+%
+Thus, \cref{ex:sparql-query} presents a SPARQL query where the \PREFIX keyword declares a \ac{URI} prefix that is
+used later in the query.
+%
+\begin{example}[SPARQL query] 
+  \label{ex:sparql-query}
+  %
+  The following SPARQL query retrieves the names of persons that are members of the \stringValue{Nightwish} band:
+  %
+  \lstinputlisting[frame=none,numbers=none]{0-data+queries/members-nightwish.sparql}
+  % 
+\end{example}
+
+\paragraph*{Solution Modifiers.}
+\label{sec:solution-modifiers}
+
+The evaluation of graph patterns generates a sequence of results initially with no specific \emph{order} (further
+detailed in the following section).  Solution modifiers, such as \ORDERBY, \LIMIT, \OFFSET, and \DISTINCT can be applied
+to this solution sequence.
+%
+The \ORDERBY modifier is used to specify an ordering for the sequence, specified as a list of variables present in the
+solution sequence and the direction of the ordering (\keyword{ASC} or \keyword{DESC}).
+%
+Furthermore, the \DISTINCT modifier eliminates any duplicate solutions, while \LIMIT and \OFFSET are used to restrict
+the number of solutions that are returned and to discard solutions from the beginning of the sequence, respectively.
+
+
+
+\subsection*{Semantics}
+\label{sec:sparql-semantics}
+
+
+The semantics of SPARQL is defined based on the evaluation of \acp{BGP}, namely the \emph{matching} of the \acp{BGP}
+against the supplied \ac{RDF} graph and the algebra that is built on top of this \ac{BGP} matching.
+%
+We start by presenting the notion of \emph{solution mappings}, which will be the results of the evaluation of \acp{BGP}
+and then present how \emph{compatible} solution mappings can be combined in order to define the evaluation semantics of
+SPARQL.
+%
+This evaluation algebra was presented by~\citet{Cyganiak:2005aa,PerezArenasGutierrez:2006aa} and later adapted to the
+\ac{W3C} specification~\cite[Section~12.5]{PrudhommeauxSeaborne:2008aa}.
+
+The matching of \acp{BGP} is performed against the previously mentioned \emph{active graph}, a specific \ac{RDF} graph
+contained in the dataset of the query.  The active graph is initially set to the default graph of the dataset and is
+changed whenever a \GRAPH keyword is processed.
+%
+This matching is represented by a function that maps query variables to \ac{RDF} terms present in the active graph and is
+called a \emph{solution mapping}:
+%
+\begin{definition}[Solution Mapping~\cite{PrudhommeauxSeaborne:2008aa}]
+  \label{def:solution-mapping}
+  A \emph{solution mapping} is a partial function mapping SPARQL variables to \ac{RDF} terms.  The \emph{domain} of a
+  solution mapping~$\mu$, $\dom{\mu}$, is the set of variables for which~$\mu$ is defined. We denote the value of
+  variable~$v\in\AV$ according to solution~$\mu$ as~$\mu(v)$.
+  % 
+\end{definition}
+% 
+\nd The replacement of variables included in a graph pattern according to a solution mapping is defined next.
+%
+\begin{definition}[Variable Substitution]
+  \label{def:variable-substitution}
+  Let~$P$ be a graph pattern and~$\mu$ be a solution mapping.  
+  %
+  The \emph{variable substitution of~$P$ by~$\mu$}, denoted~$\mu(P)$, is the graph pattern~$P$ with all
+  variables~$v\in\vars{P}\cap \dom{\mu}$ substituted by~$\mu(v)$.
+  %
+\end{definition}
+%
+\noindent It is worthy to note that if a solution mapping~$\mu$ contains bindings for all variables in a graph
+pattern~$P$, \ie~$\dom{\mu} = \vars{P}$, and all triples in~$\funcCall{\mu}{P}$ are valid \ac{RDF} triples,
+then~$\funcCall{\mu}{P}$ can be considered an \ac{RDF} graph.
+%
+If~$\mu$ provides bindings only for a subset of the variables present in the graph pattern~$P$,~$\mu(P)$ yields another
+(more restrictive) graph pattern.
+%
+For the specification of the SPARQL algebra below, we introduce the notion of compatible solution mappings.
+%
+\begin{definition}[Compatible Mappings]
+  \label{def:compatible-mappings}
+  % 
+  Let~$\mu_1$ and~$\mu_2$ be solution mappings,~$\mu_1$ and~$\mu_2$ are \emph{compatible} \iff for any~$v \in
+  \dom{\mu_1} \cap \dom{\mu_2}$ it holds that~$\mu_1(v) = \mu_2(v)$.  The \emph{union} of two compatible
+  mappings~$\mu_1$ and~$\mu_2$ consists of the standard set-theoretical union~$\mu_1 \cup \mu_2$.
+  %
+\end{definition}
+%
+\noindent The SPARQL relational
+algebra~(see~\citet{Cyganiak:2005aa,PrudhommeauxSeaborne:2008aa,PerezArenasGutierrez:2009aa}) defines how to combine
+solution mappings.
+%
+Our semantics of SPARQL is based on the semantics presented by~\citet{ArenasGutierrezPerez:2009ab}, where the SPARQL
+algebra operators are extended to the multiset case by preserving the cardinality of solutions:\footnote{Following the
+  notation of the operators presented by~\citet{ArenasGutierrezPerez:2009ab} we use the standard set operators.}
+%
+\begin{definition}[SPARQL Relational Algebra]
+ \label{def:sparql-relalg}
+ Let~$\Omega_1$ and~$\Omega_2$ be multisets of solution mappings:
+ %
+ \begin{tabbing}
+   $\Omega_1 \leftouterjoin \Omega_2$\ \=$=$\ \=\kill
+   $\Omega_1 \bowtie \Omega_2$\>$=$\ \>$\set{ \mu_1 \cup \mu_2 \mid \mu_1 \in \Omega_1, \mu_2 \in \Omega_2,\mu_1\textrm{ and }\mu_2\textrm{ compatible} }$\\
+   $\Omega_1 \cup \Omega_2$\>$=$\>$\set{ \mu \mid \mu \in \Omega_1\textrm{ or } \mu \in \Omega_2 }$\\
+   $\Omega_1 - \Omega_2$\>$=$\>$\set{ \mu_1 \in \Omega_1 \mid \textrm{ for all }\mu_2 \in \Omega_2,\mu_1\textrm{ and }\mu_2\textrm{ not compatible} }$\\
+   $\Omega_1 \leftouterjoin \Omega_2$\>$=$\>$(\Omega_1 \bowtie \Omega_2) \cup (\Omega_1 - \Omega_2)$
+   \end{tabbing}
+\end{definition}
+
+
+\noindent The definition of BGP matching from~\citet[Section~12.3]{PrudhommeauxSeaborne:2008aa} specifies the solutions
+to a query.  We denote the evaluation of a \ac{BGP}~$P$ over a graph~$G$ as~$\eval{P}_{G}$:
+%
+\begin{definition}[Basic Graph Pattern Matching~{\cite[Section\ 12.3.1]{PrudhommeauxSeaborne:2008aa}}]
+  \label{def:bgp-matching}
+  Given a graph~$G$ and a \ac{BGP}~$P$, a \emph{solution}~$\mu$ for~$P$ over~$G$ is a mapping over~$V \subseteq
+  \vars{P}$ such that~$G \models \funcCall{\mu}{P}$.  Following the definitions presented in \cref{sec:rdf},~$G \models
+  \fc{\mu}{P}$, means that any triple in~$\fc{\mu}{P}$ is entailed by~$G$.
+\end{definition}
+%
+\noindent This definition of \ac{BGP} matching relies on the underlying entailment notion, which according to the SPARQL
+specification corresponds to simple graph entailment~\cite{Hayes:2004aa}.
+%
+Furthermore, in order to ensure the local scope of blank nodes, query solutions are taken from the \emph{scoping graph},
+a graph that is equivalent to the active graph but does not share any blank nodes with it or any graph pattern within
+the query.
+%
+
+% ----------------------------------------
+
+
+
+
+
+%-----------------------------------
+%
+The evaluation semantics of more complex patterns including~\FILTER{\keyword{s}},~\OPTIONAL patterns,~\AND
+patterns,~\UNION patterns is built on top of this \emph{basic graph pattern matching}, where each SPARQL operator is
+mapped to an algebra expression:
+%
+\begin{definition}[Evaluation {\cite[Definition 2.2]{PerezArenasGutierrez:2009aa}}]
+\label{def:semantics-sparql}
+Let~$\tau = \triple{s,p,o}$ be a triple pattern,~$P, P_1, P_2$ graph patterns and~$G$ an \ac{RDF} graph, then the
+evaluation~$\eval{\cdot}_{G}$ is recursively defined as follows: {
+%
+\begin{tabbing}
+  $\eval{\tau}_{G}\ =\ \set{ \mu \mid \mathit{dom}(\mu)=\mathit{var}(P)\textrm{ and }G \models \mu(\tau) }$\\
+  $\eval{P_1\ \FILTER\ P_2}_{G}\quad\quad$\=$=$\ \=$\eval{P_1}_{G}$\ \=$\leftouterjoin$\ \=$\eval{P_2}_{G}$\kill
+  $\eval{P_1\ \AND\ P_2}_{G}$\>$=$\>$\eval{P_1}_{G}$\>$\ \bowtie$\>$\eval{P_2}_{G}$\\
+  $\eval{P_1\ \UNION\ P_2}_{G}$\>$=$\>$\eval{P_1}_{G}$\>$\ \cup$\>$\eval{P_2}_{G}$\\
+  $\eval{P_1\ \OPTIONAL\ P_2}_{G}$\>$=$\>$\eval{P_1}_{G}$\>$\leftouterjoin$\>$\eval{P_2}_{G}$\\
+  $\eval{P\ \FILTER\ R}_{G}$\>$=$\>$\set{ \mu \in \eval{P}_{G} \mid R\mu \mbox{ is true } }$
+\end{tabbing}}
+%
+\nd where~$R$ is a~\FILTER\footnote{For simplicity, we will omit from the presentation~\FILTER{\keyword{s}} such as
+  comparison operators (\character{$<$}, \character{$>$}, \character{$\leq$}, \character{$\geq$}), data type conversion
+  and string functions.  Further details are presented in~\citet[Section 11.3]{PrudhommeauxSeaborne:2008aa}.}
+expression,~$u,v \in \AUBLV$. The valuation of~$R$ on a substitution~$\mu$, written~$R\mu$, is \emph{true} if:
+%
+{
+\begin{tabbing}
+(1) $R = \keyword{BOUND}(v)$ with~$v \in \mathit{dom}(\mu)$;\\
+(2) $R = \keyword{isBLANK}(v)$ with~$v \in \mathit{dom}(\mu)$ and~$\mu(v) \in \AB$;\\
+(3) $R = \keyword{isIRI}(v)$ with~$v \in \mathit{dom}(\mu)$ and~$\mu(v) \in \AU$;\\
+(4) $R = \keyword{isLITERAL}(v)$ with~$v \in \mathit{dom}(\mu)$ and~$\mu(v) \in \AL$;\\
+(5) $R = (u = v)$ with~$u,v \in \mathit{dom}(\mu)\cup \AUBL \wedge\ \mu(u) = \mu(v)$;\\
+(6) $R = (\neg R_1)$ with~$R_1\mu\mbox{ is false}$;\\
+(7) $R = (R_1 \vee R_2 )$ with~$R_1\mu\mbox{ is true}$ or~$R_2\mu\mbox{ is true}$;\\
+(8) $R = (R_1 \wedge R_2)$ with~$R_1\mu\mbox{ is true}$ and~$R_2\mu\mbox{ is true}$.
+\end{tabbing}}
+
+\noindent$R\mu$ yields an error (denoted~$\varepsilon$), if: 
+{
+\begin{enumerate}[(1)]
+\setlength{\itemsep}{-1.5mm}
+%
+\item $R = \keyword{isBLANK}(v)$,~$R = \keyword{isIRI}(v)$, or~$R = \keyword{isLITERAL}(v)$ 
+  and~$v \not\in \mathit{dom}(\mu)$;
+\item $R = (u = v)$ with~$u \not\in \mathit{dom}(\mu)\cup T$ or~$v\not\in \mathit{dom}(\mu)$;
+\item $R = (\neg R_1)$ and~$R_1\mu=\varepsilon$;
+\item $R = (R_1 \vee R_2 )$ and~$(R_1\mu\not=\mathrm{true}$ and~$R_2\mu\not=\mathrm{true})$ and~$(R_1\mu=\varepsilon$ or~$R_2\mu=\varepsilon)$;
+\item $R = (R1 \wedge R2)$ and~$R_1\mu=\varepsilon$ or~$R_2\mu=\varepsilon$.
+\end{enumerate}}
+\noindent Otherwise~$R\mu$ is \emph{false}.
+\end{definition}
+%
+\noindent The presented definition considers only safe~\FILTER{\keyword{s}} where, for a pattern~\inlineExpr{$P\
+  \FILTER\ R$}, the filter~$R$ is said to be \emph{safe} if~$\vars{R} \subseteq \vars{P}$.
+%
+However, the SPARQL specification defines that in~\OPTIONAL{\keyword{s}}, any filter is scoped to the Group Graph
+Pattern that contains the~\OPTIONAL.
+%
+As such, we include the definition that caters for unsafe~\FILTER{\keyword{s}}, introduced
+by~\citet{AnglesGutierrez:2008aa}:
+%
+\begin{definition}[\OPTIONAL with \FILTER evaluation]
+  \label{def:optsemantics}
+  Let~$P_1, P_2$ be graph patterns and~$R$ a \FILTER expression. A mapping~$\mu$ is in~$\eval{P_1\ \OPTIONAL\ (P_2\
+    \FILTER\ R)}_{G}$ \iff:
+  \begin{itemize}[nosep]
+  \item $\mu = \mu_1\cup \mu_2$, s.t.~$\mu_1 \in \eval{P_1}_{G}$,~$\mu_2 \in \eval{P_2 }_{G}$ are compatible and~$R\mu$
+    is true, or
+  \item $\mu \in \eval{P_1}_{G}$ and~$\forall \mu_2 \in \eval{P_2}_{G}$,~$\mu$ and~$\mu_2$ are not compatible, or
+  \item $\mu \in \eval{P_1}_{G}$ and~$\forall \mu_2 \in \eval{P_2}_{G}$ s.t.~$\mu$ and~$\mu_2$ are compatible,
+    and~$R\mu_{3}$ is false for~$\mu_{3} = \mu \cup \mu_2$.
+  \end{itemize}
+\end{definition}
+
+
+%
+Finally, the evaluation semantics of SPARQL consists of computing a \emph{sequence of solution mappings}, where any
+existing solution modifiers are applied to the multiset of results.  If no solution modifiers are specified a default
+ordering is assumed.
+\begin{definition}[Solution sequences]
+  Sequences of solution mappings are simply referred to as \emph{solution sequences}, often denoted by~$\omg{}{}$.
+\end{definition}
+%
+
+
+%
+These conditions of SPARQL \CONSTRUCT queries, informally specified in \cref{sec:sparql-syntax}, are reflected in
+the following definition. 
+%
+Later, we will rely on this definition to show the equivalence of the newly introduced XSPARQL \CONSTRUCT expressions
+and SPARQL \CONSTRUCT expressions.
+%
+\begin{definition}[SPARQL \CONSTRUCT semantics]
+  %
+  \label{def:sparql-construct}
+  %
+  Let~$C$ be a \ConstructTemplate and~$\Omega$ a \emph{solution sequence}. The SPARQL \CONSTRUCT returns an RDF graph
+  generated by the set-theoretical union of the triples obtained from substituting variables in~$C$ with their bindings
+  from~$\Omega$ and satisfying the following conditions:
+ %
+  \begin{enumerate}[label=(\arabic*),noitemsep]
+  \item \label{def:sparql-construct-1} any invalid RDF triples that may be produced by the instantiation of the
+    \ConstructTemplate are ignored; and
+  \item \label{def:sparql-construct-2} blank node labels within the \ConstructTemplate are considered scoped to the
+    template for each solution, \ie~if the same label occurs twice in a template, then there will be one blank node
+    created for each solution in $\Omega$, but there will be different blank nodes for triples generated by different query
+    solutions.  Blank nodes in the graph template be shared only within the same query solution~$\mu_i \in \Omega$.
+  \end{enumerate}
+  % 
+\end{definition}
+% 
+
+
+
+\input{3-query-languages/31-sparql-query-answering}
+
+
+\subsection*{SPARQL~1.1}
+\label{sec:sparql-11}
+
+A new version of SPARQL, called SPARQL~1.1~\cite{HarrisSeaborne:2012aa}, is in the process of being proposed as a \ac{W3C} recommendation.  
+%
+This new version is composed of several documents specifying the updated query language and introduces new features that
+were already used in practice by several SPARQL engines, such as
+%
+\begin{enumerate*}[nosep,label=(\roman*), before=\unskip{: }, after=\unskip{.}, itemjoin={{; }}, itemjoin*={{; and }}]
+\item aggregates
+\item subqueries
+\item negation
+\item assignment
+\item property paths
+\end{enumerate*}
+% 
+Other documents included in this new version, but not detailed in this section, specify an Update
+language~\cite{GearonPassantPolleres:2012aa} and extensions for federated
+querying~\cite{PrudhommeauxBuil-Aranda:2011aa}.
+
+
+Aggregates allow expressions to be applied over groups of solutions to obtain a single value, for example determining
+the minimum (\keyword{min}) value of the group.  Other aggregator functions included in the standard are
+\keyword{count}, \keyword{sum}, \keyword{max}, \keyword{avg}, and \keyword{group\mathunderscore{}concat}.
+%
+Although the use of aggregate functions was already available in several SPARQL engines, it will only be introduced into
+the official \ac{W3C} specification with SPARQL~1.1.
+%
+
+
+In SPARQL~1.1, nested \SELECT queries are allowed to be used in graph patterns and the projected variables of the
+subquery are then joined with the results of the outer query.  These nested \SELECT queries are however not allowed to
+specify a dataset and are restricted to be executed over the same dataset as the outer query.  SPARQL follows a
+bottom-up query evaluation and thus the inner queries are evaluated first and its results made available to the outer
+query.
+%
+A proposal for subqueries in SPARQL was previously presented by~\citet{AnglesGutierrez:2010aa} and later the same authors
+compared different forms of subqueries to the W3C semantics~\cite{AnglesGutierrez:2011aa}.
+%
+
+
+
+Although negation was already permitted in SPARQL by using a combination of the \FILTER and \BOUND operators, this is
+made explicit in SPARQL~1.1 by allowing two forms of negation: the \keyword{exists} and \keyword{minus}.
+%
+The \keyword{exists} (and \keyword{not exists}) \FILTER expression allows to test if a graph pattern matches (or does
+not match) the dataset and consequently remove such solutions from the results.
+%
+The other form of negation uses the \keyword{minus} operator that, when applied to two graph patterns, removes solutions
+from the left-hand side compatible with any solution from the right-hand side.
+%
+Since the \keyword{minus} operator relies on the notion of compatible solutions, it will only remove solutions if there
+are shared variables between the solution sequences it is applied to.
+%
+This causes different results between the two forms of negation when the provided graph patterns do not share
+variables:\footnote{A special case of graph patterns that do not share any variables is when the pattern to be removed
+  contains no variables, \ie~is a fixed pattern.}
+%
+since no two solutions are compatible, the \keyword{minus} operator does not remove any solutions from the resulting
+sequence.  However, the \keyword{exists} operator will remove the respective solutions from the final sequence.
+%
+
+%
+SPARQL~1.1 includes a basic query federation by means of the \keyword{SERVICE} keyword, which specifies that the
+following subquery will be executed in a remote SPARQL endpoint.
+
+Other features include assignment of variables in the graph pattern (using the \keyword{bind} operator), in the \SELECT
+clause, and in the \GROUPBY clause.  All assignments are of the form
+%
+\inlineExpr{\lstinline[basicstyle=\small\ttfamily]{(expression AS $var)}},
+% 
+where \lstinline[basicstyle=\small\ttfamily]{expression} is the expression to be evaluated and
+%
+\lstinline[basicstyle=\small\ttfamily]{$var}
+%
+is the variable name the result of the expression is assigned to.
+%
+Another form of assignment is using the \keyword{bindings} clause,\footnote{Note that the SPARQL~1.1 syntax is still
+  under development and the \keyword{\footnotesize{bindings}} clause may be changed to \keyword{\footnotesize{values}}.}
+which allows to specify a solution sequence that is to be joined with the results of the graph pattern.  The values for
+variables in the provided solution sequence must be \ac{RDF} terms, \ie~no variables can be specified.  The
+\keyword{bindings} clause is envisioned to be used with the \keyword{service} keyword to specify values for federated
+querying.
+
+
+Property paths are used to specify a connection between two \ac{RDF} nodes.  An extended graph pattern syntax is defined
+that allows for a concise pattern matching, for example specifying alternative routes for connecting the nodes, or to
+match paths of arbitrary or specific lengths.
+
+
+
+
+
+%%% Local Variables:
+%%% fill-column: 120
+%%% TeX-PDF-mode: t
+%%% TeX-debug-bad-boxes: t
+%%% TeX-parse-self: t
+%%% TeX-auto-save: t
+%%% reftex-plug-into-AUCTeX: t
+%%% mode: latex
+%%% mode: flyspell
+%%% mode: reftex
+%%% TeX-master: "../thesis"
+%%% End:

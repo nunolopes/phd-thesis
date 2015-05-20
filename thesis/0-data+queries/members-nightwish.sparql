@@ -1,0 +1,8 @@
+prefix foaf: <http://xmlns.com/foaf/0.1/> 
+prefix mo: <http://purl.org/ontology/mo/> 
+
+SELECT $personName
+WHERE { $band a mo:MusicGroup; 
+              foaf:name "Nightwish"; 
+              foaf:member $person .
+         $person foaf:name $personName }

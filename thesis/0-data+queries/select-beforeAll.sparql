@@ -1,0 +1,4 @@
+SELECT $p WHERE {
+    dbpedia:Nightwish foaf:member $p $l1 .
+    dbpedia:Nightwish foaf:member dbpedia:Tarja_Turunen $l2 .
+    FILTER(beforeAll($l1,$l2)) }

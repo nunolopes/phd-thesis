@@ -1,0 +1,120 @@
+\subsubsection*{Lowering: Transforming from RDF into the Legacy Formats}
+\label{sec:lowering}
+
+As we have seen the lifting task can be accomplished (with some drawbacks) by using \ac{XSLT} or XQuery.
+%
+On the other hand, converting from \ac{RDF} data back into the legacy data models using \ac{XML} tools poses obstacles
+that are even harder to overcome, namely:
+%
+\begin{itemize}[noitemsep]
+\item the flexibility of the RDF/XML format (and the lack of a canonical format) makes writing transformations
+  difficult;
+\item merging different \ac{RDF} graphs may involve complex processing (\eg~renaming of blank nodes); and
+\item possibly handling the interplay with inference mechanisms \eg~\ac{RDFS} would require custom-built code.
+\end{itemize}
+
+
+As we have presented in \cref{sec:rdfxml}, the RDF/XML serialisation format is very flexible, as it includes several
+shortcuts and allows for different representations of the same \ac{RDF} graph.  For example, we have shown two
+equivalent serialisations for the same \ac{RDF} graph in \cref{fig:bands-rdfxml,fig:bands-rdfxml-abbrev}, however both
+serialisations are very different when we focus on their \ac{XML} structure.
+%
+Since using \ac{XML} tools requires handling RDF/XML as \ac{XML} data, all the possible different serialisations for an
+\ac{RDF} graph would need to be taken into account.
+
+
+\begin{query}[t]
+  \lstinputlisting[]{0-data+queries/lowering-bands.xquery}
+  \caption{Lowering using XQuery}
+  \label{qr:xquery_lowering}
+\end{query}
+%
+\begin{example}[Lowering in XQuery]
+  \cref{qr:xquery_lowering} performs the lowering task directly from RDF/XML using XQuery. This query first
+  retrieves all the \qname{mo}{Band} \ac{XML} elements (\crefrange{low-bands-start}{low-bands-end}) and, for each
+  band, retrives the names of the artists (\crefrange{low-members-start}{low-members-end}) and albums
+  (\crefrange{low-albums-start}{low-albums-end}) of the band.
+  % 
+  Furthermore, all the song names of each album are collected in \crefrange{low-songs-start}{low-songs-end}.
+  % 
+  This process creates the desired nested structure of the \ac{XML} file presented in \cref{fig:bands-xml}.
+\end{example}
+% 
+One issue is that \cref{qr:xquery_lowering} is tailiored specifically to the RDF/XML serialisation from
+\cref{fig:bands-rdfxml-abbrev} and will not produce the desired results if the serialisation changes.
+%
+Although creating a query capable of handling any RDF/XML serialisation would be possible, this would be a cumbersome
+and error-prone task.  Futhermore, if the \ac{RDF} data is stored in the Turtle serialisation it is not possible to use
+\ac{XML} tools.
+
+On the other hand, SPARQL is agnostic to the actual XML representation of the underlying source graphs, which alleviates
+the pain of having to deal with different RDF/XML representations of the graphs. 
+%
+Also merging several RDF source graphs specified in consecutive \FROM clauses (as described in
+\cref{sec:sparql-syntax}), which could involve renaming of blank nodes at the pure XML level, comes for free in SPARQL.
+%
+However, we cannot use SPARQL alone for the lowering transformations since SPARQL does not provide the possibility of
+handling XML data.
+
+
+
+Apart from its syntactic ambiguities, processing RDF/XML via XQuery also loses another feature of RDF, namely its
+interplay with ontological information, \eg~\ac{RDFS}.
+%
+Since XML tools do not support ontological inference, we would need to implement an \ac{RDFS} inference engine within
+\ac{XSLT} or XQuery, to cater for a lowering mechanism that also works for this kind of \ac{RDF} data. Given the
+availability of \ac{RDF} tools and engines that readily offer \ac{RDFS} support via materialising inferences, this is a
+dispensable exercise.  Furthermore, in \cref{cha:anql} we present an extension of the \ac{RDFS} inference rules (called
+Annotated RDFS) and of the SPARQL query language towards meta-information and in \cref{cha:usecase} we present the
+combination of XSPARQL and Annotated RDFS, which also introduces inferencing capabilities in XSPARQL.
+
+
+\subsubsection*{Benefits of an Integrated Language}
+%
+In recognition of the above problems the \ac{SAWSDL} specification contains a non-normative example, which performs a
+lowering transformation by applying an \ac{XSLT} transformation to the \ac{XML} representation of the results of a
+SPARQL query~\cite{ClarkFeigenbaumTorres:2008aa}.
+%
+Such a two-step approach alleviates the issues described:
+%
+first, since SPARQL works on the RDF data model the different RDF/XML serialisations are considered to be equivalent,
+and second, \ac{RDFS} inferences can also be catered for in the SPARQL engine.
+%
+Although the approach proposed by the \ac{SAWSDL} Working Group provides a good starting point, it can still be improved
+on several points: firstly, the detour through SPARQL's XML query results format is an unnecessary burden.
+%
+Secondly, a more tightly-coupled integration of the different query languages can provide a more expressive language,
+beyond the capabilities of using different languages sequentially, and directly amenable to query optimisations.
+%
+The proposed language, XSPARQL, aims to provide exactly this: use cases that otherwise would require interleaved calls
+to SPARQL (typically requiring an implementation using an external programming framework) can be solved in XSPARQL
+directly, \cf~the lowering example in \cref{qr:lowering_xsparql}.
+
+
+In fact, the current version of SPARQL~\cite{PrudhommeauxSeaborne:2008aa} is still preliminary in terms of expressivity
+when compared to SQL or XQuery.
+%
+As a side effect of this integration, XSPARQL also extends SPARQL's expressiveness for pure \ac{RDF} transformations by
+allowing, for instance, nested XSPARQL queries in the graph construction step.
+%
+The SPARQL 1.1 query language (\cf~\cref{sec:sparql-11}), currently under development by the W3C SPARQL Working
+Group, gives a leap forward in terms of expressivity, however, providing mechanisms to convert data back into the native
+legacy data models of \ac{XML} or SQL databases is beyond the scope of the Working Group.
+
+
+
+
+
+%%% Local Variables:
+%%% fill-column: 120
+%%% TeX-master: t
+%%% TeX-PDF-mode: t
+%%% TeX-debug-bad-boxes: t
+%%% TeX-parse-self: t
+%%% TeX-auto-save: t
+%%% reftex-plug-into-AUCTeX: t
+%%% mode: latex
+%%% mode: flyspell
+%%% mode: reftex
+%%% TeX-master: "../thesis"
+%%% End:

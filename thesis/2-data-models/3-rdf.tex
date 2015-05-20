@@ -1,0 +1,530 @@
+
+
+\section{Resource Description Framework (RDF)}
+\label{sec:rdf}
+
+In the attempts to transform the Web into a global database, another model, the~\acl{RDF}, was proposed as the data model
+for representing machine readable data, also known as \emph{Semantic Web} data.  The \ac{RDF} model allows for the
+specification of \emph{statements} about \emph{Web Resources}~\cite{ManolaMiller:2004aa}.
+%
+However, this general notion of resource may refer not only to virtual entities (that can only be found on the Web) but
+also any physical entity that can be \emph{identified} on the Web.
+%
+Such resources are identified by a \ac{URI}, generally indicating where the resource is located, or a \emph{blank node},
+which plays the role of an anonymous resource and allows for the modelling of incomplete or unknown data.  In the
+following, we identify blank nodes by using the prefix \character{\_:} followed by a string, called the \emph{blank node
+  label}.  Blank nodes are scoped to the document they appear in, \ie~two blank nodes from different documents, even if
+they have the same label, must be considered different.
+%
+Furthermore, \ac{RDF} \emph{literals} can be used to specify string- or datatype-based values for properties.
+%
+The atomic \emph{statements} of the \ac{RDF} data model are called \emph{RDF triples} consisting of \emph{subject},
+\emph{predicate} and \emph{object}, and intuitively state that
+%
+the subject is connected to the object by the predicate relation.
+%
+Since triples can also be viewed as part of a labelled directed graph, where subjects and objects correspond to nodes
+and predicates to edges of the graph, we refer to a set of such \ac{RDF} triples as an \emph{RDF graph}.
+%
+
+
+For the definitions of the \ac{RDF} syntax, we rely on the the pairwise disjoint alphabets~$\AU$,~$\AB$, and~$\AL$
+denoting \emph{URI references}, \emph{blank nodes} and \emph{literals}, respectively.\footnote{We assume~$\AU, \AB$,
+  and~$\AL$ fixed, and for presentation purposes we will denote unions of these sets by concatenating their names.}  We
+call the elements in~$\AUBL$ \emph{terms}.
+%
+\begin{definition}[RDF Triple]
+  \label{def:rdf-triple}
+  An \emph{RDF triple} is~$\tau = \triplee{s}{p}{o} \in \AUBL \times \AU \times \AUBL$, where~$s$ is called the
+  \emph{subject},~$p$ the \emph{predicate}, and~$o$ the \emph{object}.
+\end{definition}
+%
+\nd Strictly speaking, according to the \ac{RDF} specification~\cite{Hayes:2004aa} literals are not allowed to be the
+subject of \ac{RDF} triples however, as commonly adopted in other
+works~\cite{MunozPerezGutierrez:2007aa,PrudhommeauxSeaborne:2008aa,CarrollBizerHayes:2005aa}, this definition considers
+a \emph{generalised RDF Triple}, that allows literals for the subject positions.
+
+
+\begin{definition}[RDF Graph]
+  \label{def:rdf-graph}
+  Following the definition of an \ac{RDF} triple, an \emph{RDF graph}~$G$ consists of a set of triples.
+  % 
+  The \universe of~$G$,~$\fc{\universe}{G}$, is the set of elements in~$\AUBL$ that occur in the triples of~$G$ and the
+  \emph{vocabulary} of~$G$,~$\fc{\voc}{G}$, is~$\fc{\universe}{G} \cap \AUL$.
+  % 
+  Furthermore, we say that~$G$ is \emph{ground} \iff~$\fc{\universe}{G} = \fc{\voc}{G}$, \ie~$G$ does not contain blank nodes.
+\end{definition}
+
+When combining different \ac{RDF} graphs some care must be taken to ensure the local scope of blank nodes:
+%
+\begin{definition}[RDF merge]
+  \label{def:rdf-merge}
+  Let~$S$ be a set of RDF graphs.  The \emph{RDF merge} of~$S$ consists of the set-theoretical union of all the graphs
+  in~$S$ after blank nodes have been \emph{standardised apart}: if any two graphs contain the same blank node label, all
+  occurrences of these labels within the same graph are replaced by a new blank node label that is not present in any of
+  the other graphs.
+\end{definition}
+%
+\noindent This disambiguation of blank node labels is meant to keep any blank nodes between different graphs distinct, thus
+maintaining the scope of blank nodes to the graph they occur in.
+%
+
+Similar to \ac{XML} namespaces, \acp{URI} can be abbreviated by using a namespace prefix.
+%
+For example, the URI \stringValue{\qname{foaf}{Person}} from the widely used \ac{FOAF} ontology, consists of the prefix
+\stringValue{\term{foaf}}, which is associated with the URI \stringValue{\url{http://xmlns.com/foaf/0.1/}}, and the
+local part \stringValue{\term{Person}}.  The complete URI represented by \stringValue{\qname{foaf}{Person}} is thus
+\stringValue{\url{http://xmlns.com/foaf/0.1/Person}}.
+%
+\qname{rdf}{type} predicates can be used to specify that an \ac{RDF} resource is an \emph{instance} of a \emph{class};
+for example the triple:
+%
+\begin{equation}
+\label{eq:rdf-triple}
+\triplee{\qname{dbpedia}{Marco\mathunderscore{}Hietala}}{\qname{rdf}{type}}{\qname{foaf}{Person}}
+\end{equation}
+% 
+intuitively specifies that the resource \qname{dbpedia}{Marco\mathunderscore{}Hietala} is used to identify a person.
+
+\ac{RDF} literals can be further classified as \emph{plain}, in which case they can optionally contain a \emph{language
+  tag}, or \emph{typed} literals.
+%
+Typed literals include a \ac{URI} that refers to their datatype, usually one of the \ac{XML} Schema built-in datatypes
+or the newly defined \ac{RDF} datatype \qname{rdf}{XMLLiteral} (used to indicate the literal contains \ac{XML} data).
+%
+The specific syntax of literals is presented in the next section.
+
+
+Another \ac{RDF} feature, although not so commonly used, is \emph{reification}, can be used to represent
+meta-information about an \ac{RDF} triple, \eg~provenance information.  Any \ac{RDF} statement can be reified by
+representing it as four distinct \ac{RDF} triples with a common subject.  Although it is possible to use a \ac{URI} for
+the subject of reified triples, as presented in \cref{ex:reified-triple}, it is common to use a blank node.
+%
+Reification is later used in \cref{cha:anql} as one possible serialisation for Annotated RDFS graphs.
+%
+\begin{example}[Reified \ac{RDF} statement]
+  %
+  \label{ex:reified-triple}
+  The \ac{RDF} statement~\eqref{eq:rdf-triple} can be reified as the following triples:
+  %
+  \vspace{-\abovedisplayskip}
+  %
+  \begin{align*}
+    &\triplee{\bnode{r1}}{\qname{rdf}{type}}{\qname{rdf}{Statement}}\\
+    &\triplee{\bnode{r1}}{\qname{rdf}{subject}}{\qname{dbpedia}{Marco\mathunderscore{}Hietala}}\\
+    &\triplee{\bnode{r1}}{\qname{rdf}{predicate}}{\qname{rdf}{type}}\\
+    &\triplee{\bnode{r1}}{\qname{rdf}{object}}{\qname{foaf}{Person}}
+  \end{align*}
+  % 
+\end{example}
+
+
+Yet another feature of \ac{RDF} are \emph{collections}, which allow to state that a group of resources are members of
+the collection.  This is represented in \ac{RDF} using a list structure following a predefined vocabulary:
+\qname{rdf}{List} states the type of the resource and the \qname{rdf}{first} and \qname{rdf}{rest} properties are used
+to represent the list.  This list must be terminated by \qname{rdf}{nil}.  Collections are used in
+\cref{sec:bf-extended-bgp}.
+
+\medskip
+
+Next, \cref{sec:representation-syntax} presents how \ac{RDF} can be serialised in order to be stored or
+exchanged, focusing on the RDF/XML and Turtle syntaxes and \cref{sec:rdf-semantics} presents the semantics of
+\ac{RDF}.  Finally, \cref{sec:rdf-schema} focuses on the inferencing capabilities of \ac{RDF} by describing
+\acl{RDFS}.
+
+\subsection{Representation Syntaxes}
+\label{sec:representation-syntax}
+
+Although the \ac{RDF} specification states that the normative syntax for writing \ac{RDF} graphs is
+RDF/XML~\cite{BeckettMcBride:2004aa}, this syntax is not favoured among practitioners and there have been proposals to
+support other serialisation formats and move away from \ac{XML} based representations~\cite{Beckett:2010aa}.
+% 
+Other well known syntaxes for \ac{RDF} are Turtle~\cite{BeckettBerners-Lee:2008aa} and RDFa~\cite{AdidaBirbeck:2008aa},
+where Turtle consists of a specialised syntax for RDF and RDFa defines a mechanism to incorporate \ac{RDF} statements into
+(X)HTML webpages.
+%
+In the following, we briefly highlight the constructs of the RDF/XML and Turtle syntaxes.
+
+
+\subsubsection{RDF/XML}
+\label{sec:rdfxml}
+
+Although RDF/XML is the normative syntax for \ac{RDF}, this serialisation is very flexible, and the same \ac{RDF} graph can
+be serialised in numerous different ways.
+%
+As we will point out in \cref{cha:xsparql}, this lack of a canonical RDF/XML serialisation is one of the major
+roadblocks to process \ac{RDF} data using \ac{XML} tools.
+%
+
+
+%
+The RDF/XML syntax uses \ac{XML} elements to represent \ac{RDF} subjects, predicates and objects:
+\stringValue{\qname{rdf}{Description}} elements are used to represent nodes (subjects and objects) of the \ac{RDF}
+graph, where the \stringValue{\qname{rdf}{about}} attribute specifies the URI of the node.
+%
+In turn, predicates are represented as \ac{XML} elements where the name of the element corresponds to the \ac{URI}
+(represented as an \ac{XML} QName) of the predicate.
+%
+A possible RDF/XML serialisation of the \ac{RDF} graph from our running example is presented in
+\cref{fig:bands-rdfxml}.
+%
+\begin{data}[p]
+  \centering
+  \lstinputlisting[language=XML,basicstyle=\small\ttfamily]{0-data+queries/usecaseData.rdf}
+  \caption{Bands in RDF/XML}
+  \label{fig:bands-rdfxml}
+\end{data}
+%
+\begin{data}[t]
+  \centering
+  \lstinputlisting{0-data+queries/usecaseData-abbrev.rdf}
+  \caption{Bands in abbreviated RDF/XML}
+\label{fig:bands-rdfxml-abbrev}
+\end{data}
+
+
+The RDF/XML serialisation allows the use of several abbreviations and 
+%
+an abbreviated serialisation of the \ac{RDF} graph in \cref{fig:bands-rdfxml} is presented in
+\cref{fig:bands-rdfxml-abbrev}. 
+%
+One of the possible abbreviations is, if an object node does not contain any other predicates, to omit the
+\stringValue{\qname{rdf}{Description}} element and specify the URI reference of the object in the
+\stringValue{\qname{rdf}{resource}} attribute of the predicate element node (for example in lines~13 and~14). 
+%
+Another abbreviation is, in case the subject contains an \stringValue{\qname{rdf}{type}} predicate, to replace the
+\stringValue{\qname{rdf}{Description}} element name with the type of the subject (for example lines~9, 12, and~16).
+%
+Also, several predicates about the same subject can be nested in the same \ac{XML} element (as presented in
+lines~$19$--$24$ of \cref{fig:bands-rdfxml-abbrev}).
+%
+
+
+Blank nodes (anonymous resources) can be given a label using the \stringValue{\qname{rdf}{nodeID}} attribute and can
+later be referred to (from within the same document).
+%
+Literals can be specified as the text content of a property \ac{XML} element (\eg~line~$17$ of
+\cref{fig:bands-rdfxml-abbrev}) or alternatively as the value of an attribute where the attribute name is the
+corresponding property \ac{URI} (as in line~$12$ of \cref{fig:bands-rdfxml-abbrev}).
+%
+Language tags are specified as the value of the \stringValue{\qname{xml}{lang}} attribute, while typed literals use the
+\stringValue{\qname{xml}{datatype}} attribute.
+
+
+
+
+\subsubsection{Turtle}
+\label{sec:turtle}
+%
+
+Stemming from its \ac{XML} roots and, even with all the proposed abbreviations, the RDF/XML syntax is still very verbose
+and neither easy to read nor write for humans.
+%
+To overcome these problems, the Turtle syntax~\cite{BeckettBerners-Lee:2008aa} aims to be a compact representation for
+\ac{RDF} graphs that is easier to read and write for users and includes abbreviations for common \ac{RDF} patterns.
+%
+Turtle is based on N-Triples, a simple syntax introduced for the \ac{RDF} test cases~\cite{GrantBeckett:2004aa} that
+represents one triple per line.  Furthermore, Turtle incorporates features from Notation 3~\cite{Berners-Lee:2005aa},
+most notably:
+%
+\begin{inparaenum}[(i)]
+\item namespace declarations,
+\item shortcuts for commonly used \ac{RDF} patterns, and
+\item a syntax for anonymous blank nodes.
+\end{inparaenum}
+
+%
+\begin{data}[t]
+  \centering
+  \lstinputlisting{0-data+queries/usecaseData.ttl}
+  \caption{Bands in Turtle (\fname{bands.ttl})}
+\label{fig:bands-turtle}
+\end{data}
+%
+
+The Turtle \ac{RDF} representation of the \usecase data from \cref{ex:usecase-data} is presented in
+\cref{fig:bands-turtle}.  In the Turtle syntax, \term{\texttt{@}prefix} declarations can be used to abbreviate common
+URIs (similar to \ac{XML} namespaces and QNames) and URIs must be enclosed between the \character{<} and \character{>}
+characters.
+%
+Literals are surrounded by double-quotes, as in \literal{Nightwish}, and may include a suffix to specify the language
+tag following the \character{@} separator character, for example \lang{Marco\ Hietala}{en}, or a datatype \ac{URI} after
+the \character{\^{}\^{}} separator as in \dt{5}{\uril{http://www.w3.org/2001/XMLSchema\#integer}}.
+%
+Blank nodes are prefixed with~\character{\_:} \eg~\bnode{song506} where the blank node label is \term{song506}.  A
+shortcut for unnamed blank nodes is provided by using the \character{[]} notation.  Another useful shortcut is the
+\character{\term{a}} keyword (line~7 of \cref{fig:bands-turtle}), which represents the URI
+\uril{http://www.w3.org/1999/02/22-rdf-syntax-ns\#type}, also commonly abbreviated as \qname{rdf}{type}.
+
+
+Furthermore the \character{;} and \character{,} symbols can be used to create new triples without repeating the subject
+or subject and predicate, respectively.  For example, the triples from lines 7--10 of \cref{fig:bands-turtle} can
+be written as:
+\begin{lstlisting}[frame=none,numbers=none]
+dbpedia:Nightwish a mo:MusicGroup ;
+                  foaf:name "Nightwish" ; 
+                  foaf:member dbpedia:Marco_Hietala, dbpedia:Tarja_Turunen .
+\end{lstlisting}
+%
+Commonly used datatypes can also be abbreviated: for instance \term{5} is equivalent to
+\dt{5}{\uril{http://www.w3.org/2001/XMLSchema\#integer}}, while \term{5.0} corresponds to
+\dt{5.0}{\uril{http://www.w3.org/2001/XMLSchema\#decimal}}.
+%
+Turtle also provides abbreviations for \ac{RDF} collections by listing a space-separated sequence of \ac{RDF} terms
+enclosed by \lit{(} and \lit{)}.
+
+
+\subsection{Semantics}
+\label{sec:rdf-semantics}
+
+The semantics of \ac{RDF} is specified using a model theory as per~\citet{Hayes:2004aa}, which is a common form of specifying
+semantics, for example for first-order logic.
+%
+Model theoretic semantics of formal languages assign any expression in the language to an element of a possible
+``world'' -- called an \emph{interpretation} -- and also specify the necessary conditions for an interpretation to be
+considered valid -- called a \emph{model}.  The notion of \emph{entailment} between two expressions,~$A$ entails~$B$,
+can then be defined as any interpretation that is a model of~$A$ must also be a model of~$B$.
+%
+Based on this semantics, it is possible to define what are the \emph{entailed} consequences of the interpretation and
+what are valid \emph{inference rules}. 
+
+
+In the case of \ac{RDF}, language expressions are considered as being the terms in the universe of the graph and also the
+individual triples, \ie~each term in the vocabulary is assigned to an interpretation element, where plain literals are
+interpreted as themselves and blank nodes are interpreted as existential variables (scoped to the \ac{RDF} graph in which
+they occur).
+
+
+The \ac{RDF} semantics~\cite{Hayes:2004aa} specifies different types of interpretation, and hence of entailment, ranging
+from the so-called \emph{simple} interpretation to the more complex \emph{RDFS} and \emph{datatype} interpretations.
+%
+Simple interpretations consider only the vocabulary of the triples present in the graph while other types of
+interpretations, namely \ac{RDF} and \ac{RDFS}-interpretations, consider predefined vocabularies and a set of \ac{RDF}
+triples that any interpretation must satisfy by default: the so-called \emph{axiomatic} triples.
+
+
+\ac{RDF} interpretations consider the terms defined in the \url{http://www.w3.org/1999/02/22-rdf-syntax-ns#} namespace
+(commonly abbreviated with the prefix \term{rdf}).
+%
+For instance, \ac{RDF} interpretations impose conditions that identify a subset of the interpretation resources as being
+\emph{properties} (interpretation resources of type \term{rdf{:}Property}) and introduce the new datatype
+\term{rdf{:}XMLLiteral} to represent well-formed \ac{XML} literals. % (c.f. \cref{sec:xml}).
+
+
+
+\ac{RDFS}-interpretations consider further vocabulary in the \term{rdfs} namespace
+(\url{http://www.w3.org/2000/01/rdf-schema#}) that define further conditions on top of \ac{RDF} interpretations and
+introduce the notion of a \emph{class}.  A class is itself a resource that denotes a common set of resources, which are
+called \emph{instances} of the class and all have the class as the value for their \qname{rdf}{type} property.
+%
+Informally, the \ac{RDFS} vocabulary states the following:
+%
+\begin{inparaenum}[(i)]
+\item $\triple{p, \term{rdfs{:}subPropertyOf}, q}$ means that any resources related by property~$p$ are also related by
+  property~$q$;
+\item $\triple{c, \term{rdfs{:}subClassOf}, d}$ means that any instance of class~$c$ is also an instance of class~$d$;
+\item $\triple{a, \term{rdf{:}type}, c}$ means that~$a$ is an instance of~$c$;
+\item $\triple{p, \term{rdfs{:}domain}, c}$ means that the \emph{domain} of property~$p$ is~$c$, \ie~any resource that
+  is the subject of a triple with predicate~$p$ is an instance of~$c$; and
+\item $\triple{p, \term{rdfs{:}range}, c}$ means that the \emph{range} of property~$p$ is~$c$, \ie~any resource that is
+  an object of a triple with predicate~$p$ is an instance of~$c$.
+\end{inparaenum}
+%
+
+Further extending \ac{RDFS}-interpretations, a D-interpretation provides an (admittedly minimal) support for \ac{XSD}
+datatypes~\cite{BironMalhotra:2004aa} extended with the \term{rdf{:}XMLLiteral} datatype.
+%
+Another \ac{W3C} specification that provides a more expressive inference system than \ac{RDFS} is the \ac{OWL}, now in
+its second version~\cite{HitzlerKrotzschParsia:2009aa}.  The \ac{OWL} language introduces new concepts such as the
+distinction between object and datatype properties, class disjointness assertions, and assertions of equality between
+individuals, among others.
+%
+It is noteworthy that D-interpretations, \ac{OWL}, and the \term{rdf{:}XMLLiteral} datatype may introduce
+inconsistencies in \ac{RDF}.
+%
+However, in this thesis, we are mostly interested in \ac{RDFS} inferences and we do not consider D-interpretations,
+\ac{OWL} constructs, nor the typing of \term{rdf{:}XMLLiteral} and thus we avoid any inconsistencies in \ac{RDF}.  
+%
+
+
+Although in the \ac{RDF} Semantics specification~\cite{Hayes:2004aa} the semantic conditions for each interpretation are
+detailed separately, in this thesis we follow the formalism defined
+by~\citet{MunozPerezGutierrez:2007aa,MunozPerezGutierrez:2009aa} and provide a single notion of interpretation that
+covers Simple, \ac{RDF}, and \ac{RDFS}-interpretations. 
+%
+Intuitively, the interpretation of an \ac{RDF} triple~$\triple{s,p,o}$ is true if~$s$,~$p$ and~$o$ belong to the
+interpretation vocabulary,~$p$ is a property and the pair~$(s,o)$ belongs to the extension of the property~$p$.  An
+interpretation assigns the value true to an \ac{RDF} graph if it assigns the value true to all of its triples.
+%
+
+%
+Additionally, in order to assign a truth value for a graph containing blank nodes, an interpretation must rely on a
+mapping from the set of blank nodes present in the graph to terms in the graph.  This mapping of blank nodes ensures
+that all occurrences of the same blank node are mapped to the same interpretation element and, since this mapping is not
+an integral part of the interpretation, it also ensures that blank nodes have no visibility outside the graph.
+%
+Based on~\citet{MunozPerezGutierrez:2007aa}, we define the notion of \emph{map}:
+%
+\begin{definition}[Map]
+  A \emph{map} is a function~$\theta : \AUBL \to \AUBL$ preserving URIs and literals, \ie~$\theta(t) = t$, for all~$t \in
+  \AUL$. 
+  % 
+  Given a graph~$G$, we define~$\theta(G) = \set{ \triple{\theta(s), \theta(p), \theta(o)} \mid \triple{s, p, o} \in G }$. We speak of
+  a map~$\theta$ from~$G_{1}$ to~$G_{2}$, and write~$\theta : G_{1} \to G_{2}$, if~$\theta$ is such that~$\theta(G_{1}) \subseteq
+  G_{2}$.
+  %
+  Furthermore, we say that a map~$\theta$ is a \emph{grounding} of a graph~$G$, iff~$\theta(G)$ is a ground graph.
+\end{definition}
+%
+
+We next present the definition of interpretation according to~\citet{MunozPerezGutierrez:2007aa}:
+%
+\begin{definition}[Interpretation,~\citet{MunozPerezGutierrez:2007aa}]
+  \label{def:interpretation}
+  % 
+  An \emph{interpretation}~$\I$ over a vocabulary~$V$ is a tuple~$\I =\tuple{\Delta_{R}, \Delta_{P}, \Delta_{C},
+    \Delta_{L}, \intP{\cdot}, \intC{\cdot}, \int{\cdot}}$, where~$\Delta_{R}, \Delta_{P}$,~$\Delta_{C}, \Delta_{L}$ are
+  the interpretation domains of~$\I$, which are finite non-empty sets, and~$\intP{\cdot}, \intC{\cdot}, \int{\cdot}$ are
+  the interpretation functions of~$\I$. They have to satisfy:
+  % 
+  \begin{enumerate}[noitemsep]
+  \item $\Delta_{R}$ are the resources (the domain or universe of~$\I$);
+  \item $\Delta_{P}$ are property names (not necessarily disjoint from~$\Delta_{R}$);
+  \item $\Delta_{C} \subseteq \Delta_{R}$ are the classes;
+  \item $\Delta_{L} \subseteq \Delta_{R}$ are the literal values (containing~$\AL \cap V$);
+  \item $\intP{\cdot}$ is a function~$\intP{\cdot}\colon \Delta_{P} \to 2^{\Delta_{R} \times \Delta_{R}}$;
+  \item $\intC{\cdot}$ is a function~$\intC{\cdot}\colon \Delta_{C} \to 2^{\Delta_{R}}$;
+  \item $\int{\cdot}$ maps each~$t \in \AUL \cap V$ into a value~$\int{t} \in \Delta_{R} \cup \Delta_{P}$ such
+    that~$\int{\cdot}$ is the identity for plain literals and assigns an element in~$\Delta_{R}$ to each element
+    in~$\AL$.
+  \end{enumerate}
+\end{definition}
+
+
+
+\subsection{RDF Schema}
+\label{sec:rdf-schema}
+
+As briefly presented in the previous section, \ac{RDFS} is a vocabulary that allows for the description of relations
+between \ac{RDF} resources.
+%
+For this thesis, we will rely on a fragment of \ac{RDFS}, called~$\rhodf$, presented
+by~\citet{MunozPerezGutierrez:2007aa}, that covers essential features of \ac{RDFS}.
+%
+$\rhodf$ consists of the following subset of the \ac{RDFS} vocabulary:~$\set{ \term{rdfs{:}subPropertyOf},
+  \term{rdfs{:}subClassOf}, \term{rdf{:}type}, \term{rdfs{:}domain}, \term{rdfs{:}range}}$.  In the following, for
+readability purposes, we are using the following abbreviations:~$\spp$ for \term{rdfs{:}subPropertyOf},~$\subclass$ for
+\term{rdfs{:}subClassOf},~$\typeR$ for \term{rdf{:}type},~$\domR$ for \term{rdfs{:}domain}, and~$\range$ for
+\term{rdfs{:}range}.
+
+
+Based on the definition of interpretation (\cref{def:interpretation}), we can define the concept of
+\emph{model} of an \ac{RDF} graph:
+%
+\begin{definition}[Model~\cite{MunozPerezGutierrez:2007aa}]
+  % 
+  \label{def:rdf-model}
+  %
+  An interpretation~$\I$ is a \emph{model} of a ground graph~$G$, denoted~$\I \models G$, \iff~$\I$ is an interpretation
+  over the vocabulary~$\rhodf \cup \universe(G)$ that satisfies the following conditions:
+  % 
+  \begin{description}\label{condRDF}
+  \item[Simple:] \
+    \begin{enumerate}
+    \item for each~$\triple{s, p, o} \in G$,~$\intA{p} \in\Delta_{P}$ and~$(\intA{s}, \intA{o}) \in \intP{\intA{p}}$;
+    \end{enumerate}
+  \item[Subproperty:] \
+    \begin{enumerate}
+    \item $\intP{\intA{ \spp}}$ is transitive over~$\Delta_{P}$;
+    \item if~$(p, q) \in \intP{\intA{ \spp}}$ then~$p, q \in \Delta_{P}$ and~$\intP{p} \subseteq \intP{q}$;
+    \end{enumerate}
+  \item[Subclass:] \
+    \begin{enumerate}
+    \item $\intP{\intA{\subclass}}$ is transitive over~$\Delta_{C}$;
+    \item if~$(c, d) \in \intP{\intA{\subclass}}$ then~$c, d \in \Delta_{C}$ and~$\intC{c} \subseteq \intC{d}$;
+    \end{enumerate}
+  \item[Typing I:] \
+    \begin{enumerate}
+    \item $x \in \intC{c}$ \iff~$(x,c) \in \intP{\intA{\typeR}}$;
+    \item if~$(p, c) \in \intP{\intA{\domR}}$ and~$(x, y) \in \intP{p}$ then~$x \in \intC{c}$;
+    \item if~$(p, c) \in \intP{\intA{\range}}$ and~$(x, y) \in \intP{p}$ then~$y \in \intC{c}$;
+    \end{enumerate}
+  \item[Typing II:] \
+    \begin{enumerate}
+    \item For each~$\eee \in \rhodf$,~$\intA{\eee} \in \Delta_{P}$
+    \item if~$(p, c) \in \intP{\intA{\domR}}$ then~$p \in \Delta_{P}$ and~$c \in \Delta_{C}$
+    \item if~$(p, c) \in \intP{\intA{\range}}$ then~$p \in \Delta_{P}$ and~$c \in \Delta_{C}$
+    \item if~$(x, c) \in \intP{\intA{\typeR}}$ then~$c \in \Delta_{C}$
+    \end{enumerate}
+  \end{description}
+\end{definition}
+
+\nd Entailment among ground graphs~$G$ and~$H$ behaves as per the model-theoretic semantics: any interpretation that is
+a model of~$G$ is also a model of~$H$.
+%
+In the case where~$G$ and~$H$ may contain blank nodes,~$G \models H$ \iff for any grounding~$G'$ of~$G$ there is a
+grounding~$H'$ of~$H$ such that~$G' \models H'$.
+%
+
+In~\citet{MunozPerezGutierrez:2007aa}, the authors define two variants of the semantics: the default one includes
+reflexivity of~$\intP{\int{ \spp}}$ and~$\intC{\int{\subclass}}$ over~$\Delta_{P}$ and~$\Delta_{C}$, respectively, but
+herein we are only considering the alternative semantics presented in~\citet[Definition 4]{MunozPerezGutierrez:2007aa},
+which omits this requirement.
+% 
+As a consequence, inferences such as~$G \models \triple{a, \subclass, a}$ are not supported.  However, the drawback of
+this is minimal since such inferences do not add expressive power and are thus of marginal interest.
+%
+
+
+\subsubsection*{Deductive System}
+% 
+In what follows, we present the sound and complete deductive system from~\citet{MunozPerezGutierrez:2007aa}.
+%
+The system is arranged in groups of rules that capture the semantic conditions of models. In every rule,~$A,B,C,X$,
+and~$Y$ are meta-variables representing elements in~$\AUBL$ and~$D,E$ represent elements in~$\AUL$.  
+%
+The rules are as follows:
+% 
+\begin{description}
+\item[1. Simple:] ~ \\[0.5em]
+  \begin{tabular}{llll}
+    $(a)$ & $\frac{G}{G'}$ for a map~$\theta:G' \to G$ & $(b)$ & $\frac{G}{G'}$ for~$G' \subseteq G$
+  \end{tabular}
+\item[2. Subproperty:] ~ \\[0.5em]
+  \begin{tabular}{llll}
+    $(a)$ & $\frac{\triple{A,  \spp, B},  \triple{B,  \spp, C}}{\triple{A,  \spp, C}}$ & $(b)$ & $\frac{\triple{D,  \spp, E},  \triple{X, D, Y}}{\triple{X, E, Y}}$
+  \end{tabular}
+\item[3. Subclass:] ~ \\[0.5em]
+  \begin{tabular}{llll}
+    $(a)$ & $\frac{\triple{A, \subclass, B},  \triple{B, \subclass, C}}{\triple{A, \subclass, C}}$ & $(b)$ & $\frac{\triple{A, \subclass, B},  \triple{X, \typeR, A}}{\triple{X, \typeR, B}}$
+  \end{tabular}
+\item[4. Typing:] ~ \\[0.5em]
+  \begin{tabular}{llll}
+    $(a)$ & $\frac{\triple{D, \domR, B},  \triple{X, D, Y}}{\triple{X, \typeR, B}}$ & $(b)$ & $\frac{\triple{D, \range, B},  \triple{X, D, Y}}{\triple{Y, \typeR, B}}$
+  \end{tabular}
+\item[5. Implicit Typing:] ~ \\[0.5em]
+  \begin{tabular}{llll}
+    $(a)$ & $\frac{\triple{A, \domR, B},  \triple{D,  \spp, A}, \triple{X, D, Y}}{\triple{X, \typeR, B}}$  &
+    $(b)$ & $\frac{\triple{A, \range, B},  \triple{D,  \spp, A}, \triple{X, D, Y}}{\triple{Y, \typeR, B}}$
+  \end{tabular}
+\end{description}
+%
+The deductive system presented by~\citet{MunozPerezGutierrez:2007aa} includes 7 rules, where the missing rules (rules
+6-7) handle reflexivity.  
+%
+Furthermore, as noted in~\citet{MunozPerezGutierrez:2007aa}, the ``Implicit Typing'' rules are a necessary addition to
+the rules presented in~\citet{Hayes:2004aa} for complete \ac{RDFS} entailment.  These represent the case when variable~$A$
+in~$\triple{D, \spp, A}$ and~$\triple{A, \domR, B}$ or~$\triple{A, \range, B}$, is a property implicitly represented by
+a blank node.
+
+We denote with~$\set{\tau_{1}, \ldots, \tau_{n}} \vdash_{\mathsf{RDFS}} \tau$ that the consequence~$\tau$ is obtained from
+the premise~$\tau_{1}, \ldots, \tau_{n}$ by applying one of the inference rules 2--5 above.
+% 
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% mode: flyspell
+%%% mode: reftex
+%%% TeX-master: "../thesis"
+%%% End:

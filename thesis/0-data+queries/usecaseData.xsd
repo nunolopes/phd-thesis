@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="user">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="bands"/>
+      </xs:sequence>
+    <xs:attribute name="username" use="required" type="xs:string"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="bands">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="band" minOccurs="0" maxOccurs="unbounded"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="band">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="members"/>
+        <xs:element ref="albums"/>
+      </xs:sequence>
+      <xs:attribute name="name" use="required" type="xs:string"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="members">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="member" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="albums">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="album" minOccurs="0" maxOccurs="unbounded"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="album">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="song" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+      </xs:sequence>
+      <xs:attribute name="name" use="required" type="xs:string"/>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

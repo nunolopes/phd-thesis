@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rdf:RDF xmlns:dbpedia="http://dbpedia.org/resource/"
+         xmlns:dc="http://purl.org/dc/elements/1.1/"
+         xmlns:ex="http://example.org/bands#"
+         xmlns:foaf="http://xmlns.com/foaf/0.1/"
+         xmlns:mo="http://purl.org/ontology/mo/"
+         xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <rdf:Description rdf:about="http://dbpedia.org/resource/Nightwish">
+    <rdf:type rdf:resource="http://purl.org/ontology/mo/Band"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://dbpedia.org/resource/Nightwish">
+    <foaf:name>Nightwish</foaf:name>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://dbpedia.org/resource/Nightwish">
+    <foaf:member rdf:resource="http://dbpedia.org/resource/Marco_Hietala"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://dbpedia.org/resource/Nightwish">
+    <foaf:member rdf:resource="http://dbpedia.org/resource/Tarja_Turunen"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://dbpedia.org/resource/Marco_Hietala">
+    <foaf:name xml:lang="en">Marco Hietala</foaf:name>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://dbpedia.org/resource/Marco_Hietala">
+    <rdf:type rdf:resource="http://purl.org/ontology/mo/MusicArtist"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://dbpedia.org/resource/Tarja_Turunen">
+    <foaf:name xml:lang="en">Tarja Turunen</foaf:name>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://dbpedia.org/resource/Tarja_Turunen">
+    <rdf:type rdf:resource="http://purl.org/ontology/mo/MusicArtist"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/bands#album208">
+    <rdf:type rdf:resource="http://purl.org/ontology/mo/Record"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/bands#album208">
+    <mo:title>Wishmaster</mo:title>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/bands#album208">
+    <foaf:maker rdf:resource="http://dbpedia.org/resource/Nightwish"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/bands#album208">
+    <mo:track rdf:nodeID="song566"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/bands#album208">
+    <mo:track rdf:nodeID="song506"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="song566">
+    <rdf:type rdf:resource="http://purl.org/ontology/mo/Track"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="song566"><dc:title>Wishmaster</dc:title></rdf:Description>
+  <rdf:Description rdf:nodeID="song506">
+    <rdf:type rdf:resource="http://purl.org/ontology/mo/Track"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="song506"><dc:title>FantasMic</dc:title></rdf:Description>
+</rdf:RDF>

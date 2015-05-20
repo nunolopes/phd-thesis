@@ -1,0 +1,638 @@
+\section{Optimisations of Nested \texttt{for} Expressions}
+\label{sec:optimisation}
+
+Following our current implementation of the XSPARQL language, this section presents different rewriting strategies for
+XSPARQL queries containing nested expressions.  
+%
+Based on the experimental evaluation results from the previous section, we are especially interested in nested
+expressions with an inner \SparqlForClause, as the number of interleaved calls to the SPARQL engine can be reduced
+drastically by using these rewritings.
+%
+Intuitively, these rewritings rely on executing the inner SPARQL query only once in an unbounded manner, and then either
+performing the a nested loop over the results of the queries directly in XQuery, or, if possible, transforming the
+nested queries into a single SPARQL query.
+
+We start by presenting the definitions and conditions under we can perform these rewritings.
+%
+\begin{definition}[Dependent Join]
+  We call two nested XSPARQL \FOR expressions (\ForClause, \SparqlForClause, or \SQLForClause), where the inner
+  expression is a \SparqlForClause and at least one variable in the inner expression is bound by the outer expression, a
+  \emph{dependent join}.  The shared variables between the \FOR expressions are called \emph{dependent variables}.
+\end{definition}
+%
+\noindent Note that the strategies presented here are only applicable for dependent joins satisfying the following restrictions:
+%
+\begin{enumerate}[noitemsep]
+\item An explicit~$\DatasetClause$ of the inner query needs to be statically determined \ie~it cannot be determined
+  based on variables bound from the outer expression;
+\item The return clause of the inner expression can not be a \ConstructClause; and
+\item The dependent variable in the inner query's graph pattern must be \emph{strictly bounded} as defined next.
+\end{enumerate}
+%
+\begin{definition}[Strict Boundedness]
+  The set of \emph{strictly bound variables} in a graph pattern~$P$,
+  denoted~$\bVars(P)$, is recursively defined as follows: if~$P$ is
+  \begin{itemize}[nosep]
+  \item a \ac{BGP}, then~$\bVars(P) = \vars{P}$;
+  \item $(P_1~\AND~P_2)$, then~$\bVars(P) = \bVars(P_1) \cup \bVars(P_2)$;
+  \item $(P_1~\OPTIONAL~P_2)$, then~$\bVars(P) = \bVars(P_1)$;
+  \item $(P_1~\UNION~P_2)$, then~$\bVars(P) = \bVars(P_1) \cap \bVars(P_2)$;
+  \item $(\GRAPH~i~P_1)$, then~$\bVars(P) = \bVars(P_1) \cup (\set{i} \cap\AV)$; and
+  \item $(P_1~\FILTER~R)$, then~$\bVars(P) = \bVars(P_1)$.
+  \end{itemize}
+\end{definition}
+%
+Informally, the dependent variables must occur
+\begin{inparaenum}[(i)]
+\item in a \ac{BGP},
+\item in every alternative of \UNION{s} pattern, and 
+\item it must also occur outside of the optional graph pattern in case of optionals.
+\end{inparaenum}
+% 
+Strict boundedness essentially ensures that the join variable does not occur only in a \FILTER expression, which would
+lead to problems in case the inner expression is called unconstrained, see below.
+
+Next, we define the notion of inclusion of solution sequences.  
+%
+\begin{definition}[Solution sequence inclusion]
+  Let~$\Omega_1$ and~$\Omega_2$ be solution sequences. We say~\emph{$\Omega_1$ is included in~$\Omega_2$},
+  denoted~$\Omega_1 \preceq \Omega_2$, if for all solution mappings~$\mu_1 \in \funcCall{ToMultiset}{\Omega_1}$ there
+  exists a solution mapping~$\mu_2 \in \funcCall{ToMultiset}{\Omega_2}$ such that~$\mu_1 \subseteq \mu_2$. 
+\end{definition}
+%
+Please note that this definition extends the notion of subset between multisets by considering also the subset relation
+between their elements, \ie~solution mappings. 
+
+
+The following rewritings for the implementation of dependent joins can be grouped into two categories, depending whether
+the join is performed in XQuery or SPARQL.  For performing the join in XQuery, we use already known join algorithms from
+relational databases, namely nested-loop joins.
+%
+For performing the join in SPARQL, if the outer expression is a \SparqlForClause we can implement the join by rewriting
+both the inner and the outer expressions into a single SPARQL call.  In case the outer query consists of an XQuery
+\ForClause, we can still consider this approach, but we need to convert the result of the outer XQuery \ForClause to an
+\ac{RDF} graph, for instance relying on a SPARQL engine that supports SPARQL Update~\cite{GearonPassantPolleres:2012aa}
+to add this temporary graph to a triple store.
+
+
+\subsection{Dependent Join implementation in XQuery}
+\label{sec:join-impl-xquery}
+The intuitive idea with these rewritings is, instead of using the na\"{\i}ve rewriting that performs one SPARQL query
+for each iteration of the outer expression, to execute only one unconstrained SPARQL query, before the outer query.  The
+resulting sequence of SPARQL solution mappings is then joined in XQuery with the results of the outer expression, using
+one of the following strategies. 
+
+
+The straightforward way to implement the join over dependent variables directly in XQuery is by nesting two XQuery \FOR
+expressions, much like a regular nested-loop join~\cite{AbiteboulHullVianu:1995aa} in standard relational databases.
+The join consists of restricting the values of variables from the inner expression to the values taken from the current
+iteration of the outer expression. 
+
+
+Similar to \cref{sec:implementation}, we will describe the implementation of this nested-loop join by means of
+the rewriting function~$\funcName{opt_{nl}}$. We use~$A \triangle B = \left(A \cup B\right)
+\setminus \left(A \cap B\right)$ to denote the symmetric difference of two sets~$A$ and~$B$.
+
+
+Let~$\envElem{Q}{}$ be an XSPARQL expression of form
+
+\begin{queryF}
+  \[
+  \begin{array}{l}
+  \mathrm{(1)~~~~}\FOR~\gsup{\var{Var}}{out}~\AT~\gsup{\var{PosVar}}{out}~\IN~\envElem{\ExprSingle}{1}~\RETURN\\
+  \mathrm{(2)~~~~}\quad\FOR~\gsup{\Vars}{in}~\DatasetClause~\SparqlWhereClause~\SolutionModifier\\
+  \mathrm{(3)~~~~}\quad\RETURN~\envElem{\ExprSingle}{2}
+\end{array}
+\]
+\label{eq:expr_sdep_xquery}
+\end{queryF}%
+
+\noindent
+the application of the rewriting function~\onl{\envElem{Q}{}} can be split into two cases:
+%
+\begin{itemize}
+\item if \envElem{\ExprSingle}{1} and \envElem{\ExprSingle}{2} do not contain any occurrences
+  of~\eqref{eq:expr_sdep_xquery} then, assuming $\gsup{\Vars}{sp} = \funcCall{\Vars}{\SparqlWhereClause}$, we have that:
+%
+\begin{small}
+\begin{equation*}
+\begin{array}{l}
+  \onl{\envElem{Q}{}} =\\
+  \mathrm{(1)~~~~} \LET~\varR{results}~:= \funcCallR{sparqlCall}{\begin{array}{l}
+      \SELECT~\{ \gsup{\var{Var}}{out} \}  \cup \gsup{\Vars}{in}~\DatasetClause \\
+      \SparqlWhereClause~\SolutionModifier
+    \end{array}} \RETURN\\
+  \mathrm{(2)~~~~} \FOR~\gsup{\var{Var}}{out}~\AT~\gsup{\var{PosVar}}{out}~\IN~\envElem{\ExprSingle}{1}~\RETURN\\
+  \mathrm{(3)~~~~} \quad \FOR~\varR{result}~\AT~\varR{posvar\mathunderscore{}in}~\IN~\varR{results//sr{:}result}~\RETURN \\
+  \mathrm{(4)~~~~} \quad \IF~\left(\funcCall{join_{nl}}{\begin{array}{l}
+        \{ \gsup{\var{Var}}{out} \} \cap \gsup{\Vars}{sp},\\
+        \varR{result}
+      \end{array}
+    }\right)~\THEN\\
+  \mathrm{(5)~~~~} \qquad \LET~\var{v} := \varR{result/sr{:}binding[@name = \varName{v}]/*}~\qquad\qquad \hfill {\textrm{\smaller for each~$\var{v} \in \set{ \gsup{Var}{out} } \triangle \gsup{\Vars}{sp}$}}\\
+  \mathrm{(6)~~~~} \qquad \envElem{\ExprSingle}{2}\\
+  \mathrm{(7)~~~~} \quad \ELSE~\left(\right)
+\end{array}
+\end{equation*}
+\end{small}%
+%
+\item otherwise:
+%
+\begin{small}
+\begin{equation*}
+\begin{array}{r@{~~~}l}
+  \multicolumn{2}{l}{\onl{\envElem{Q}{}} =}\\[.3em]
+   & \onl{\begin{array}{l}
+       \FOR~\gsup{\var{Var}}{out}~\AT~\gsup{\var{PosVar}}{out}~\IN~\onl{\envElem{\ExprSingle}{1}}~\RETURN\\
+       \quad \FOR~\gsup{\Vars}{in}~\DatasetClause~\SparqlWhereClause~\SolutionModifier\\
+       \quad \RETURN~\onl{\envElem{\ExprSingle}{2}}
+\end{array}
+}
+\end{array}
+\end{equation*}
+\end{small}%
+
+\end{itemize}
+%
+The auxiliary function~$\funcName{join_{nl}}$ consists of an XPath expression that determines if an XQuery tuple stream
+is compatible with a SPARQL solution mapping. 
+%
+More specifically, this function considers two variables as compatible if their values are equal, the outer value is a
+blank node, or the inner value~($\var{VarRes}_{i}$) is unbound.
+%
+These cases represent the semantics of XQuery nested queries, behaving similar to a left outer join~($\leftouterjoin$).
+
+\begin{small}
+\begin{equation*}
+\begin{array}{l}
+  \funcCall{join_{nl}}{\set{ \var{Var_1}, \dotsb, \var{Var_n} }, \var{res}} = \\[.5em]
+  \begin{array}{c}
+    \left(
+      \begin{array}{l}
+        \funcCallR{isBlank}{\var{Var_1}}~\OR \\
+        \funcCall{\mathtt{fn{:}empty}}{\var{res}/\mathtt{sr{:}binding}\mathtt{[@name~=~\envElem{Var}{1}]/*}}~\OR\\
+        \left( \var{Var_1}~\EQ~\var{res}/\mathtt{sr{:}binding[@name~=~\envElem{Var}{1}]/*} \right)
+      \end{array}
+    \right)~\AND \\ 
+     \dotsb \\
+    \AND~\left(\begin{array}{l}
+        \funcCallR{isBlank}{\var{Var_n}}~\OR\\
+        \funcCall{\mathtt{fn{:}empty}}{\var{res}/\mathtt{sr{:}binding[@name~=~\envElem{Var}{n}]/*}}~\OR\\
+        \left( \var{Var_n}~\EQ~\var{res}/\mathtt{sr{:}binding[@name~=~\envElem{Var}{n}]/*} \right)
+    \end{array}
+  \right) \\
+  \end{array}
+\end{array}
+\end{equation*}
+\end{small}%
+%
+When~$\envElem{Q}{}$ is an XSPARQL expression of form
+\begin{queryF}
+\[\begin{array}{l}
+  \mathrm{(1)~~~~}\FOR~\gsup{\Vars}{out}~\gsup{\DatasetClause}{out}~\gsup{\SparqlWhereClause}{out}~\gsup{SolutionModifier}{out}\\
+  \mathrm{(2)~~~~}\RETURN\\
+  \mathrm{(3)~~~~}\quad\FOR~\gsup{\Vars}{in}~\gsup{\DatasetClause}{in}~\gsup{\SparqlWhereClause}{in}~\gsup{SolutionModifier}{in}\\
+  \mathrm{(4)~~~~}\quad\ReturnExpr
+\end{array}\]
+\label{eq:expr_sdep}
+\end{queryF}%
+%
+\noindent the application of the rewriting function~\onl{\envElem{Q}{}} can be split into two cases:
+%
+\begin{itemize}
+\item in case \envElem{\ExprSingle}{} does not contain any occurrences of~\eqref{eq:expr_sdep} then, considering
+  $\gsup{\Vars}{sp} = \vars{\gsup{\SparqlWhereClause}{in}}$ the set of variables from the inner \SparqlWhereClause, we
+  have that:
+%
+\begin{small}
+  \begin{equation*}
+  \begin{array}{l}
+  \onl{\envElem{Q}{}} =\\[.3em]
+    \mathrm{(1)~~~~} \LET~\varR{res\mathunderscore{}in}~:=~\funcCallR{sparqlCall}{
+                    \begin{array}{l}
+                      \SELECT~\gsup{\Vars}{in} \cup \gsup{\Vars}{out} \cap \gsup{\Vars}{sp}\\
+                      \gsup{\DatasetClause}{in}~\gsup{\SparqlWhereClause}{in} \\
+                      \gsup{\SolutionModifier}{in}
+                    \end{array}
+                  }~\RETURN\\
+    \mathrm{(2)~~~~}\LET~\varR{res\mathunderscore{}out}~:=~\funcCallR{sparqlCall}{
+                    \begin{array}{l}
+                      \SELECT~\gsup{\Vars}{out}~\gsup{\DatasetClause}{out} \\
+                      \gsup{\SparqlWhereClause}{out}~\gsup{\SolutionModifier}{out}
+                    \end{array}
+                  }~\RETURN\\
+    \mathrm{(3)~~~~}\FOR~\varR{rout}~\AT~\varR{posvar\mathunderscore{}out}~\IN~\varR{res\mathunderscore{}out//sr{:}result}~~\RETURN\\
+    \mathrm{(4)~~~~} \quad \LET~\var{v}~:=~\varR{rout/sr{:}binding[@name=\varName{v}]/*}~\RETURN \qquad \hfill \textrm{\smaller for each~$\var{v}~\in~\gsup{\Vars}{out}$}\\
+    \mathrm{(5)~~~~} \quad \FOR~\varR{rin}~\AT~\varR{posvar\mathunderscore{}out}~\IN~\varR{res\mathunderscore{}in//sr{:}result}~\RETURN\\
+    \mathrm{(6)~~~~} \quad\quad \IF~\left(\funcCall{join_{sr}}{\begin{array}{l}
+          \gsup{\Vars}{out} \cap \gsup{\Vars}{sp},
+          \varR{res\mathunderscore{}out},
+          \varR{res\mathunderscore{}in}
+        \end{array}
+      }\right)~\THEN\\
+    \mathrm{(7)~~~~} \quad\qquad \LET~\var{v} :=~\varR{res\mathunderscore{}in/sr{:}binding[@name=\varName{v}]/*}~\RETURN \qquad \hfill \textrm{\smaller for each~$\var{v} \in \gsup{\Vars}{out} \triangle \gsup{\Vars}{sp}$}\\
+    \mathrm{(8)~~~~} \quad\quad~~~\grammarRule{ExprSingle} \\
+    \mathrm{(9)~~~~} \quad\quad \ELSE~\left(\right)
+  \end{array}
+\end{equation*}
+\end{small}%
+%
+\item otherwise:
+%
+\begin{small}
+\begin{equation*}
+\begin{array}{r@{~~~}l}
+  \multicolumn{2}{l}{\onl{\envElem{Q}{}} =}\\[.3em]
+   & \onl{\begin{array}{l}
+       \FOR~\gsup{\Vars}{out}~\gsup{\DatasetClause}{out}~\gsup{\SparqlWhereClause}{out}~\gsup{SolutionModifier}{out}\\
+       \RETURN\\
+       \quad\FOR~\gsup{\Vars}{in}~\gsup{\DatasetClause}{in}~\gsup{\SparqlWhereClause}{in}~\gsup{SolutionModifier}{in}\\
+       \quad\RETURN~\onl{\envElem{ExprSingle}{}}
+\end{array}
+}
+\end{array}
+\end{equation*}
+\end{small}%
+\end{itemize}
+% 
+The~$\funcName{join_{sr}}$ function is defined as:
+\begin{small}
+\begin{equation*}
+\begin{array}{c}
+  \funcCall{join_{sr}}{\set{ \var{Var_1}, \dotsb, \var{Var_n} }, \var{resOut}, \var{resIn}} = \\[.5em]
+  \quad \funcCall{join_{nl}}{\set{ \var{resOut}/\mathtt{sr{:}binding[@name~=~\envElem{Var}{1}]/*} }, \var{resIn}}\\
+  \quad \AND~\dotsb~\AND\\
+  \quad \funcCall{join_{nl}}{\set{ \var{resOut}/\mathtt{sr{:}binding[@name~=~\envElem{Var}{n}]/*} }, \var{resIn}} \enspace .
+\end{array}
+\end{equation*}
+\end{small}%
+%
+\noindent The~$\funcName{join_{sr}}$ function behaves in a similar fashion to the~$\funcName{join_{nl}}$ function with
+the difference that it compares two SPARQL solution sequences.
+%
+For nested expressions with an outer \SQLForClause, \ie~when~$\envElem{Q}{}$ is an XSPARQL expression of form
+\begin{queryF}
+\[\begin{array}{l}
+  \mathrm{(1)~~~~}\FOR~\envElem{AttrSpec}{1}~\keyword{as}~\envElem{\var{Var}}{1}, \dots, \envElem{AttrSpec}{n}~\keyword{as}~\envElem{\var{Var}}{n}~\grammarRule{RelationList}~\grammarRule{SQLWhereClause}\\
+  \mathrm{(2)~~~~}\RETURN\\
+  \mathrm{(3)~~~~}\quad\FOR~\gsup{\Vars}{in}~\gsup{\DatasetClause}{in}~\gsup{\SparqlWhereClause}{in}~\gsup{SolutionModifier}{in}\\
+  \mathrm{(4)~~~~}\quad\ReturnExpr
+\end{array}\]
+\label{eq:expr_sdep_sql}
+\end{queryF}%
+%
+\noindent the application of the rewriting function~\onl{\envElem{Q}{}} can also be split into two cases:
+%
+\begin{itemize}
+\item in case \envElem{\ExprSingle}{} does not contain any occurrences of~\eqref{eq:expr_sdep_sql} then, considering
+  $\gsup{\Vars}{sp} = \vars{\gsup{\SparqlWhereClause}{in}}$ is the set of variables from the inner \SparqlWhereClause
+  and~$\gsup{\Vars}{out} = \set{\envElem{\var{Var}}{1}, \dots, \envElem{\var{Var}}{n}}$ is a shorthand notation for the
+  variables in the outer \SQLForClause, we have that:
+  % 
+\begin{small}
+  \begin{equation*}
+  \begin{array}{l}
+  \onl{\envElem{Q}{}} =\\[.3em]
+    \mathrm{(1)~~~~} \LET~\varR{res\mathunderscore{}in}~:=~\funcCallR{sparqlCall}{
+                    \begin{array}{l}
+                      \SELECT~\gsup{\Vars}{in} \cup \gsup{\Vars}{out} \cap \gsup{\Vars}{sp}\\
+                      \gsup{\DatasetClause}{in}~\gsup{\SparqlWhereClause}{in} \\
+                      \gsup{\SolutionModifier}{in}
+                    \end{array}
+                  }~\RETURN\\
+    \mathrm{(2)~~}\LET~\varR{res\mathunderscore{}out}~\text{\texttt{:=}}~\funcCallR{sqlCall}{\begin{array}{l}
+        \SELECT~\envElem{AttrSpec}{1}, \dots, \envElem{AttrSpec}{n}\\
+        \grammarRule{RelationList}~\grammarRule{SQLWhereClause}
+      \end{array}
+    }~\RETURN\\
+    \mathrm{(3)~~~~}\FOR~\varR{rout}~\AT~\varR{posvar\mathunderscore{}out}~\IN~\varR{res\mathunderscore{}out//sr{:}result}~~\RETURN\\
+    \mathrm{(4)~~~~} \quad \LET~\var{v}~:=~\varR{rout/sr{:}binding[@name=\varName{v}]/*}~\RETURN \qquad \hfill \textrm{\smaller for each~$\var{v}~\in~\gsup{\Vars}{out}$}\\
+    \mathrm{(5)~~~~} \quad \FOR~\varR{rin}~\AT~\varR{posvar\mathunderscore{}out}~\IN~\varR{res\mathunderscore{}in//sr{:}result}~\RETURN\\
+    \mathrm{(6)~~~~} \quad\quad \IF~\left(\funcCall{join_{sr}}{\begin{array}{l}
+          \gsup{\Vars}{out} \cap \gsup{\Vars}{sp},
+          \varR{res\mathunderscore{}out},
+          \varR{res\mathunderscore{}in}
+        \end{array}
+      }\right)~\THEN\\
+    \mathrm{(7)~~~~} \quad\qquad \LET~\var{v} :=~\varR{res\mathunderscore{}in/sr{:}binding[@name=\varName{v}]/*}~\RETURN \qquad \hfill \textrm{\smaller for each~$\var{v} \in \gsup{\Vars}{out} \triangle \gsup{\Vars}{sp}$}\\
+    \mathrm{(8)~~~~} \quad\quad~~~\grammarRule{ExprSingle} \\
+    \mathrm{(9)~~~~} \quad\quad \ELSE~\left(\right)
+  \end{array}
+\end{equation*}
+\end{small}%
+%
+\item otherwise:
+%
+\begin{small}
+\begin{equation*}
+\begin{array}{r@{~~~}l}
+  \multicolumn{2}{l}{\onl{\envElem{Q}{}} =}\\[.3em]
+   & \onl{\begin{array}{l}
+       \FOR~\envElem{AttrSpec}{1}~\keyword{as}~\envElem{\var{Var}}{1}, \dots, \envElem{AttrSpec}{n}~\keyword{as}~\envElem{\var{Var}}{n}~\grammarRule{RelationList}~\grammarRule{SQLWhereClause}\\
+       \RETURN\\
+       \quad\FOR~\gsup{\Vars}{in}~\gsup{\DatasetClause}{in}~\gsup{\SparqlWhereClause}{in}~\gsup{SolutionModifier}{in}\\
+       \quad\RETURN~\onl{\envElem{ExprSingle}{}}
+\end{array}
+}
+\end{array}
+\end{equation*}
+\end{small}%
+\end{itemize}
+
+
+The following proposition states that the~$\funcName{opt_{nl}}$ rewriting function is sound and complete.
+%
+\begin{restatable}{proposition}{depJoinCorrectRestatable}
+\label{prop:depjoincorrect}
+Let \envElem{Q}{} be an XSPARQL expression of form~\eqref{eq:expr_sdep_xquery},~\eqref{eq:expr_sdep},
+or~\eqref{eq:expr_sdep_sql} and \dyn the dynamic environment of \envElem{Q}{}, then~$\dynEnv \envElem{Q}{} \Rightarrow
+\envElem{Val}{}$ if and only if~$\dynEnv \onl{\envElem{Q}{}} \Rightarrow \envElem{Val}{}.$
+\end{restatable}
+%
+\input{5-optimisations/proof-prop-nl}
+
+\subsection{Dependent Join implementation in SPARQL}
+\label{sec:join-impl-sparql}
+
+This form of rewriting of nested expressions aims at improving the runtime of the query by delegating the execution of
+the join to the SPARQL engine, as opposed to performing the join within XQuery (as in the previous optimisation).
+%
+We start by presenting the rewriting function for the case when both nested expressions are \SparqlForClause{s}:
+%
+for such nested expressions we can implement the join by rewriting the \SparqlForClause{}s into a single SPARQL query.
+
+\subsubsection{\SparqlForClause within a \SparqlForClause}
+\label{sec:query-rewriting}
+%
+The idea with these rewritings is that nested \SparqlForClause{s} in XSPARQL can be implemented by a SPARQL query that
+merges the \WHERE clauses of the outer and inner \SparqlForClause.
+%
+However, there are some restrictions to the applicability of this rewriting: 
+\begin{inparaenum}[(i)]
+\item both queries must be done over the same dataset;
+\item apart from \ORDERBY, no other solution modifiers can be used in the queries; and
+\item the original queries must not require any nesting of the \ac{XML} output or use of aggregators.
+\end{inparaenum}
+%
+The use of aggregators is restricted since in SPARQL queries they are only possible in the not yet standardised
+SPARQL~1.1.  Thus it is not possible to generate the nested \ac{XML} structure required by some queries, for example the
+query presented in \cref{fig:query09}, by using a single SPARQL query or alternatively further processing of the
+SPARQL results in XQuery.
+%
+As indicated before, for the next rewriting we are only allowing the \ORDERBY solution modifier and the concatenation of
+``\ORDERBY \$o1'' and ``\ORDERBY \$o2'' is ``\ORDERBY \$o1 \$o2''.
+
+
+For an XSPARQL query~$\envElem{Q}{}$ of form:\footnote{For presentation purposes,~$\mathit{GGP}$ and $\mathit{OC}$ are a
+  short representation for~$\mathit{GroupGraphPattern}$ and~$\mathit{OrderCondition}$, respectively.}
+%
+\begin{queryF}
+\[\begin{array}{l}
+  \mathrm{(1)~~~~}\FOR~\gsup{\Vars}{out}~\DatasetClause~\WHERE~\gsup{\GroupGraphPattern}{out}~\ORDERBY~\gsup{\OrderCondition}{out}\\
+  \mathrm{(2)~~~~}\RETURN\\
+  \mathrm{(3)~~~~}\quad \FOR~\gsup{\Vars}{in}~\DatasetClause~\WHERE~\gsup{\GroupGraphPattern}{in}~\ORDERBY~\gsup{\OrderCondition}{in}\\
+  \mathrm{(4)~~~~}\quad \ReturnExpr
+\end{array}\]
+\label{eq:expr_sr}
+\end{queryF}%
+%
+\noindent then 
+%
+\begin{itemize}
+\item in case \envElem{\ExprSingle}{} does not contain any occurrences of~\eqref{eq:expr_sr}, we have that:
+\begin{small}
+\begin{equation*}
+\begin{array}{l}
+  \funcCall{opt_{sr}}{\envElem{Q}{}} = \\[.3em]
+    \mathrm{(1)~~~~}\LET~\varR{results}~\mathtt{:=}~\funcCallR{sparqlCall}{
+                    \begin{array}{l}
+                      \SELECT~\gsup{\Vars}{out}\cup\gsup{\Vars}{in}~\DatasetClause\\
+                      \WHERE~\set{\gsup{\GroupGraphPattern}{out}~.~\gsup{\GroupGraphPattern}{in}}\\
+                      \ORDERBY~\gsup{\OrderCondition}{out}~\gsup{\OrderCondition}{in}\\
+                    \end{array}}~\RETURN\\
+    \mathrm{(2)~~~~} \FOR~\varR{result}~\AT~\varR{posvar}~\IN~\varR{results//sr{:}result}~\RETURN \\
+    \mathrm{(3)~~~~} \quad \LET~\var{v} := \varR{result/sr{:}binding[@name = \var{v}]/*}~\RETURN \hfill\qquad\quad \textrm{\smaller for each \var{v}~$\in \gsup{\Vars}{out}\cup\gsup{\Vars}{in}$}\\
+    \mathrm{(4)~~~~} \quad\grammarRule{ExprSingle} \\
+ \end{array}
+\end{equation*}
+\end{small}%
+%
+Please note that the group graph patterns~$\e{GGP}{1}{}$ and~$\e{GGP}{2}{}$ include the surrounding curly braces: \{ and
+\}.
+\item otherwise:
+%
+\begin{small}
+\begin{equation*}
+\begin{array}{r@{~~~}l}
+  \multicolumn{2}{l}{\sr{\envElem{Q}{}} =}\\[.3em]
+   & \sr{\begin{array}{l}
+       \FOR~\gsup{\Vars}{out}~\DatasetClause~\WHERE~\gsup{\GroupGraphPattern}{out}~\ORDERBY~\gsup{\OrderCondition}{out}\\
+       \RETURN\\
+       \quad \FOR~\gsup{\Vars}{in}~\DatasetClause~\WHERE~\gsup{\GroupGraphPattern}{in}~\ORDERBY~\gsup{\OrderCondition}{in}\\
+       \quad \RETURN~\sr{\envElem{ExprSingle}{}}
+     \end{array}
+   }
+ \end{array}
+\end{equation*}
+\end{small}%
+\end{itemize}
+%
+\begin{restatable}{proposition}{srCorrectRestatable}
+  \label{prop:sr-correct}
+  Let \envElem{Q}{} an XSPARQL expression of form~\eqref{eq:expr_sr} and \dyn the dynamic environment of \envElem{Q}{},
+  then~$\dynEnv{\envElem{Q}{} \Rightarrow \envElem{Val}{}}$ if and only if~$\dynEnv{\funcCall{opt_{sr}}{\envElem{Q}{}}
+    \Rightarrow \envElem{Val}{}}$.
+\end{restatable}
+%
+\input{5-optimisations/proof-prop-sr}
+
+
+
+\subsubsection{\SparqlForClause within an XQuery \FOR}
+\label{sec:named-graphs}
+%
+In case the outer expression is an XQuery \FOR or an XSPARQL \SQLForClause a similar strategy of deferring the join to a
+single SPARQL query is still possible.  
+%
+This optimisation relies on first transforming the outer expressions' \ac{XML} results into \ac{RDF} and then joining this newly created
+\ac{RDF} graph with the inner \SparqlForClause's \WHERE pattern in a single SPARQL query.  
+%
+For the implementation of this optimisation we can rely on a triple store with support for named graphs and temporarily
+store the bindings for dependent variables from the outer XQuery \FOR expression's as \ac{RDF} triples.
+%
+We can then execute a combined query with an adapted graph pattern, that joins the pattern in the \WHERE clause of the
+inner \SparqlForClause with the bindings stored in the newly created named graph.
+%
+The~$\funcName{opt_{ng}}$ rewriting function (presented below) starts by creating \ac{RDF} triples representing the
+\ac{XML} input, which are then collected into the variable~$\varR{ds}$ corresponding to the \ac{RDF} graph to be
+inserted into the triple store.  This operation is achieved by the XSPARQL functions~$\funcNameR{createNG}$ that returns
+a URI for the newly inserted \ac{RDF} named graph, which is distinct from any other URIs for named graphs used in the
+query or present in the triple store, while finally the function~$\funcNameR{deleteNG}$ takes care of deleting the
+temporary graph.
+%
+We will show this optimisation only for the case where the outer expression is an XQuery \FOR, the case of an outer
+XSPARQL \SQLForClause expression is analogous. 
+%
+Let~$\envElem{Q}{}$ be an XSPARQL expression of form
+
+\begin{queryF}
+\[\begin{array}{l}
+  \mathrm{(1)~~~~}\FOR~\var{VarName}~\grammarRule{OptTypeDeclaration}~\grammarRule{OptPositionalVar}~\IN~\envElem{\ExprSingle}{1}\\
+  \mathrm{(2)~~~~}\RETURN \\
+  \mathrm{(3)~~~~}\quad\FOR~\Vars~\DatasetClause~\SparqlWhereClause~\SolutionModifier\\
+  \mathrm{(4)~~~~}\quad\RETURN~\envElem{\ExprSingle}{2}
+  \end{array}\]
+\label{eq:expr_ng}
+\end{queryF}%
+%
+then
+%
+\begin{itemize}
+\item in case \envElem{\ExprSingle}{1} and \envElem{\ExprSingle}{2} do not contain any occurrences of~\eqref{eq:expr_ng},
+    we have that:
+%
+\begin{small}
+\begin{equation*}
+\begin{array}{l}
+  \ong{\envElem{Q}{}} =\\[.3em]
+    \mathrm{(1)~~~~}\LET~\varR{ds}~:=~\funcCallR{createNG}{\begin{array}{l}
+                      \FOR~\var{VarName}~\grammarRule{OptTypeDeclaration}\\
+                      \grammarRule{OptPositionalVar}~\IN~\envElem{\ExprSingle}{1} \\
+                      \RETURN~\funcCallR{evalCT}{ \envElem{NGP}{}}\\
+                    \end{array}}~\RETURN\\
+    \mathrm{(2)~~~~}\LET~\varR{results}~:= \\
+    \qquad\qquad\funcCallR{sparqlCall}{
+                    \begin{array}{l}
+                      \SELECT~\Vars \cup \set{\var{VarName}} \\
+                      \DatasetClause~\cup \set{ \FROMNAMED~\varR{ds} }\\
+                      \SparqlWhereClause~\cup \WHERE\set{ \keyword{graph}~\varR{ds}~\envElem{NGP}{} } \\
+                      \SolutionModifier
+                    \end{array}}~\RETURN\\
+    \mathrm{(3)~~~~} \FOR~\varR{result}~\AT~\varR{result\mathunderscore{}pos}~\IN~\varR{results//sr{:}result}~\RETURN \\
+    \mathrm{(4)~~~~} \quad \LET~\var{v} :=~ \varR{result/sr{:}binding[@name = \var{v}]/*} \hfill \qquad \textrm{\smaller for each \var{v}~$\in \Vars \cup \set{\var{VarName}}$}\\
+    \mathrm{(5)~~~~}\quad\RETURN \left(\envElem{\ExprSingle}{2}, \funcCallR{deleteNG}{\varR{ds}}\right)
+\end{array}
+\end{equation*}
+\end{small}%
+%
+where~$\envElem{NGP}{}$ is the graph pattern~$\set{ \mathtt{[]~{:}value}~\var{VarName} }$.
+%
+\item otherwise:
+%
+\begin{small}
+\begin{equation*}
+\begin{array}{r@{~~~}l}
+  \multicolumn{2}{l}{\funcCall{opt_{ng}}{\envElem{Q}{}} =}\\[.3em]
+  & \ong{\begin{array}{l}
+      \FOR~\var{VarName}~\grammarRule{OptTypeDeclaration}~\grammarRule{OptPositionalVar}~\IN~\ong{\envElem{\ExprSingle}{1}}\\
+      \RETURN \\
+      \quad\FOR~\Vars~\DatasetClause~\SparqlWhereClause~\SolutionModifier\\
+      \quad\RETURN~\ong{\envElem{\ExprSingle}{2}}
+  \end{array}
+}
+ \end{array}
+\end{equation*}
+\end{small}%
+\end{itemize}
+
+
+
+Let~$\envElem{Q}{}$ be an XSPARQL expression of form
+%
+\begin{queryF}
+\[\begin{array}{l}
+  \mathrm{(1)~~~~}\FOR~\envElem{AttrSpec}{1}~\keyword{as}~\envElem{\var{Var}}{1}, \dots, \envElem{AttrSpec}{n}~\keyword{as}~\envElem{\var{Var}}{n}~\grammarRule{RelationList}~\grammarRule{SQLWhereClause}\\
+  \mathrm{(2)~~~~}\RETURN \\
+  \mathrm{(3)~~~~}\quad\FOR~\Vars~\DatasetClause~\SparqlWhereClause~\SolutionModifier\\
+  \mathrm{(4)~~~~}\quad\RETURN~\ExprSingle
+  \end{array}\]
+\label{eq:expr_ng_sql}
+\end{queryF}%
+%
+then
+%
+\begin{itemize}
+\item in case \ExprSingle  does not contain any occurrences of~\eqref{eq:expr_ng_sql},
+    we have that:
+%
+\begin{small}
+\begin{equation*}
+\begin{array}{l}
+  \ong{\envElem{Q}{}} =\\[.3em]
+  \mathrm{(1)~~~~}\LET~\varR{ds}~:=\\
+  \qquad\qquad\funcCallR{createNG}{
+      \funcCall{tr}{\begin{array}{l}
+          \FOR~\envElem{AttrSpec}{1}~\keyword{as}~\envElem{\var{Var}}{1},\dots,\envElem{AttrSpec}{n}~\keyword{as}~\envElem{\var{Var}}{n}\\
+          \grammarRule{RelationList}~\grammarRule{SQLWhereClause}\\
+          \RETURN~\funcCallR{evalCT}{ \envElem{NGP}{}}\\
+      \end{array}
+    }}~\RETURN\\
+\end{array}
+\end{equation*}
+\end{small}%
+\begin{small}
+\begin{equation*}
+\begin{array}{l}
+    \mathrm{(2)~~~~}\LET~\varR{results}~:=\\
+    \qquad\qquad\funcCallR{sparqlCall}{
+                    \begin{array}{l}
+                      \SELECT~\Vars \cup \set{\envElem{\var{Var}}{1}, \dots, \envElem{\var{Var}}{n}} \\
+                      \DatasetClause~\cup \set{ \FROMNAMED~\varR{ds} }\\
+                      \SparqlWhereClause~\cup \WHERE\set{ \keyword{graph}~\varR{ds}~\envElem{NGP}{} } \\
+                      \SolutionModifier
+                    \end{array}}~\RETURN\\
+    \mathrm{(3)~~~~} \FOR~\varR{result}~\AT~\varR{result\mathunderscore{}pos}~\IN~\varR{results//sr{:}result}~\RETURN \\
+    \mathrm{(4)~~~~} \quad \LET~\var{v} :=~ \varR{result/sr{:}binding[@name = \var{v}]/*} \hfill \quad \textrm{\smaller for each \var{v}~$\in \Vars \cup \set{\envElem{\var{Var}}{1}, \dots, \envElem{\var{Var}}{n}}$}\\
+    \mathrm{(5)~~~~}\quad\RETURN \left(\ExprSingle, \funcCallR{deleteNG}{\varR{ds}}\right)
+\end{array}
+\end{equation*}
+\end{small}%
+%
+where~$\envElem{NGP}{}$ is the graph pattern~$\set{ \mathtt{[]}~\qname{}{\envElem{Var\!}{1}}~\envElem{\var{Var}}{1} ;~ \dots ;~\qname{}{\envElem{Var\!}{n}}~\envElem{\var{Var}}{n} }$.
+%
+\item otherwise:
+%
+\begin{small}
+\begin{equation*}
+\begin{array}{r@{~~~}l}
+  \multicolumn{2}{l}{\funcCall{opt_{ng}}{\envElem{Q}{}} =}\\[.3em]
+  & \ong{\begin{array}{l}
+      \FOR~\envElem{AttrSpec}{1}~\keyword{as}~\envElem{\var{Var}}{1}, \dots, \envElem{AttrSpec}{n}~\keyword{as}~\envElem{\var{Var}}{n}~\grammarRule{RelationList}~\grammarRule{SQLWhereClause}\\
+      \RETURN \\
+      \quad\FOR~\Vars~\DatasetClause~\SparqlWhereClause~\SolutionModifier\\
+      \quad\RETURN~\ong{\ExprSingle}
+  \end{array}
+}
+ \end{array}
+\end{equation*}
+\end{small}%
+\end{itemize}
+
+
+
+\begin{restatable}{proposition}{ngCorrectRestatable}
+  \label{prop:ng-correct}
+  Let \envElem{Q}{} be an XSPARQL expression of form~\eqref{eq:expr_ng} or~\eqref{eq:expr_ng_sql} and \dyn the dynamic
+  environment of \envElem{Q}{}, then~$\dynEnv \envElem{Q}{} \Rightarrow \envElem{Val}{}$ if and only if~$\dynEnv
+  \ong{\envElem{Q}{}} \Rightarrow \envElem{Val}{}.$
+\end{restatable}
+%
+\input{5-optimisations/proof-prop-ng}
+
+
+\input{5-optimisations/7-xsparql-evaluation}
+
+
+%%% Local Variables:
+%%% fill-column: 120
+%%% TeX-master: t
+%%% TeX-PDF-mode: t
+%%% TeX-debug-bad-boxes: t
+%%% TeX-parse-self: t
+%%% TeX-auto-save: t
+%%% reftex-plug-into-AUCTeX: t
+%%% mode: latex
+%%% mode: flyspell
+%%% mode: reftex
+%%% TeX-master: "../thesis"
+%%% End:

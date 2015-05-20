@@ -1,0 +1,71 @@
+\subsubsection{XQuery \FOR Dynamic Evaluation}
+\label{sec:norm-for}
+%
+In order to correctly generate blank node identifiers in \ConstructClause{s}, XSPARQL relies on the
+\dyn.\ecomp{globalPosition} environment component to store the positions.
+%
+As such, we adapt the XQuery \FOR dynamic evaluation rules, presented in \cref{sec:xquery}, to populate the
+\dyn.\ecomp{globalPosition} component and also make sure that the newly introduced XSPARQL \SQLForClause{s} and
+\SparqlForClause{s} populate this component.  The case of these newly XSPARQL expressions is detailed later in
+\cref{sec:new-semantics-rules}.
+
+
+We show here only the adapted rule for \ForClause{s} with position variables and without type declaration.  The rules
+that handle \FOR expressions without position variables and possibly containing type declarations are adapted
+analogously, adding the \dyn.\ecomp{globalPosition} premisses to the rules presented
+in~\citet[Section~4.8.2]{DraperFankhauserFernandez:2010aa}.
+%
+\begin{dynamicrule}
+    % 
+    \AxiomC{$\dyn.\ecomp{globalPosition} = \seq{ \envElem{Pos}{1}, \cdots, \envElem{Pos}{m} } $}
+    %
+    \UnaryInfC{$\dynEnv{\envElem{Expr}{1} \Rightarrow \envElem{Item}{1}, \dotsb, \envElem{Item}{n}}$}
+    %
+    \UnaryInfC{$\statEnv \envElem{VarName}{}~\textbf{of var expands to}~\envElem{Variable}{}$}
+    %
+    \UnaryInfC{$\statEnv \envElem{VarName}{pos}~\textbf{of var expands to}~\envElem{Variable}{pos}$}
+    %
+    \UnaryInfC{$\begin{array}{r@{\hspace{-1pt}}l}%
+        \dyn & \envExtend{globalPosition}{\seq{ \envElem{Pos}{1}, \cdots, \envElem{Pos}{m}, 1 }} \\
+        & \envExtend{varValue}{\begin{array}{l}
+            \envElem{Variable}{} \Rightarrow \envElem{Item}{1};\\
+            \envElem{Variable}{pos} \Rightarrow 1
+          \end{array}}
+      \end{array}~\proofs \envElem{Expr}{2} \Rightarrow \envElem{Value}{1}$}
+    %
+    \UnaryInfC{$\vdots$}
+    %
+    \UnaryInfC{$\begin{array}{r@{\hspace{-1pt}}l}%
+        \dyn & \envExtend{globalPosition}{\seq{ \envElem{Pos}{1}, \cdots, \envElem{Pos}{m}, n }} \\
+        &\envExtend{varValue}{\begin{array}{l}
+            \envElem{Variable}{} \Rightarrow \envElem{Item}{n};\\
+            \envElem{Variable}{pos} \Rightarrow n 
+          \end{array}}
+      \end{array}~\proofs \envElem{Expr}{2} \Rightarrow \envElem{Value}{n}$}
+    %
+    \singleLine
+    %
+    \UnaryInfC{$\dynEnv{
+        \begin{array}{l}
+          \FOR~\envElem{\var{VarName}}{}~\keyword{at}~\envElem{\var{VarName}}{pos}~\keyword{in}~\envElem{\grammarRule{Expr}}{1}\\
+          \keyword{return}~\envElem{\grammarRule{Expr}}{2}
+        \end{array} \Rightarrow \envElem{Value}{1}, \dotsb, \envElem{Value}{n}
+      }$}
+  \label{eq:dyn-ForClause-adapt}
+\end{dynamicrule}%
+%
+
+
+%%% Local Variables:
+%%% fill-column: 120
+%%% TeX-master: t
+%%% TeX-PDF-mode: t
+%%% TeX-debug-bad-boxes: t
+%%% TeX-parse-self: t
+%%% TeX-auto-save: t
+%%% reftex-plug-into-AUCTeX: t
+%%% mode: latex
+%%% mode: flyspell
+%%% mode: reftex
+%%% TeX-master: "../thesis"
+%%% End:

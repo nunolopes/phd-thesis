@@ -1,0 +1,147 @@
+\chapter{A Secure RDF Data Integration Framework}
+\label{cha:usecase}
+
+In this chapter we go back to the \usecase presented in \cref{cha:introduction}, where we briefly mentioned the several
+software applications that enterprises use to manage their business: interactions with clients in a Customer
+Relationship Management (CRM) application, employee information in a Human Resources (HR) application, project
+documentation and company policies in a Document Management System (DMS) and records of time spent working on projects
+in a Timesheet System (TS).
+%
+Heterogeneity of the data formats from the different software applications is not the only problem. In fact, as much of
+the information within the enterprise is highly sensitive, its integration could result in information leakage to
+unauthorised individuals.
+
+In this chapter we build on the languages presented in the previous chapters to automatically extract data and access
+control information from the underlying databases and represent them as Annotated \ac{RDF} graphs, providing a holistic
+view of data across the enterprise. 
+%
+This approach introduces a mechanism to enforce access control policies on the \ac{RDF} graph along with a flexible and
+automatic way to represent and propagate the original access control policies.
+
+In this chapter we define an annotation domain that models access control permissions as Annotated RDFS, specify the
+high-level system architecture required to enforce access control by relying on SPARQL, and illustrate how domain
+specific rules can be used to manage the access control annotations.
+%
+First we present some common access control related terms that we use in this chapter:
+%
+\begin{description}[noitemsep]
+\item[Resources] denote the information to be protected;
+  % 
+\item[Users] represent individuals requesting access to resources;
+  % 
+\item[Groups] are collections of users with common features (\eg~contributors, supervisors, and management);
+  % 
+\item[Roles] are commonly used to assign access rights to a set of individuals and groups, for example by department
+  (\eg~human resources, sales and marketing) or task (\eg~insurance claim processing, reporting and invoicing).
+  % 
+\end{description}
+
+\section{The Access Control Annotation Domain}
+\label{sec:access-contr-doma}
+
+In this section we formalise our access control annotation domain, following the definitions presented in
+\cref{sec:rdfs-annot-doma}.  We start by defining the entities and annotation values and then present the~$\otimes$
+and~$\oplus$ domain operations. Finally, we briefly describe the implementation of the presented annotation domain.
+
+
+\subsection{Entities and Annotations}
+\label{sec:modell-access-contr}
+
+\input{7-usecase/domain-modelling-negation}
+
+
+\subsection{Domain Implementation}
+\label{sec:impl-annot-doma}
+
+\input{7-usecase/domain-implementation-negation}
+
+
+
+\input{7-usecase/framework-evaluation}
+
+
+\section{Related Work}
+\label{sec:related-work}
+
+\begin{comment}
+  The use of partially ordered sets for access control has previously been considered in the domain of information flow
+  in computer systems, mostly in response to the introduction of multi-user systems~\cite{Denning:1976aa}.  Although
+  focusing on the question of information passing between arbitrary objects of a computer system (e.g.\ programs,
+  processes or files), each process also includes a \emph{clearance class} that limits the security classes the process
+  can read and write.
+\end{comment}
+
+
+The topic of access control has been long studied in relational databases and the approach of enforcing the access
+policies by query rewriting was also considered for the Quel query language by~\citet{StonebrakerWong:1974aa}.  However,
+the presented system does not rely on annotating the relational data but rather access control is specified using
+constraints over the user credentials, which are then included in the rewritten query.
+%
+An overview of common issues, existing models and languages for access control is provided
+by~\citet{VimercatiSamaratiJajodia:2005aa}.  
+
+
+For the Semantic Web, well known policy languages such as KAoS~\cite{Bradshaw1997}, Rei~\cite{Kagal2003} and
+PROTUNE~\cite{Bonatti2009}.  Although such languages enable policy specification using \ac{RDF} and \ac{OWL}, in their
+current form they do not support reasoning based on \ac{RDF} data.  These policy languages are complimentary to our work
+as they can be mapped to our annotations using rules.
+
+
+\citet{DietzoldAuer2006aa} describe the requirements an \ac{RDF} store needs from a Semantic Wiki perspective.  Apart
+from the necessary requirements on efficiency and scalability, the authors refer the need for access control on a triple
+level and the need to integrate the structure of the organisation in the access control methods.  The described system
+relies on a query engine (SPARQL is mentioned but no details are given) and a rule processor to decide the access
+control enforcement at query time.
+%
+The system we propose in this chapter caters for both of these requirements and also integrates the access control into
+the annotation query language.
+
+\citet{HollenbachPresbreyBerners-Lee:2005aa} present the possibility of maintaing metadata on the \ac{RDF} data to
+enforce access control and discuss, as possible extensions of their model, some of the work presented here, \eg~using
+rules for specifying access control.  Providing access control on a resource level is also left as an open question, one
+we are tackling by the specification of rules.  The extension of SPARQL is not considered.
+
+
+Similar access control annotations are considered attached to axioms in an ontology
+by~\citet{KnechtelStuckenschmidt:2010aa} and~\citet{BaaderKnechtelPenaloza:2009aa} and are used to allow access to
+subsets of the ontology to specific users and also apply such annotations to the problem of determining the minimal set
+of axioms that are necessary to support a certain conclusion.  Although the setting is different to the one presented in
+this chapter, some of the algorithms for efficient annotation calculation may be ported to our modelling.
+
+
+Some work on extending query languages was presented by~\citet{AbelCoiHenze2007aa}, however this work pre-dates the
+SPARQL query language.  In a similar fashion to the work proposed in this chapter, their policy enforcement is also done
+by a query rewriting step, however their query rewriting does not consists of including the user credentials but rather
+replicating the access policies within the query.  
+%
+They also consider access control policies that both grant and restrict access to data.
+
+                 
+\section{Conclusion}
+
+In this chapter we proposed an Access Control model, which can be used to protect \ac{RDF} data and demonstrate how a
+combination of Annotated RDFS and SPARQL can be used to control access to integrated enterprise data.
+%
+This model is based on the Annotated RDFS framework presented in \cref{cha:anql} and attaches the access control
+information on a triple basis, \ie~each \ac{RDF} triple can contain different annotation values.  
+%
+This solution provides a flexible representation method for the access control annotations, based on propositional
+formul\ae{} to define which entities have access to the triple.
+%
+However, when considering large number of triples, challenges arise with respect to optimal access control policy
+administration.  To tackle this issue we propose permission management through specifying domain-specific inference
+rules for the annotation domain.
+%
+We also suggest a possible implementation structure for a framework to enforce the access control based on rewriting a
+SPARQL query into an AnQL query.
+
+
+
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% mode: flyspell
+%%% mode: reftex
+%%% TeX-master: "../thesis"
+%%% End:

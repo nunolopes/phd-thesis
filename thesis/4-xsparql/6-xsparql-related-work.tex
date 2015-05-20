@@ -1,0 +1,276 @@
+\section{Related Work}
+\label{sec:relworks}
+
+\begin{table}[t]
+\caption{Overview of Related Work}
+\label{fig:related-work-overview}
+\centering
+{\small
+\begin{tabular}{r|>{\centering\arraybackslash}m{.63cm}>{\centering\arraybackslash}m{.66cm}>{\centering\arraybackslash}m{.63cm}|c|cc|c}
+  \toprule
+                                               &         \multicolumn{3}{c|}{Input Format}    & Target   &   \multicolumn{2}{c|}{Query Language}       & Ontology\\
+  System                                       & {\footnotesize RDB} & {\footnotesize XML} & {\footnotesize RDF}        & Model    &   Surface      &  Target            & Generation\\
+  \midrule
+  Gloze                                        &      & \yes &      & RDF & --- & ---  & partial \\
+  \citet{DroopFlarerGroppe:2008aa}             &      & \yes &      & RDF & SPARQL+XSLT & SPARQL & \no \\
+  \citet{VrandecicDenglerRudolph:2005aa}       &      &      & \yes & --- & --- & SPARQL &  \no \\
+  \citet{BohringAuer:2005aa}                   &      & \yes &      & RDF & --- & --- &  \yes \\
+  \citet{RodriguesRosaCardoso:2008aa}          &      & \yes &      & RDF &--- & --- &  \yes \\
+  \citet{FischerFlorescuKaufmann:2011aa}       & \yes & \yes & \yes & --- &--- & XQuery &  \no \\
+  \citet{Walsh:2003aa}                         &      & \yes & \yes & --- &--- & --- &  \no \\
+  \midrule
+  \citet{BerruetaLabraHerman:2008aa}           &      & \yes & \yes & RDF & XSLT+SPARQL & --- &  \yes \\
+  \citet{BikakisGioldasisTsinaraki:2009aa}     &      & \yes & \yes & --- &  SPARQL & XQuery & \yes \\
+  \citet{GroppeGroppeLinnemann:2008aa}         &      & \yes & \yes & XML & SPARQL & XQuery &  \yes \\
+  MarkLogic Server                             &      & \yes & \yes & XML &SPARQL & XQuery &  \yes \\ 
+  \citet{CorbyKefi-KhelifCherfi:2009aa}        & \yes & \yes & \yes &  --- & SPARQL & --- & \no \\
+  RDB2RDF                                      & \yes &      & \yes & RDF &--- & --- &  \no \\
+  XSPARQL                                      & \yes & \yes & \yes & \begin{minipage}{.85cm}XML/ RDF\end{minipage} & XSPARQL & XQuery &  \no \\
+  \bottomrule
+\end{tabular}%
+}
+\end{table}
+%
+Several proposals for integrating data from relational databases, \ac{XML}, and \ac{RDF} were presented before. 
+%
+On one hand, converting between relational databases and \ac{XML} has been long studied, either by the integration of
+\ac{SQL} and \ac{XML}~\cite{EisenbergMelton:2001aa,EisenbergMelton:2004aa} or the specification of the representation of
+database instances in \ac{XML}.\footnote{\url{http://www.w3.org/XML/RDB.html}, retrieved on 2012/07/17.}  
+%
+In practice, most relational database management systems include a datatype for storing \ac{XML} data while other works
+focus on the implementation of the XQuery language over a relational database
+backend~\cite{GrustSakrTeubner:2004aa,GrustRittingerTeubner:2008aa}.
+%
+As such, this
+section focuses on the integration of \ac{XML} and \ac{RDF} or relational databases and \ac{RDF} data.
+
+To begin, an analysis of tools for converting between relational databases and \ac{RDF} is presented
+by~\citet{GrayGrayOunis:2009aa}, which also aims at studying the expressivity of SPARQL to represent scientific queries,
+namely in the astronomy domain.
+%
+Although, as stated by the authors, data and queries were mostly numeric and thus biased towards relational data and
+SQL, the comparison gives a good overview of how the tested tools perform in comparison to relational databases.  
+%
+Some of the conclusions indicate that these tools are still not able to compete with relational databases in terms of
+performance and that SPARQL is also not yet expressive enough to pose the necessary queries.
+
+
+\citet{Patel-SchneiderSimeon:2003aa} present a proposal to integrate the semantics of \ac{XML} and \ac{RDF} by defining
+a model-theory that encapsulates both the \ac{XDM} and \ac{RDF} data models.
+%
+This proposal has not been applied in practice and most of the existing proposals to merge \ac{XML} and \ac{RDF} rely on
+translating the data from different formats and/or translating the queries from different languages.
+%
+With this in mind, we divided the proposals into the following categories:
+\begin{enumerate}[label=(\arabic*),noitemsep]
+\item \label{item:rel-1} \textbf{Normalised Representations:} include proposals that suggest using a normalised format for representing
+  \ac{RDF} in \ac{XML}.  Although similar to the next proposals, in these systems the translation can usually be
+  automated and they do not address querying, simply reusing standardised languages.
+\item \label{item:rel-2} \textbf{Translation of data:} these tools aim at integrating the heterogeneous data by translating between
+  different formats, usually relying on user predefined mappings.
+\item \label{item:rel-3} \textbf{Integration of query languages:} this category of approaches (where XSPARQL is also included) considers
+  the integration and/or expansion of query languages to allow querying different formats without requiring the
+  translation of data from the original formats.
+\end{enumerate}
+%
+\cref{fig:related-work-overview} presents an overview of systems considered in~\ref{item:rel-2} and~\ref{item:rel-3}.
+This table classifies the different systems according to whether they support input from relational databases (RDB),
+\ac{XML}, or \ac{RDF}.  The target model indicates, if there exists a data translation step, what is the format used for
+the integrated representation.  The Surface and Target query languages state, if available, the language in which the
+system accepts queries and if they are translated into a different query language.  Finally, the Ontology Generation
+column specifies if the system generates an ontology description based an input \ac{XML} Schema or relational database
+structure.
+%
+We next give a short description of some of the tools and proposals available grouped by the presented categories.
+%
+\subsection*{Normalised Representations}
+\label{sec:normalised-representations}
+%
+The following proposals specify a normalised syntax for \ac{RDF} in \ac{XML}.
+%
+The TriX format~\cite{CarrollStickler:2004aa} consists of an alternative normalised serialisation for \ac{RDF} in \ac{XML}, with the aim of
+being compatible with standard \ac{XML} tools.  
+%
+In this serialisation, each \ac{RDF} triple is represented as a \texttt{triple} \ac{XML} element with three children
+elements representing the subject, predicate, and object of the triple.
+%
+It uses \ac{XSLT} as an extensibility mechanism, allowing syntactic extensions to be specified and macros to be defined.
+
+Also in 2003, \emph{TreeHugger}\footnote{\scriptsize\url{http://rdfweb.org/people/damian/treehugger/index.html},
+  retrieved on 2012/07/17.}  defines abstraction functions (implemented as extensions of the Saxon XQuery engine) that
+enable the navigation of an \ac{RDF} graph structure in both \ac{XSLT} and XQuery.
+%
+This navigation is specified using XPath-like expressions that specify the \ac{RDF} class and property that users want
+to query, which are in turn translated into SPARQL queries.
+
+Well known parsers for \ac{RDF}, such as the Redland \ac{RDF} Libraries\footnote{\url{http://librdf.org/}, retrieved on
+  2012/07/17.} also provide canonical formats of RDF/XML.
+%
+\emph{R3X}\footnote{\url{http://wasab.dk/morten/blog/archives/2004/05/30/transforming-rdfxml-with-xslt}, retrieved on
+  2012/07/17.} takes this representation one step further by grouping the canonical RDF/XML output of the Redland parser
+and grouping the triples by subject.  The aim of this grouping by subject is to make the canonical format easier to
+process with \ac{XSLT}.
+%
+Very similar to R3X, Grit\footnote{\url{http://code.google.com/p/oort/wiki/Grit}, retrieved on 2012/07/17.} also defines
+a normalised format of RDF/XML where triples are grouped by their subject to facilitate processing in \ac{XSLT} and
+improve the triple access evaluation times.  Furthermore Grit normalises \acp{URI} to make lookups easier in
+\ac{XSLT}. 
+
+
+\subsection*{Data Translation}
+\label{sec:data-translation}
+%
+We now present the proposals that rely on a user-specified normalised format for \ac{RDF}.
+%
+Gloze~\cite{Battle:2006aa} aims at interpreting an \ac{XML} document as \ac{RDF} data based on the \ac{XML} Schema
+definition.
+%
+\ac{XML} elements and attributes are mapped to \ac{RDF} object or datatype properties, depending on wether they are
+described as complex or simple types in the XML Schema (complex types are mapped to object properties and simple types
+are mapped to datatype properties). 
+
+\citet{DroopFlarerGroppe:2008aa} translate the \ac{XML} document into RDF, annotating it with necessary information to
+answer XPath queries, namely the ordering, axes relations between XML elements, and attributes of elements.
+%
+The authors then propose to integrate XPath queries into SPARQL as subqueries in \acp{BGP}, where the result of the
+subexpressions is assigned to SPARQL variables.
+%
+These XPath subexpressions are in turn translated into SPARQL queries that, using the introduced annotations, allow the
+preservation of the semantics of the original queries and ordering of solutions.
+
+\citet{DeursenPoppeMartens:2008aa} presents an approach for the transformation between \ac{XML} and \ac{RDF} by
+specifying mappings between an XML Schema and an \ac{OWL} ontology.
+%
+The authors introduce a language for the mapping specification, relying on XPath expressions for selecting the \ac{XML}
+elements, and defining with \ac{OWL} classes the elements are mapped to.  The target \ac{RDF} data is generated by
+processing these input mappings.
+
+\citet{VrandecicDenglerRudolph:2005aa} suggests using a normalised form of RDF/XML by specifying a restricted form of
+\acp{DTD} that generate normalised \ac{XML} format and again relying on standard \ac{XML} processing tools for
+subsequent transformations.  The provided \ac{DTD} is used to generate SPARQL queries that access the \ac{RDF} data and
+the system then relies on post-processing of the SPARQL query results to generate the desired output.  The use of
+\acp{DTD} and automatic generation of SPARQL queries allows to leverage the existing \ac{XML} users that are not
+familiar with \ac{RDF} technologies.
+
+
+Also catering for \ac{SQL} queries, \citet{FischerFlorescuKaufmann:2011aa} present a translation of both \ac{SQL} and
+SPARQL queries into XQuery.  Again the translation of SPARQL to XQuery operates on a normalised form of RDF/XML and thus
+a data translation step is required.  A similar approach is taken for translating relational data into \ac{XML} and then
+rewriting \ac{SQL} to XQuery.  In this paper the authors do not present an extended syntax language for the combination
+of data in the different formats and rather rely on the translation of data into \ac{XML}.
+
+
+\emph{RDF Twig}~\cite{Walsh:2003aa} suggests \ac{XSLT} extension functions that provide views on the sub-trees of an RDF
+graph. 
+%
+The main idea of \ac{RDF} Twig is that while RDF/XML is hard to navigate using XPath, a subtree of an \ac{RDF} graph can
+be serialised in more useful forms that facilitate navigation.  As such the authors provide \ac{XSLT} extension
+functions that create different views of parts of the input \ac{RDF}.
+
+
+
+Several other approaches aim at automatically translating an \ac{XML} Schema into an equivalent \ac{OWL}
+ontology~\cite{BohringAuer:2005aa,RodriguesRosaCardoso:2008aa}, focusing on mapping \ac{XML} elements to \ac{OWL}
+classes and properties.
+%
+However in XSPARQL, we are focusing on translation and integration of instance data, rather than aiming to provide a
+semantic interpretation for \ac{XML} data.
+
+
+While not catering for the integration of \ac{XML}, several other approaches focus on mapping relational data to
+\ac{RDF}.
+%
+For instance, D2R Server~\cite{Bizer:2003aa} and D2R Map or Triplify~\cite{AuerDietzoldLehmann:2009aa} enable the
+conversion between RDB data and \ac{RDF}.
+%
+Large commercial database companies are also providing solutions for \ac{RDF} triple stores, such as
+Oracle~\cite{DasSrinivasan:2009aa} and Virtuoso~\cite{ErlingMikhailov:2007aa}.  Most of these projects assume a fixed
+translation schema where, for instance, database tables are translated into \ac{RDFS} classes and table attributes are
+represented as properties.
+
+
+
+\subsection*{Language Integration}
+\label{sec:language-integration}
+%
+In this category of proposals we include the systems that consider the integration and/or expansion of query languages
+that allow the querying different formats without requiring the translation of data from the original formats.
+
+\citet{BerruetaLabraHerman:2008aa} presents a framework that facilitates SPARQL queries to be performed from \ac{XSLT}:
+XSLT+SPARQL.  It adds functions to \ac{XSLT} that provide the ability to query SPARQL endpoints and uses standard
+\ac{XSLT} to process the SPARQL \ac{XML} results format.
+%
+Similar to our current implementation, this relies on a clear separation between the SPARQL query and \ac{XSLT} parts of the
+query.
+
+
+
+Some proposals suggest compiling a SPARQL query to \ac{XSLT} or XQuery. \citet{BikakisGioldasisTsinaraki:2009aa}
+translate each SPARQL query into an XQuery using a mapping from \ac{OWL} to \ac{XML} Schema.  The translation from
+SPARQL to XQuery is guided by the provided mapping (which can be automatically generated by a separate system) and thus
+allows the use of the SPARQL query language to access legacy \ac{XML} data without the need to perform data translation.
+
+Similarly~\citet{GroppeGroppeLinnemann:2008aa} proposes to embed SPARQL into \ac{XSLT} or XQuery, by presenting
+extensions to these languages that enable to query \ac{RDF} data.  In this proposal each SPARQL query is also translated
+into an equivalent XQuery.
+%
+This language is very close to the XSPARQL language but however it requires converting the \ac{RDF} data to \ac{XML}
+according to a predefined schema.
+%
+Assuming the queried dataset is available beforehand, this translation introduces an overhead to the query and, in case
+the dataset is not available for example due to being stored behind a SPARQL endpoint, such translation is not possible.
+%
+In \cref{cha:optimisations}, we present some benchmark comparisons between an implementation of this language
+(provided to us by the authors) and our implementation of the XSPARQL language.
+
+Ding and Buxton presented another approach to translate SPARQL into XQuery at the 2011 Semantic Technology
+Conference.\footnote{\url{http://semtech2011.semanticweb.com/sessionPop.cfm?confid=62&proposalid=4015}, retrieved on
+  2012/07/17.} 
+%
+This rewriting generates XQuery specifically tailored for the Marklogic Server \ac{XML} database
+engine,\footnote{\url{http://www.marklogic.com/products-and-services/marklogic-5/}, retrieved on 2012/07/17.} which
+incorporates \ac{RDF} triples by using an internal \ac{XML} representation.
+
+
+Part of the CORESE Semantic Web framework,\footnote{\url{http://wimmics.inria.fr/corese}, retrieved on 2012/07/17.}
+\citet{CorbyKefi-KhelifCherfi:2009aa} provides extensions of SPARQL to process SQL, XPath, and \ac{XSLT} in SPARQL queries.  
+%
+The authors also define an \ac{XSLT} extension function that allows to evaluate SPARQL queries and integrate the query
+result into the \ac{XSLT} processing.
+%
+The implementation of these extensions is based on the CORESE framework, which employs caching mechanisms for the input
+\ac{XML} and \ac{RDF} documents.
+%
+This approach is again similar to XSPARQL however the choice here was to extend SPARQL and \ac{XSLT}, opposed to XSPARQL's extension
+of XQuery.  
+
+
+The Saxon XQuery engine (which we are using in our implementation) provides extension functions that allow to execute
+\ac{SQL} queries and represent the results of the query as \ac{XML}, easily incorporating them into the XQuery or
+\ac{XSLT} query.
+%
+This feature follows a similar implementation as XSPARQL but however does not provide the extend syntax as XSPARQL.  The
+extension function executes a \ac{SQL} query, although the functionality of injecting variable values provided by
+XSPARQL can be done, this task is left in charge of the query writer.
+
+The nSPARQL query language~\cite{PerezArenasGutierrez:2008aa} proposes to extend SPARQL with navigational capabilities
+using nested regular expressions.  With this addition, the language is sufficiently expressive to capture the semantics
+of \ac{RDFS}.  In addition to this, it introduces a number of graph navigation operators and adds the ability to selectively
+traverse the graph.  This work is different than our current proposed approach for XSPARQL, but one of the possibilities
+for extending XSPARQL is to enable it to perform XQuery enriched SPARQL queries.
+
+
+
+%%% Local Variables:
+%%% fill-column: 120
+%%% TeX-master: t
+%%% TeX-PDF-mode: t
+%%% TeX-debug-bad-boxes: t
+%%% TeX-parse-self: t
+%%% TeX-auto-save: t
+%%% reftex-plug-into-AUCTeX: t
+%%% mode: latex
+%%% mode: flyspell
+%%% mode: reftex
+%%% TeX-master: "../thesis"
+%%% End:

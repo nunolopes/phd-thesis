@@ -1,0 +1,13 @@
+<!DOCTYPE user [
+  <!ELEMENT user (bands)> 
+    <!ATTLIST user username CDATA #REQUIRED>
+  <!ELEMENT bands (band*)>
+  <!ELEMENT band (members,albums)>
+    <!ATTLIST band name CDATA #REQUIRED>
+  <!ELEMENT members (member*)>
+  <!ELEMENT member (#PCDATA)>
+  <!ELEMENT albums (album*)>
+  <!ELEMENT album (song*)>
+    <!ATTLIST album name CDATA #REQUIRED>
+  <!ELEMENT song (#PCDATA)>
+]>

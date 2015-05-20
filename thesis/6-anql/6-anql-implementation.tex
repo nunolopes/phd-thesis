@@ -1,0 +1,84 @@
+\section{Implementation Notes}
+\label{sec:implementation-notes}
+
+\begin{figure}[t]
+  \centering
+  \input{6-anql/anql-architecture-tikz}
+  \caption{Annotated RDFS implementation architecture}
+  \label{fig:aRDF-schema}
+\end{figure}
+
+Our prototype implementation is split into two distinct modules: one that implements the Annotated RDFS inferencing
+and the second module is an implementation of the AnQL query language that relies on the first module to retrieve
+the data.  Our prototype implementation is based on SWI-Prolog's Semantic Web
+library~\cite{WielemakerHuangvan-der-Meij:2008aa} and we present the architecture of the implementation in
+\cref{fig:aRDF-schema}.
+
+
+For the syntax of the annotated \ac{RDF} dataset we do not rely on any special serialisation but instead reuse other
+existing proposals \eg~using reification~\cite{GutierrezHurtadoVaisman:2007aa} or
+N-Quads~\cite{CyganiakHarthHogan:2009aa}.  Our engine parses the input \ac{RDF} datasets into an internal
+representation, where each triple is represented using the \verb+rdf/4+ predicate, the arguments represent the
+\emph{subject}, \emph{predicate}, \emph{object}, and \emph{annotation value} of the triple.
+
+
+The ``Reasoner'' module consists of a bottom-up engine that calculates the closure of a given ``Annotated RDF'' graph
+(or dataset).
+%
+The variable components correspond to the specification of the given annotation domain (``Domains''); and the ruleset
+describing the inference rules and the way the annotation values should be propagated (``Rules'').  
+%
+The annotation domains are specified by the appropriate semi-ring operations and describe the default annotations for
+non-annotated triples.
+
+Rules are specified using a high-level language to specify domain independent rules that abstracts away peculiarities of
+the underlying representation syntax:
+%
+\begin{example}[RDFS subclass implementation rule]
+  In our implementation, the following rule provides \textit{subclass inference} in the \ac{RDFS} ruleset:
+%
+\begin{Verbatim}[fontsize=\small]
+rdf(O, rdf:type, C2, V) <==
+         rdf(O, rdf:type, C1, V1),
+         rdf(C1, rdfs:subClassOf, C2, V2),
+         infimum(V1, V2, V).
+\end{Verbatim}
+%
+\end{example}
+%
+The Rules and Domains are independent of each other: it is possible to combine arbitrary rulesets and domains (see
+above).
+
+
+The AnQL module also implemented in Prolog relies on the SPARQL implementation provided by the ClioPatria Semantic Web
+Server.\footnote{\url{http://www.swi-prolog.org/web/ClioPatria/}, retrieved on 2012/04/10.} For the AnQL implementation,
+the domain specification needs to be extended with the grammar rules to parse an annotation value and any built-in
+functions specific to the domain.
+
+
+\subsection*{Implementation of Specific Domains}
+\label{sec:impl-spec-doma}
+
+For example, for the fuzzy domain the default value is considered to be~$1$ and the~$\otimes$ and~$\oplus$ operations
+are the \textit{min} and \textit{max} operations, respectively.  The AnQL grammar rules consist simply of calling the
+parser predicate that parses a decimal value.
+
+As for the temporal domain, we represent triple annotations as \emph{ordered} lists of disjoint time intervals.  This
+implies some additional care in the construction of the~$\otimes$ and~$\oplus$ operations.  For the representation
+of~$-\infty$ and~$+\infty$ we use the \stt{inf} and \stt{sup} Prolog atoms, respectively. Concrete time points are
+represented as integers and we use a standard constraint solver over finite domains (CLPFD) in the~$\otimes$ and
+$\oplus$ operations. The default value for non-annotated triples is \stt{[inf,sup]}.
+%
+The~$\otimes$ operation is implemented as the recursive intersection of all elements of the annotation values,
+\ie~temporal intervals.  The~$\oplus$ operation is handled by constructing CLPFD expressions that evaluate the union of
+all temporal intervals.
+%
+Again, the AnQL grammar rules take care of adapting the parser to the specific domain and we have defined the domain
+built-in operations described in \cref{sec:doma-spec-issu}.
+
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "../thesis"
+%%% End:

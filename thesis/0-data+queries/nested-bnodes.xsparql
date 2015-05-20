@@ -1,0 +1,9 @@
+declare namespace mo = "http://purl.org/ontology/mo/" ;
+declare namespace dc = "http://purl.org/dc/elements/1.1/" ;
+
+for $song from <bands.ttl>                             (:@\label{qr:nested-bnodes_out-s}@:)
+where { $song a mo:Track }                             (:@\label{qr:nested-bnodes_out-e}@:)
+return
+  for $songName from <bands.ttl>                      (:@\label{qr:nested-bnodes_in-s}@:)
+  where { $song dc:title $songName }                   (:@\label{qr:nested-bnodes_in-e}@:)
+  return <songName>{$songName}</songName>

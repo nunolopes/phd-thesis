@@ -1,0 +1,241 @@
+\subsection{XSPARQL Types}
+\label{sec:xsparql-types}
+%
+We extend the \acl{XDM} (described in \cref{sec:xpath-data-model}) with the following new types to accommodate
+for \ac{SQL} and SPARQL specific parts of XSPARQL:
+%
+\begin{enumerate}[(1),noitemsep]
+\item\label{enum:t0} the \type{SQLTerm} is an extension of \qname{xs}{anyAtomicType} (as presented in
+  \cref{sec:mapping-xml-types});
+\item\label{enum:t1} the \type{RDFTerm} type further consists of the subtypes \type{uri}, \type{bnode} and
+  \type{literal} and is used as the type of SPARQL variables;
+\item\label{enum:t2} the \type{PatternSolution} type consists of a sequence of pairs \seq{\grammarRule{variableName},
+  \type{RDFTerm}}, representing \ac{SQL} or SPARQL variable bindings;
+\item\label{enum:t3} the \type{RDFGraph} is the type resulting from the evaluation of \CONSTRUCT expressions; and
+\item\label{enum:t4} the \type{RDFDataset} is the type used for representing \ac{RDF} datasets, which is further
+  constituted by one default \type{RDFGraph} and a sequence of named graphs (\type{RDFNamedGraph}).
+\end{enumerate}
+%
+\cref{verb:types} presents the formal definition of \ref{enum:t0}--\ref{enum:t4} following the notation for \ac{XML}
+Schema datatypes (presented in \cref{sec:xml-schema}).
+%
+The \type{RDFTerm} type is used to represent RDF terms (composed of \acp{URI}, blank nodes or literals).  The type of
+SPARQL variables is represented by the \type{Binding} type, that consists of the variable name and the RDF term that is
+assigned to it.
+%
+Finally, sequences of SPARQL variable bindings are represented by the type \type{PatternSolution}.  
+
+\begin{figure}
+  \centering
+\begin{tabular}{|cc|}
+\hline
+\begin{minipage}{.45\linewidth}
+\begin{Verbatim}[framesep=2mm,frame=none,fontsize=\scriptsize,commandchars=\\\(\)]
+
+define type \textbf(URI-reference) restricts xs:anyURI;
+
+define type \textbf(Literal) extends xs:string {
+      attribute datatype of type URI-reference?, 
+      attribute lang of type xml:lang? };
+
+define type \textbf(RDFTerm) { 
+      element uri of type URI-reference |
+      element bnode of type xs:string |
+      element literal of type Literal };
+
+define type \textbf(SPARQLBinding) extends RDFTerm { 
+      attribute name of type xs:string };
+
+define type \textbf(SPARQLResult) { 
+      element binding of type SPARQLBinding* };
+
+define type \textbf(SQLTerm) extends xs:anyAtomicType ;
+
+define type \textbf(SQLBinding) extends SQLTerm { 
+      attribute name of type xs:string };
+
+define type \textbf(SQLResult) { 
+      element binding of type SQLBinding* };
+
+define type \textbf(SQLAttribute) extends xs:string ;
+
+  \end{Verbatim}
+\end{minipage}
+&
+\begin{minipage}{.45\linewidth}
+\begin{Verbatim}[frame=none,fontsize=\scriptsize,commandchars=\\\(\)]
+
+define type \textbf(PatternSolution) { 
+      element result of type SPARQLResult |
+      element result of type SQLResult };
+
+define type \textbf(RDFGraph) { 
+      element triple of type RDFTriple* };
+
+define type \textbf(RDFTriple) { 
+      element subject of type RDFTerm,
+      element predicate of type RDFTerm,
+      element object of type RDFTerm };
+
+define type \textbf(RDFDataset) { 
+      element defaultGraph of type RDFGraph,
+      element namedGraphs of type RDFNamedGraphs };
+
+define type \textbf(RDFNamedGraphs) { 
+      element namedGraph of type RDFNamedGraph* };
+
+define type \textbf(RDFNamedGraph) { 
+      attribute name of type xs:string,
+      element graph of type RDFGraph };
+  \end{Verbatim}
+\end{minipage}%
+\\
+\hline
+\end{tabular}
+\caption{XSPARQL Type Definitions}
+\label{verb:types}
+\end{figure}
+
+
+Similarly for \ac{SQL} results, sequences of \ac{SQL} variable bindings are also represented by the type
+\type{PatternSolution}.
+%
+Analogously, we define the types \type{SQLResult} and \type{SQLBinding} for representing \ac{SQL} results.  The
+\type{SQLBinding} type is defined as an extension of \qname{xs}{anyAtomicType}, and we follow the mapping from \ac{SQL}
+types into \ac{XML} types presented in \cref{fig:SQL2XML}.
+
+
+The \type{RDFGraph} type corresponds to a sequence of \type{RDF\-Triple}{\type{s}}, which are in turn a complex type
+composed of \type{sub\-ject}, \type{predicate} and \type{object}.
+%
+The \type{RDFDataset} type is defined as an \type{RDFGraph} that is considered the default graph and a sequence of
+\type{RDFNamed\-Graph}{\type{s}} represented by the \type{name} of the graph and the corresponding \type{RDFGraph}.
+
+
+
+
+\subsubsection{Translating SQL and SPARQL Solutions into the \type{PatternSolution} Type}
+\label{sec:transl-sql-sparql}
+
+The next definition presents the translation between a SPARQL solution sequence and a sequence of \type{SPARQLResult}
+type elements that we implement in XSPARQL.
+%
+This serialisation of SPARQL results mimics the SPARQL Query Results XML Format~\cite{BeckettBroekstra:2008aa}, defined
+by the XML Schema available at {\url{http://www.w3.org/2007/SPARQL/result.xsd}}.
+%
+\begin{definition}[Serialisation of Solution Sequences]
+  \label{lem:solution2types}
+  Given a SPARQL solution sequence $\Omega = (\mu_1, \dotsc, \mu_n)$ a serialisation of $\Omega$ into a sequence of
+  \type{PatternSolution} is defined as follows:
+  \begin{itemize}[noitemsep]
+  \item $\funcCall{serialise}{\Omega} \Rightarrow \funcCall{serialise}{\mu_1}, \ldots, \funcCall{serialise}{\mu_n}$
+  \item $\funcCall{serialise}{\mu} \Rightarrow 
+    \stt{<result>} 
+    \{\forall x \in \dom{\mu}, \funcCall{serialise}{\mu, x}\}
+    \stt{</result>}
+    $
+  \item $\funcCall{serialise}{\mu, x} \Rightarrow  
+    \stt{<binding name="}x\stt{">}
+    \{\funcCall{term}{\funcCall{\mu}{x}}\}
+    \stt{</binding>}
+    $,
+    %
+    where \funcCall{term}{\mu(x)} is 
+    \begin{itemize}[noitemsep]
+    \item $\stt{<uri>}\{\mu(x)\}\stt{</uri>} \hfill \textrm{if}~\mu(x) \in \AU$
+    \item $\stt{<bnode>}\{\mu(x)\}\stt{</bnode>} \hfill\textrm{if}~\mu(x) \in \AB$
+    \item $\stt{<literal>}\{\mu(x)\}\stt{</literal>}\hfill\textrm{if}~\mu(x) \in \AL$
+    \end{itemize}
+
+  \end{itemize}
+  %
+\end{definition}
+%
+\noindent Following the definition of the \funcName{serialise} function, in evaluation rules, we will refer to sequences
+of elements of type \type{PatternSolution} as \omg{}{} and to elements of type \type{SPARQLResult} as \sm{}{}.
+
+For the representation of \ac{SQL} results we follow a similar approach:
+%
+\begin{definition}[Serialisation of SQL Relation Instances]
+  \label{lem:relation2types}
+  % 
+  The serialisation of a relation instance~$I = \seq{I_1, \ldots, I_n}$ of relation~$R$ with~$\funcCall{sort}{R} = U$,
+  into \type{PatternSolution} is:
+  % 
+  \begin{itemize}[noitemsep]
+  \item $\funcCall{serialise}{I} \Rightarrow \funcCall{serialise}{I_1}, \ldots, \funcCall{serialise}{I_n}$
+  \item $\funcCall{serialise}{I_i} \Rightarrow
+    \stt{<result>} \{\forall x \in U, \funcCall{serialise}{I_i, x}\} \stt{</result>}
+    $
+  \item $\funcCall{serialise}{I_i, x} \Rightarrow  
+    \stt{<binding name="}x\stt{">} \{ \funcCall{sql2xml}{\funcCall{I_i}{x}} \} \stt{</binding>}
+    $.
+  \end{itemize}
+  %
+\end{definition}
+
+
+
+\subsubsection{Serialisation into SQL and SPARQL Representations}
+\label{sec:sql-sparql-serialisation}
+
+%
+The following definitions present the \funcName{SQLTerm} and \funcName{RDFTerm} functions that, when applied to an
+\ac{XSD} datatype, return their representation in \ac{SQL} or SPARQL syntax, respectively.  We first present the
+serialisation into \ac{SQL}:
+%
+\begin{definition}[SQL representation]
+  %
+  \label{def:sqlTerm}
+  %
+  Let~$C$ be an expression context with static environment~$T_C = \funcCall{\stat}{C}$ and dynamic environment~$D_C =
+  \funcCall{\dyn}{C}$, and~$x \in \funcCall{dom}{T_C.varType}$ an XSPARQL variable name.
+  %
+  The \ac{SQL} representation of~$x$ according to~$C$, denoted~$\funcCall{SQLTerm_C}{x}$ is:
+  %
+  \begin{itemize}[noitemsep]
+  \item~$\funcCall{data}{D_C.\funcCall{\ecomp{varValue}}{x}}$ \hfill if $T_C.\funcCall{\ecomp{varType}}{x} =
+    (\type{SQLTerm} \textrm{ or } \type{SQLAttribute} \textrm{ or } \type{RDFTerm}  \textrm{ or } \type{node()})$; and
+  \item~$\funcCall{xml2sql}{D_C.\funcCall{\ecomp{varValue}}{x}}$ \hfill otherwise, 
+  \end{itemize}
+  % 
+  where \funcName{xml2sql} is the value conversion function presented in \cref{sec:mapping-xml-types}.
+  %
+\end{definition}
+%
+Similarly, we next present the serialisation of SPARQL terms:
+%
+\begin{definition}[\funcName{RDFTerm}]
+  % 
+  \label{def:sparqlTerm}
+  %
+  Let~$C$ be an expression context with static environment~$T_C = \funcCall{\stat}{C}$ and dynamic environment~$D_C =
+  \funcCall{\dyn}{C}$, and~$x \in \funcCall{dom}{T_C.varType}$ an XSPARQL variable name.
+  %
+  The \ac{RDF} representation of~$x$ according to~$C$, denoted~$\funcCall{RDFTerm_C}{x}$ is:
+  % 
+  \begin{itemize}[noitemsep]
+  \item~$D_C.\funcCall{\ecomp{varValue}}{x} \hfill \textrm{if } T_C.\funcCall{\ecomp{varType}}{x} = \type{RDFTerm}$,
+  \item~$\texttt{"}D_C.\funcCall{\ecomp{varValue}}{x}\texttt{"} \hfill\textrm{if } T_C.\funcCall{\ecomp{varType}}{x} = \type{xsd:string}$,
+  \item~$\dt{\funcCall{D_C.\ecomp{varValue}}{\ensuremath{x}}}{\qname{rdf}{XMLLiteral}} \hfill \textrm{if }
+    T_C.\funcCall{\ecomp{varType}}{x} = \type{element()}$,
+  \item~$\texttt{"}data(D_C.\funcCall{\ecomp{varValue}}{x})\texttt{"} \hfill \textrm{if } T_C.\funcCall{\ecomp{varType}}{x} =
+    (\type{attribute()} \textrm{ or } \type{SQLTerm} \textrm{ or } \type{SQLAttribute})$, and
+  \item~$\texttt{"}D_C.\funcCall{\ecomp{varValue}}{x}\texttt{"\^{}\^{}}T_C.\funcCall{\ecomp{varType}}{x}$ \hfill
+    otherwise.
+  \end{itemize}
+\end{definition}
+
+%%% Local Variables:
+%%% fill-column: 120
+%%% TeX-master: t
+%%% TeX-PDF-mode: t
+%%% TeX-debug-bad-boxes: t
+%%% TeX-parse-self: t
+%%% TeX-auto-save: t
+%%% reftex-plug-into-AUCTeX: t
+%%% mode: latex
+%%% mode: flyspell
+%%% mode: reftex
+%%% TeX-master: "../thesis"
+%%% End:

@@ -1,0 +1,164 @@
+\section{Related Work}
+\label{sec:related}
+
+Adding annotations to logical statements was already proposed in the logic programming realm
+by~\citet{KiferSubrahmanian:1992aa} who took a similar approach, where atomic formulas are annotated with a value taken
+from a lattice of annotation values, an annotation variable or a complex annotation, \ie~a function applied to
+annotation values or variables.
+%
+Similarly, we can relate our work to annotated relational databases, especially~\citet{GreenKarvounarakisTannen:2007aa}
+who provides a similar framework for relational algebra.  After presenting a generic structure for annotations, they
+focus more specifically on the provenance domain. 
+
+
+Annotated RDF was first presented by~\citet{UdreaRecuperoSubrahmanian:2006aa,UdreaRecuperoSubrahmanian:2010aa}, where the
+authors define triples annotated with values taken from a \emph{finite partial order}.
+%
+In their work, triples are of the form $\triple{s,p\!:\!\lambda,o}$, where the property, rather than the triple is
+annotated and furthermore represent \ac{RDF} as a set of nodes and edges rather than extending the model theoretic
+semantics followed by the \ac{W3C}.
+%
+In our work, we rely on a richer, not necessarily finite, structure and provide additional inference capabilities when
+compared to~\citet{UdreaRecuperoSubrahmanian:2010aa}, such as a more involved propagation of annotation values through
+schema triples.
+%
+Essentially,~\citeauthor{UdreaRecuperoSubrahmanian:2010aa} do not provide an operation to combine annotations in
+\ac{RDFS} inferences. 
+%
+The query language presented by~\citet{UdreaRecuperoSubrahmanian:2010aa} consists of conjunctive queries and, while
+SPARQL's \acp{BGP} are compared to their conjunctive queries, they do not consider extending SPARQL with the possibility
+of querying annotations. Furthermore, $\keyword{optional}$, $\keyword{union}$ and $\keyword{filter}$ SPARQL queries are
+not considered, which results in a subset of SPARQL that can be directly translated into their previously presented
+conjunctive query system.
+
+In our initial approach the structure for representing annotations was defined as a residuated
+lattice~\cite{StracciaLopesLukacsy:2010aa,LopesPolleresStraccia:2010aa}, which was later extended to the more general
+semiring structure by~\citet{BunemanKostylev:2010aa}.
+%
+Furthermore, \citet{BunemanKostylev:2010aa} also show that once the \ac{RDFS} inferences of an \ac{RDF} graph have been
+computed for a specific domain, it is possible to reuse these inferences if the graph is annotated with a different
+domain.  Based on this result, the authors define a universal domain, which is possible to transform to other domains by
+applying the corresponding transformations.
+
+
+For the Semantic Web, several extensions of RDF were proposed in order to deal with \emph{specific} domains such as
+truth of imprecise
+information~\cite{MazzieriDragoni:2008aa,MazzieriDragoni:2005aa,Mazzieri:2004aa,Straccia:2009aa,LvMaYan:2008aa},
+time~\cite{GutierrezHurtadoVaisman:2007aa,PuglieseUdreaSubrahmanian:2008aa,TappoletBernstein:2009aa},
+trust~\cite{Hartig:2009ab,Schenk:2008aa} and provenance~\cite{DividinoSizovStaab:2009aa}.  These approaches are detailed
+in the following paragraphs.
+
+
+\citet{Straccia:2009aa} presents Fuzzy RDF in a general setting where triples are annotated with a degree of truth in
+$[0,1]$. For instance, ``Rome is a big city to degree 0.8'' can be represented with $\fuzzyg{\triple{\term{Rome},
+    \typeR, \term{BigCity}}}{0.8}$; the annotation domain is $[0,1]$.  For the query language, it formalises conjunctive
+queries.
+%
+Other similar approaches for Fuzzy RDF~\cite{MazzieriDragoni:2008aa,MazzieriDragoni:2005aa,Mazzieri:2004aa} provide the
+syntax and semantics, along with RDF and \ac{RDFS} interpretations of the annotated triples.
+%
+\citet{Mazzieri:2004aa} describes an implementation strategy that relies on translating the Fuzzy triples into plain RDF
+triples by using reification.  However these works focus mostly on the representation format and the query answering
+problem is not addressed.
+
+\citet{GutierrezHurtadoVaisman:2007aa} present the definitions of Temporal RDF, including reduction of the semantics of
+Temporal RDF graphs to RDF graphs and a sound and complete inference system.  They show that entailment of Temporal
+graphs does not yield extra complexity beyond RDF entailment.  Our Annotated RDFS framework encompasses this work by
+defining the temporal domain.  The authors present conjunctive queries with built-in predicates as the query language
+for Temporal RDF, although they do not consider full SPARQL.
+%
+\citet{GutierrezHurtadoVaisman:2007aa} describe some further features such as a ``Now'' time point (which is a defined
+time point in the domain) and anonymous time points, allowing to state that a triple is true at some point. Adding
+anonymous time points would require us to extend the semi-ring by appropriate operators, \eg~$[2004, T] \oplus [T, 2008]
+= [2004,2008]$ (where~$T$ is an anonymous time point).
+% 
+\citet{PuglieseUdreaSubrahmanian:2008aa} presents an optimised indexing schema for Temporal RDF, along with the notion
+of normalised Temporal RDF graph, and a query language for these graphs based on SPARQL.  The indexing scheme consists
+of clustering the RDF data based on their temporal distance, for which several metrics are given.  For the query
+language they only define conjunctive queries, thus ignoring some of the more advanced features of SPARQL.
+%
+\citet{TappoletBernstein:2009aa} present another approach to the implementation of Temporal RDF, where each temporal
+interval is represented as a named graph~\citep{CarrollBizerHayes:2005aa} containing all triples valid in that time
+period. Information about temporal intervals, such as their relative relations, start and end points, is asserted in the
+default graph.  The $\tau$-SPARQL query language allows to query the temporal RDF representation using an extended
+SPARQL syntax that can match the graph pattern against the snapshot of a temporal graph at any given time point and
+allows to query the start and endpoints of a temporal interval, whose values can then be used in other parts of the
+query.
+
+SPARQL extensions towards querying trust have been presented by~\citet{Hartig:2009ab}, introducing a trust aware query
+language, tSPARQL, that includes a new constructor to access the trust value of a graph pattern.  This value can then be
+used in other statements such as $\keyword{FILTER{s}}$ or $\keyword{ORDER}$.  Although focusing on trust, the approach
+is close to our general framework, introducing concepts similar to the ones presented in this chapter.  However, a
+general framework was not presented.
+%
+Also in the setting of trust management, \citet{Schenk:2008aa} defines a \emph{bilattice} structure to model
+\emph{trust} relying on the dimensions of knowledge and truth.  The defined knowledge about trust in information sources
+can then be used to compute the trust of an inferred statement. An extension towards \ac{OWL} is presented but there is
+no query language defined.  Finally, this approach is used to resolve inconsistencies in ontologies arising from
+connecting multiple data sources.
+
+
+
+Regarding provenance, in \citet{DelbruPolleresTummarello:2008aa}, the authors do not formalise the semantics and
+properties of the aggregation operation (simply denoted by~$\land$) nor the exact rules that should be applied to
+correctly reason with provenance. Query answering is not tackled either.
+%
+\citet{FlourisFundulakiPediaditis:2009aa} provides more insight into the formalisation and details the rules by reusing
+(tacitly)~\citet{MunozPerezGutierrez:2007aa}. They also provide a formalisation of a simple query language. However, the
+semantics they define is based on a strong restriction of \rhodf (which is already a restriction of \ac{RDFS}).
+%
+As an example, they define the answers to the query~$(\var{x}, \typeR, \var{y}, \var{c})$ as the tuples~$(X,Y,C)$ such
+that there is a triple~$(X, \typeR, Y, C)$ which can be inferred from only the application of rules (3a) and (3b) from
+the deductive system presented in \cref{sec:rdf-schema}.
+%
+This means that a domain or range assertion would not provide additional answers to that type of query.
+%
+Provenance also relates to the Named Graphs formalism~\cite{CarrollBizerHayes:2005aa} where one can identify distinct
+graphs with a URI. The name can be seen as an atomic provenance annotation. However, Named Graphs do not provide
+operations to combine the provenances. Yet, the formalism could be used as a possible syntactic solution for
+representing annotated triples.
+
+
+\citet{DividinoSizovStaab:2009aa} also present a generic extension of RDF to represent \emph{meta information}, mostly
+focused on provenance and uncertainty.  Such meta information is stored using named graphs and their extended semantics
+of RDF, denoted RDF$^+$, assumes a predefined vocabulary to be interpreted as meta information.  However they do not
+provide an extension of the \ac{RDFS} inference rules or any operations for combining meta information.  The authors
+also provide an extension of the SPARQL query language, considering an additional expression that enables querying the
+RDF meta information.
+
+
+\citet{BonattiHoganPolleres:2011aa} provide a framework for a specific combination of annotations (authoritativeness,
+rank, blacklisting, and provenance) within \ac{RDFS} and (a variant of) \ac{OWL} 2 RL. This work is orthogonal to ours,
+in that it does not focus on aspects of query answering, or providing a generic framework for combinations of
+annotations, but rather on scalable and efficient algorithms for materialising inferences for the specific combined
+annotations under consideration.
+
+
+
+
+Different extensions of \ac{RDF} and SPARQL focused on modelling spatial and temporal data were presented, namely
+stRDF~\cite{KoubarakisKyzirakos:2010aa} and SPARQL-ST~\cite{PerryJainSheth:2011aa}.
+%
+SPARQL-ST focuses on extending the SPARQL query language relying on previous proposals such as Temporal
+\ac{RDF}~\cite{GutierrezHurtadoVaisman:2007aa} and proposes a modelling of two dimensional geometries to represent the
+spatial coordinates in plain \ac{RDF}.
+%
+The extension of SPARQL is done by defining spatial and temporal variables and graph patterns and new filters and
+built-in conditions that operate over the temporal and spatial variables.  Possible spatial filters allow to determine
+wether specific relations (\eg~equal, contains) hold between different geometries or to determine the distance between
+the geometries.
+% 
+Filtering the temporal variables is based on the Allen interval relations~\cite{Allen:1983aa}.
+%
+stRDF and stSPARQL focus especially on representing sensor data, introducing triple annotations capable of representing
+moving trajectories of sensors and geometric areas where the sensors are deployed.  Spatial data is represented by
+allowing \ac{RDF} objects to be of a custom representation for geometries, whereas the temporal data is represented as
+an annotation over \ac{RDF} triples.  
+%
+The stSPARQL query language consists of an extension of SPARQL to consider the fourth element to query the temporal
+annotations, while spatial querying is based on filter expressions.
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "../thesis"
+%%% End:

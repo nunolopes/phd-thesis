@@ -1,0 +1,3 @@
+SELECT $x $y $z WHERE {
+    $y foaf:member $x $l .
+    ASSIGN length($l) AS $z }

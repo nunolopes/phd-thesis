@@ -1,0 +1,139 @@
+\section{Semantic Correspondence between XSPARQL, SQL, XQuery, and SPARQL}
+\label{sec:correspondence}
+%
+Since XSPARQL syntactically extends XQuery, and also any SPARQL \CONSTRUCT query is syntactically valid in XSPARQL,
+these queries are considered semantically equivalent to the semantics in their base languages.
+%
+Regarding \ac{SQL} and SPARQL \SELECT expressions, we can show that their results remain the same under XSPARQL extended
+semantics.
+%
+The next propositions formally establish this intuitive correspondence.
+
+\begin{proposition}
+\label{prop:xsparql}
+  XSPARQL is a conservative extension of XQ\-uery.
+\end{proposition}
+%
+\begin{proof}
+  %
+  The additional rules introduced in \cref{sec:semantics} do not modify the semantics of any native XQuery: the
+  XSPARQL semantics -- expressed in terms of normalisation rules, static typing rules and dynamic evaluation rules --
+  strictly extends the native semantics of XQuery.
+  %
+  In the semantics definition we also define new environment components, namely $\stat.\ecomp{globalPosition}$ and
+  $\dyn.\textrm{activeDataset}$, which are not used in the XQuery semantics and thus do not interfere with query
+  evaluation.
+  %
+  The only rules that use these newly created environments are the evaluation rules of \SparqlForClause{s}
+  (\dyn.\ecomp{activeDataset}) and the dynamic evaluation rule~\eqref{eq:bnode-skolem} (\dyn.\ecomp{globalPosition}),
+  which generates Skolem-identifiers for blank nodes in \CONSTRUCT parts.
+  % 
+  However, all these rules only apply to XSPARQL queries, which fall outside the native XQuery fragment, whereas the
+  semantics of native XQuery queries remains untouched and independent of the extra environment components in XSPARQL.
+  %
+\end{proof}
+
+
+We can also show that the answers of an XSPARQL \SQLForClause without any previously bound XSPARQL variables are the
+same as the answers of the normalised query under \ac{SQL} semantics:
+%
+\begin{lemma}
+  \label{lemma:xsparql-relation-instance}
+  Let~$S$ be a \SQLForClause,~$xir_C$ the XSPARQL instance relation of~$S$, and~$S' = \funcCall{normaliseSQL}{S}$ the
+  \ac{SQL} normalised query of~$S$. 
+  %
+  Furthermore, let~$R_1 = \RAXSP{S}$ and~$R_2 = \RASQL{S'}$, where~$\funcCall{sort}{R_2} = U$ be the relation instances
+  resulting from evaluating~$S$ according to the XSPARQL semantics and the \ac{SQL} semantics, respectively.
+  %
+  If~$S$ does not contain any XSPARQL variables, \ie~$\vars{S} = \emptyset$, then~$R_1[U] =
+  R_2$.
+\end{lemma}
+%
+\begin{proof}
+  %
+  Following \cref{def:xsparql-sql-answers} we have that the answers of~$S$ under XSPARQL semantics are given
+  by~$\funcCall{\sigma_{E}}{R_1 \times xir_C}$, where~$E$ is the XSPARQL select expression of~$S$.  
+  % 
+  Since~$\vars{S} = \emptyset$, according to \cref{def:xsparql-join},~$E$ will also be empty and we can
+  simplify the expression that produces~$R_1$ to~$R_2 \times xir_C$.
+  % 
+  According to the definition of XSPARQL instance relation (\cref{def:xml2sqlterm})~$xir_C$ has
+  cardinality~$1$ and thus the cross product does not change the cardinality of $R_2$, simply extending each solution
+  in~$R_2$ with the attributes from the~$xir_C$ relation.  
+  % 
+  Since the cardinality of~$R_1$ and~$R_2$ is the same and the~$\times$ operation does not change any existing
+  attributes of~$R_1$, we have that~$R_1[U] = R_2$.
+\end{proof}
+
+Similarly for SPARQL, we show the equivalence between SPARQL \ac{BGP} Matching~\cite[Section
+12.3.1]{PrudhommeauxSeaborne:2008aa} and XSPARQL \ac{BGP} Matching (presented in \cref{sec:bf-extended-bgp}).
+%
+Based on this, we can then prove the equivalence between the XSPARQL and SPARQL semantics for \CONSTRUCT queries.
+%
+\begin{lemma}
+  \label{lemma:xsparql-instance-mapping}
+  Given a graph pattern~$P$, a dataset~$D$ and~$\mu_C$ the XSPARQL instance mapping of~$P$. Furthermore, let $\Omega_1 =
+  \evalXS{D}{P}{\mu_C}$ and $\Omega_2 = \evalS{D}{P}$ be solution mappings.  If $\vars{P} \cap \dom{\mu_C} = \emptyset$,
+  then $\Omega_1 = \Omega_2 \bowtie \set{\mu_C}$.
+\end{lemma}
+%
+\begin{proof}
+  %
+  The XSPARQL BGP matching, $\evalXS{D}{P}{\mu_C}$, extends SPARQL's BGP matching, $\evalS{D}{P}$, by defining that the
+  solutions of the BGP are the ones \emph{compatible} with the \emph{XSPARQL instance mapping} $\mu_C$.
+  %
+  Since the evaluation of graph patterns (such as \UNION, \OPTIONAL, \GRAPH and \FILTER) remains unchanged from the
+  SPARQL semantics let us focus on the evaluation of a BGP $P$. 
+  %
+  If there are no shared values between the graph pattern and the XSPARQL instance mapping, as is the case
+  when~$\vars{P} \cap \dom{\mu_C} = \emptyset$, then each solution $\mu \in \Omega_2$ returned by the SPARQL BGP
+  evaluation semantics is trivially compatible with $\mu_C$ and the result of the XSPARQL BGP matching is $\mu \cup
+  \mu_C$.  Extending this result to all solution mappings in $\Omega_2$, we obtain that $\Omega_1 = \Omega_2 \bowtie
+  \set{\mu_C}$.
+  % 
+\end{proof}
+
+
+\noindent
+%
+Finally, for SPARQL \CONSTRUCT queries we can state the following:
+%
+\begin{proposition}
+\label{prop:xsparqlsparql}
+  XSPARQL is a conservative extension of SP\-ARQL \CONSTRUCT queries.
+\end{proposition}
+%
+\begin{proof}
+  % 
+  For XSPARQL queries consisting of a standalone SPARQL \CONSTRUCT query, there cannot exist any previous bindings for
+  variables in XSPARQL and thus the XSPARQL instance mapping $\mu_C$ over which the \CONSTRUCT query will be executed is
+  empty.  Let $P$ represent the graph pattern of the \CONSTRUCT query and $D$ the dataset, since~$\mu_C$ is empty,
+  trivially there are no shared variables between $\mu_C$ and $P$.  Thus, following
+  \cref{lemma:xsparql-instance-mapping} the bindings for XSPARQL BGP matching (say $\Omega_1$) are the same
+  bindings as SPARQL BGP matching ($\Omega_2$), since $\Omega_1 = \Omega_2 \cup \{\emptyset\}$ and hence $\Omega_1 =
+  \Omega_2$.
+  % 
+  Furthermore the formal semantics function $\funcName{fs{:}evalTemplate}$ returns an RDF graph satisfying all the
+  conditions of \cref{def:sparql-construct}:
+  \begin{inparaenum}[(i)]
+  \item ignoring invalid RDF triples -- \cref{def:sparql-construct-1} -- is guaranteed by
+    Rules~\eqref{validTriple1} and~\eqref{validTriple2}; and
+  \item the generation of distinct blank nodes for each solution sequence -- \cref{def:sparql-construct-2} -- is
+    enforced by the blank node skolemisation rules, Rules~\eqref{eq:bnode-skolem} and~\eqref{eq:bnode-skolem-default}.
+  \end{inparaenum}
+  %
+\end{proof}
+
+
+
+
+
+%%% Local Variables:
+%%% fill-column: 120
+%%% TeX-master: "../thesis" 
+%%% TeX-PDF-mode: t
+%%% TeX-debug-bad-boxes: t
+%%% TeX-parse-self: t
+%%% TeX-auto-save: t
+%%% reftex-plug-into-AUCTeX: t
+%%% End:

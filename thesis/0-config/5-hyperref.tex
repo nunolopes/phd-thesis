@@ -1,0 +1,74 @@
+\usepackage{hyperref}
+
+\PassOptionsToPackage{capitalise}{cleveref}
+
+\usepackage{cleveref}
+\crefname{data}{Data}{Data}
+\crefname{query}{Query}{Queries}
+\crefname{figure}{Figure}{Figures}
+\crefname{line}{line}{lines}
+\crefname{enumi}{item}{items}
+\crefrangeformat{line}{lines~#3#1#4--#5#2#6}
+
+
+\PassOptionsToPackage{indention=10pt,singlelinecheck=true,caption=false,nearskip=0pt,farskip=0pt,aboveskip=0pt,captionskip=2pt}{subfig}
+\usepackage{subfig}
+
+\makeatletter
+\newcommand*{\org@overidelabel}{}
+\let\org@overridelabel\@verridelabel
+\renewcommand*{\@verridelabel}[1]{%
+  \@bsphack
+  \protected@write\@auxout{}{\string\undonewlabel{#1@cref}}%
+  \org@overridelabel{#1}%
+  \@esphack
+}
+\makeatother
+
+
+
+% ********************************************************************
+% Hyperreferences
+% ********************************************************************
+\hypersetup{%
+    %draft,	% = no hyperlinking at all (useful in b/w printouts)
+    colorlinks=false, linktocpage=true, pdfstartpage=3, pdfstartview=FitV,%
+    % uncomment the following line if you want to have black links (e.g., for printing)
+    %colorlinks=false, linktocpage=false, pdfborder={0 0 0}, pdfstartpage=3, pdfstartview=FitV,% 
+    breaklinks=true, pdfpagemode=UseNone, pageanchor=true, pdfpagemode=UseOutlines,%
+    plainpages=false, bookmarksnumbered, bookmarksopen=true, bookmarksopenlevel=1,%
+    hypertexnames=true, pdfhighlight=/O,%nesting=true,%frenchlinks,%
+    urlcolor=webbrown,%
+    linkcolor=RoyalBlue,%
+    citecolor=webgreen,%
+    % pagecolor=RoyalBlue,%
+    % urlcolor=Black, linkcolor=Black, citecolor=Black, %pagecolor=Black,%
+    pdftitle={\myTitle},%
+    pdfauthor={\myName},%
+    pdfsubject={},%
+    pdfkeywords={}%
+}
+
+\newcommand*{\dataautorefname}{Data}
+\newcommand*{\queryautorefname}{Query}
+
+
+\addto\extrasbritish{%
+  \renewcommand*{\figureautorefname}{Figure}%
+  \renewcommand*{\tableautorefname}{Table}%
+  \renewcommand*{\partautorefname}{Part}%
+  \renewcommand*{\chapterautorefname}{Chapter}%
+  \renewcommand*{\sectionautorefname}{Section}%
+  \renewcommand*{\subsectionautorefname}{Section}%
+  \renewcommand*{\subsubsectionautorefname}{Section}% 	
+}
+\renewcommand*{\figureautorefname}{figure}
+
+
+\PassOptionsToPackage{overload}{textcase}
+\usepackage{textcase}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "../thesis"
+%%% End:

@@ -1,0 +1,52 @@
+
+\begin{figure}[t]
+  \centering
+  { \scriptsize
+    \setlength{\extrarowheight}{2pt}
+    \begin{tabular}{llll}
+      \cline{2-2}
+      \multicolumn{1}{l|}{Prolog:} & \DECLARE \emph{prefix}=\texttt{"}\emph{namespace-URI}\texttt{"}&\multicolumn{1}{|c}{\multirow{2}{*}{\textbf{or}}}&\\
+      \cline{2-2}
+      \multicolumn{1}{l|}{} & \PREFIX \emph{prefix}: \texttt{<}\emph{namespace-URI}\texttt{>}&\multicolumn{1}{|c}{}&\\
+      \cline{2-2}\\
+      \cline{2-2}
+      \multicolumn{1}{l|}{Body:} & \FOR \emph{var} \IN \emph{\XSPARQLFLWORExpr expression}&\multicolumn{1}{|c}{}&\multirow{4}{*}{\ForClause}\\
+      \multicolumn{1}{l|}{} & \LET \emph{var} := \emph{\XSPARQLFLWORExpr expression}&\multicolumn{1}{|c}{}&\\
+      \multicolumn{1}{l|}{}& \WHERE \emph{\XSPARQLFLWORExpr expression} &\multicolumn{1}{|c}{}&\\
+      \multicolumn{1}{l|}{}& \ORDERBY \emph{\XSPARQLFLWORExpr expression}&\multicolumn{1}{|c}{\multirow{2}{*}{\textbf{or}}}&\\
+      \cline{2-2}
+      \multicolumn{1}{l|}{}& \FOR \emph{SelectSpec} &\multicolumn{1}{|c}{}&\multirow{3}{*}{\SQLForClause}\\
+      \multicolumn{1}{l|}{}& \FROM \emph{RelationList} &\multicolumn{1}{|c}{}&\\
+      \multicolumn{1}{l|}{}& \WHERE \emph{WhereSpecList } &\multicolumn{1}{|c}{\multirow{2}{*}{\textbf{or}}}&\\
+      \cline{2-2}
+      \multicolumn{1}{l|}{}& \FOR \emph{varlist} &\multicolumn{1}{|c}{}&\multirow{6}{*}{\SparqlForClause}\\
+      \multicolumn{1}{l|}{}& \FROM\,/\,\FROMNAMED~\DatasetClause &\multicolumn{1}{|c}{}&\\
+      \multicolumn{1}{l|}{}& \WHERE \{\emph{ pattern } \}&\multicolumn{1}{|c}{}&\\
+      \multicolumn{1}{l|}{}& \ORDERBY \emph{expression}&\multicolumn{1}{|c}{}&\\
+      \multicolumn{1}{l|}{}& \LIMIT \emph{integer $> 0$} &\multicolumn{1}{|c}{}&\\
+      \multicolumn{1}{l|}{}& \OFFSET \emph{integer $> 0$}&\multicolumn{1}{|c}{}&\\
+      \cline{2-2}\\
+      \cline{2-2}
+      \multicolumn{1}{c|}{Head:}& \CONSTRUCT \{ \emph{ConstructTemplate (with nested  \XSPARQLFLWORExpr expressions)} \} &\multicolumn{1}{|c}{\multirow{2}{*}{\textbf{or}}}&\multirow{1}{*}{\ConstructClause}\\
+      \cline{2-2}
+      \multicolumn{1}{c|}{}& \RETURN \emph{XML+ nested  \XSPARQLFLWORExpr expressions}&\multicolumn{1}{|c}{}&\multirow{1}{*}{\ReturnClause}\\
+      \cline{2-2}
+    \end{tabular}}
+  \caption{Schematic view of XSPARQL}
+  \label{fig:XSPARQL}
+\end{figure}
+
+
+%%% Local Variables:
+%%% fill-column: 120
+%%% TeX-master: t
+%%% TeX-PDF-mode: t
+%%% TeX-debug-bad-boxes: t
+%%% TeX-parse-self: t
+%%% TeX-auto-save: t
+%%% reftex-plug-into-AUCTeX: t
+%%% mode: latex
+%%% mode: flyspell
+%%% mode: reftex
+%%% TeX-master: "../thesis"
+%%% End:

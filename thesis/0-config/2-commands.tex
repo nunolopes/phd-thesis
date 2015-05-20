@@ -1,0 +1,555 @@
+
+\renewcommand{\cite}{\citep}
+
+\renewcommand{\ge}{\geqslant}
+\renewcommand{\le}{\leqslant}
+\renewcommand{\geq}{\geqslant}
+\renewcommand{\leq}{\leqslant}
+\renewcommand{\P}{\ensuremath{\mathcal{P}}\xspace}
+
+% RDF Sets
+\newcommand{\aset}[1]{\ensuremath{\mathbf{#1}}\xspace}
+\newcommand{\AU}{\ensuremath{\aset{U}}\xspace}
+\newcommand{\AP}{\ensuremath{\aset{P}}\xspace}
+\newcommand{\AB}{\ensuremath{\aset{B}}\xspace}
+\newcommand{\AL}{\ensuremath{\aset{L}}\xspace}
+\newcommand{\AV}{\ensuremath{\aset{V}}\xspace}
+\newcommand{\AUBL}{\ensuremath{\aset{UBL}}\xspace}
+\newcommand{\AUB}{\ensuremath{\aset{UB}}\xspace}
+\newcommand{\AUL}{\ensuremath{\aset{UL}}\xspace}
+\newcommand{\AULV}{\ensuremath{\aset{ULV}}\xspace}
+\newcommand{\AUV}{\ensuremath{\aset{UV}}\xspace}
+\newcommand{\AUBLV}{\ensuremath{\aset{UBLV}}\xspace}
+\newcommand{\AC}{\ensuremath{\aset{C}}\xspace}
+\newcommand{\ACT}{\ensuremath{\aset{CT}}\xspace}
+
+
+% RDB Sets
+\newcommand{\AR}{\ensuremath{\mathbf{R}}\xspace}
+\newcommand{\AAs}{\ensuremath{\mathbf{A}}\xspace}
+\newcommand{\AD}{\ensuremath{\mathbf{D}}\xspace}
+\newcommand{\ADV}{\ensuremath{\mathbf{DV}}\xspace}
+
+% RDF interpretations
+\newcommand{\A}{\ensuremath{\mathcal{A}}\xspace}
+\newcommand{\sub}{\ensuremath{\sqsubseteq}}
+\newcommand{\K}{\ensuremath{\mathcal{K}}\xspace}
+\newcommand{\T}{\ensuremath{\mathcal{T}}\xspace}
+\newcommand{\F}{\ensuremath{\mathcal{F}}\xspace}
+\newcommand{\I}{\ensuremath{\mathcal{I}}\xspace}
+\newcommand{\IA}{\ensuremath{\mathcal{I}_{\A}}\xspace}
+\newcommand{\R}{\ensuremath{\mathcal{R}}}
+\newcommand{\m}{\I\xspace}
+\newcommand{\s}{\ensuremath{s}\xspace}
+\newcommand{\x}{\ensuremath{x}\xspace}
+\newcommand{\nd}{\noindent}
+\newcommand{\calK}{{\cal K}}
+\newcommand{\calF}{{\mathcal F}}
+\newcommand{\calL}{{\mathcal L}}
+\newcommand{\calS}{{\mathcal S}}
+\newcommand{\lpx}[1]{{\mathcal #1}}
+\newcommand{\lp}{\lpx{P}}
+\newcommand{\ground}[1]{\mathtt{ground}(#1)}
+\newcommand{\tuple}[1]{\langle #1 \rangle }
+\newcommand{\triple}[1]{(#1)}
+\newcommand{\triplee}[3]{(#1,\ \!#2,\ \!#3)}
+\newcommand{\entail}{\models}
+\newcommand{\unitn}{[0,1]_{m}}
+\newcommand{\andc}{\sqcap}
+\newcommand{\all}{\forall}
+\newcommand{\some}{\exists}
+\newcommand{\somei}[2]{\some #1\colon \!\! #2}
+\newcommand{\notc}{\neg}
+\newcommand{\orc}{\sqcup}
+\newcommand{\csome}{\exists}
+\newcommand{\atleast}[1]{\geq #1\ }
+\newcommand{\atmost}[1]{\leq #1\ }
+\newcommand{\bottomc}{\perp}
+\newcommand{\topc}{\top}
+\newcommand{\impc}{\sqsubseteq}
+\newcommand{\highi}[1]{{#1}^{\cal I} }
+\newcommand{\term}[1]{\ensuremath{\mbox{\small$\mathtt{#1}$}}}
+\newcommand{\uri}[1]{\ensuremath{\term{#1}}}
+\newcommand{\bnode}[1]{\ensuremath{\term{\textrm{\mathunderscore:}#1}}}
+\newcommand{\literal}[1]{\ensuremath{\term{\texttt{"}#1\texttt{"}}}}
+\newcommand{\lang}[2]{\ensuremath{\literal{#1}\texttt{@}\term{#2}}}
+\newcommand{\dt}[2]{\literal{#1}\texttt{\^{}\^{}}#2}
+\newcommand{\qname}[2]{\ensuremath{\term{#1{:}#2}}}
+\newcommand{\uril}[1]{\texttt{<\url{#1}>}}
+
+\newcommand{\eval}[1]{[\![ #1 ]\!]}
+
+
+\newcommand{\assign}{\mbox{$\colon\!\!\!\!=$}}
+
+\newcommand{\fg}[1]{\tilde{#1}}
+
+\newcommand{\intL}[1]{{#1}^{\I_{L}} }
+\newcommand{\intA}[1]{{#1}^{\I_{\A}} }
+\newcommand{\intAP}[1]{{#1}^{\I_{\A'}} }
+\renewcommand{\int}[1]{{#1}^{\I} }
+\newcommand{\intP}[1]{{P[\![#1]\!]}}
+\newcommand{\intC}[1]{{C[\![#1]\!]}}
+
+\newcommand{\spp}{\ensuremath{\mathsf{sp}}}
+\newcommand{\subclass}{\ensuremath{\mathsf{sc}}}
+\newcommand{\typeR}{\ensuremath{\mathsf{type}}}
+\newcommand{\domR}{\ensuremath{\mathsf{dom}}}
+\newcommand{\range}{\ensuremath{\mathsf{range}}}
+\newcommand{\eee}{\ensuremath{\mathsf{e}}}
+
+\newcommand{\ii}[1]{\mbox{$(#1)$}}
+
+\newcommand{\fuzzyg}[2]{\mbox{$#1\colon#2$}}
+
+\newcommand{\FKB}{{\lp}}
+\newcommand{\maps}{\mapsto}
+
+\newcommand{\aggr}{@}
+\newcommand{\comp}{\circ}
+
+
+\newcommand{\okex}{ \hfill $\Box$}
+\renewcommand{\vec}[1]{\bar{\mathbf #1}}
+
+
+\newcommand{\spec}{{\mbox{$\tau$}}}
+\newcommand{\astat}{{\mbox{$\sigma$}}}
+
+%
+\newcommand{\ie}{i.e.\xspace}
+\newcommand{\eg}{e.g.\xspace}
+\newcommand{\cf}{cf.\xspace}
+%
+\newcommand{\wrt}{w.r.t.\xspace}
+\newcommand{\D}{{\mathtt D}}
+\newcommand{\etal}{\textit{et al.}\xspace}
+\renewcommand{\iff}{if and only if\xspace}
+
+\newcommand{\rhodf}{\mbox{$\rho$df}\xspace}
+\newcommand{\universe}{\ensuremath{\mathit{universe}}\xspace}
+\newcommand{\voc}{\ensuremath{\mathit{voc}}\xspace}
+
+
+\newcommand{\relationName}[1]{\ensuremath{\mathit{#1}}}
+\newcommand{\relation}[2]{\ensuremath{\relationName{#1}\left[~#2~\right]}}
+\newcommand{\atom}[1]{\ensuremath{\textit{`#1'}}}
+\newcommand{\fact}[2]{\ensuremath{\mathit{#1}\!\left(#2\right)}}
+
+
+\newcommand{\set}[1]{\ensuremath{\left\{\:#1\:\right\}}}
+\newcommand{\seq}[1]{\ensuremath{\left(#1\right)}}
+
+\newcommand{\character}[1]{`\texttt{#1}'}
+\newcommand{\stringValue}[1]{\textrm{``}{\texttt{#1}}\textrm{''}}
+
+\newcommand{\usecase}{use case\xspace}
+\newcommand{\Usecase}{Use case\xspace}
+\newcommand{\usecases}{use cases\xspace}
+
+\newcommand{\sd}{semi-structured\xspace}
+\newcommand{\Sd}{Semi-structured\xspace}
+
+\newcommand{\inlineExpr}[1]{``#1''}
+
+\newcommand{\ges}{\,{\geqslant}\,}
+\newcommand{\les}{\,{\leqslant}\,}
+\newcommand{\ins}{\,{\in}\,}
+\newcommand{\notf}{\neg}
+\newcommand{\orf}{\lor}
+\newcommand{\andf}{\land}
+\newcommand{\impf}{\rightarrow}
+\newcommand{\unit}{[0,1]}
+\renewcommand{\implies}{\Rightarrow}
+\newcommand{\KB}{\mathit{K\!B}}
+\newcommand{\eqs}{\,{=}\,}
+\newcommand{\mids}{\,{\mid}\,}
+
+\newcommand{\notr}{\neg}
+
+
+
+\newcommand{\pow}[1]{2^{#1}}
+
+
+\def\qed{\hspace*{\fill} \ensuremath{\Box}}
+
+\def\NULL{{\sf null}\xspace}
+\newcommand{\louter}{{\sqsupset\!\!\!}\bowtie}
+\newcommand{\lms}{\ensuremath{\{\!\!\{}}
+\newcommand{\rms}{\ensuremath{\}\!\!\}}}
+\newcommand{\Tnull}{\ensuremath{T_\NULL}}
+\newcommand{\blank}[1]{\ensuremath{\_\!\_\!{:}\!\mathtt{#1}}}
+
+%
+\def\ojoin{\setbox0=\hbox{$\bowtie$}\rule[-.02ex]{.35em}{.4pt}\llap{\rule[\ht0]{.35em}{.4pt}}}%
+\def\leftouterjoin{\mathbin{\ojoin\mkern-5.8mu\bowtie}}%
+\def\rightouterjoin{\mathbin{\bowtie\mkern-5.8mu\ojoin}}%
+\def\fullouterjoin{\mathbin{\ojoin\mkern-5.8mu\bowtie\mkern-5.8mu\ojoin}}%
+
+
+
+\newcommand{\outline}[2][Outline:]{\todo[inline,caption={#1}]{%
+ \begin{minipage}{\linewidth}%
+   {#1}%
+   \begin{small}%
+     \begin{itemize}%
+       {#2}%
+     \end{itemize}%
+   \end{small}%
+ \end{minipage}}%
+}%
+
+% ================================================================================
+% XSPARQL defs
+
+
+
+\newcommand\nop[1]{}
+
+\newcommand{\rdfstyle}[1]{{\tt\textbf{#1}}}
+\def\DECLARE{\rdfstyle{declare namespace}\xspace}
+\def\FOR{\rdfstyle{for}\xspace}
+\def\IN{\rdfstyle{in}\xspace}
+\def\AT{\rdfstyle{at}\xspace}
+\def\LET{\rdfstyle{let}\xspace}
+\def\WHERE{\rdfstyle{where}\xspace}
+\def\RETURN{\rdfstyle{return}\xspace}
+\def\SATISFY{\rdfstyle{satisfy}\xspace}
+\def\IF{\rdfstyle{if}\xspace}
+\def\THEN{\rdfstyle{then}\xspace}
+\def\ELSE{\rdfstyle{else}\xspace}
+\def\WHERE{\rdfstyle{where}\xspace}
+\def\SELECT{\rdfstyle{select}\xspace}
+\def\ASK{\rdfstyle{ask}\xspace}
+\def\FROM{\rdfstyle{from}\xspace}
+\def\FROMNAMED{\rdfstyle{from named}\xspace}
+\def\DESCRIBE{\rdfstyle{describe}\xspace}
+\def\CONSTRUCT{\rdfstyle{construct}\xspace}
+\def\DISTINCT{\rdfstyle{distinct}\xspace}
+\def\ORDERBY{\rdfstyle{order by}\xspace}
+\def\FILTER{\rdfstyle{filter}\xspace}
+\def\OFFSET{\rdfstyle{offset}\xspace}
+\def\LIMIT{\rdfstyle{limit}\xspace}
+\def\UNION{\rdfstyle{union}\xspace}
+\def\OPTIONAL{\rdfstyle{optional}\xspace}
+\def\GRAPH{\rdfstyle{graph}\xspace}
+\def\PREFIX{\rdfstyle{prefix}\xspace}
+\def\BOUND{\rdfstyle{bound}\xspace}
+\def\isBlank{\rdfstyle{isBlank}\xspace}
+\def\isIRI{\rdfstyle{isIRI}\xspace}
+\def\isLiteral{\rdfstyle{isLiteral}\xspace}
+\def\NULL{{\sf null}\xspace}
+\def\GROUPBY{\rdfstyle{group by}\xspace}
+\def\HAVING{\rdfstyle{having}\xspace}
+\def\NOTIN{\rdfstyle{not~in}\xspace}
+\def\IN{\rdfstyle{in}\xspace}
+
+\newcommand{\stt}[1]{\texttt{{\small #1}}}
+\newcommand{\keyword}[1]{\stt{#1}}
+\def\DECLARE{\keyword{declare~name\-space}\xspace}
+\def\FOR{\keyword{for}\xspace}
+\def\AND{\keyword{and}\xspace}
+\def\OR{\keyword{or}\xspace}
+\def\EQ{\keyword{eq}\xspace}
+\def\IN{\keyword{in}\xspace}
+\def\AT{\keyword{at}\xspace}
+\def\LET{\keyword{let}\xspace}
+\def\WHERE{\keyword{where}\xspace}
+\def\RETURN{\keyword{return}\xspace}
+\def\SATISFY{\keyword{satisfy}\xspace}
+\def\IF{\keyword{if}\xspace}
+\def\THEN{\keyword{then}\xspace}
+\def\ELSE{\keyword{else}\xspace}
+\def\WHERE{\keyword{where}\xspace}
+\def\SELECT{\keyword{select}\xspace}
+\def\ASK{\keyword{ask}\xspace}
+\def\FROM{\keyword{from}\xspace}
+\def\FROMNAMED{\keyword{from~named}\xspace}
+\def\DESCRIBE{\keyword{describe}\xspace}
+\def\CONSTRUCT{\keyword{con\-struct}\xspace}
+\def\DISTINCT{\keyword{distinct}\xspace}
+\def\ORDERBY{\keyword{order~by}\xspace}
+\def\FILTER{\keyword{filter}\xspace}
+\def\OFFSET{\keyword{offset}\xspace}
+\def\LIMIT{\keyword{limit}\xspace}
+\def\UNION{\keyword{union}\xspace}
+\def\OPTIONAL{\keyword{optional}\xspace}
+\def\GRAPH{\keyword{graph}\xspace}
+\def\PREFIX{\keyword{prefix}\xspace}
+\def\BOUND{\keyword{bound}\xspace} 
+\def\isBlank{\keyword{isBlank}\xspace} 
+\def\isIRI{\keyword{isIRI}\xspace}
+\def\isLiteral{\keyword{isLiteral}\xspace} 
+\def\NULL{{\sf null}\xspace}
+
+
+\newcommand{\leanparagraph}[1]{\smallskip\noindent\textbf{#1. }}
+\newcommand{\envElem}[2]{\ensuremath{\mathit{{#1}_{#2}}}}
+\newcommand{\funcName}[1]{\ensuremath{\mathit{#1}}}
+\newcommand{\funcCall}[2]{\ensuremath{\funcName{#1}\!\left(#2\right)}}
+\newcommand{\fc}[2]{\funcCall{#1}{#2}}
+\def\prefixR{\stt{xsp{:}}}
+\newcommand{\funcNameR}[1]{\stt{\prefixR#1}}
+\newcommand{\funcCallR}[2]{\ensuremath{\funcNameR{#1}\!\left(#2\right)}}
+
+\newcommand{\f}[2]{\ensuremath{\operatorname{#1}\left(#2\right)}}
+\newcommand{\vars}[1]{\ensuremath{\funcCall{vars}{#1}}}
+\newcommand{\dom}[1]{\ensuremath{\funcCall{dom}{#1}}}
+\newcommand{\sem}[2]{\ensuremath{\left\llbracket{#1}\right\rrbracket_{\mathit{#2}}}}
+\newcommand{\semT}[3]{\ensuremath{\left\llbracket{#1}\right\rrbracket_{\mathit{#2}}}^{\mathit{#3}}}
+\newcommand{\proofs}{\ensuremath{\vdash}}
+\newcommand{\concat}{\ensuremath{\mathtt{fn{:}concat}}\xspace}
+\newcommand{\data}[1]{\funcCall{\mathtt{fn{:}data}}{#1}\xspace}
+
+
+\def\stat{\ensuremath{\mathrm{statEnv}}\xspace}
+\def\dyn{\ensuremath{\mathrm{dynEnv}}\xspace}
+\def\dyn{{\textrm{dynEnv}}\xspace}
+\newcommand{\dynX}[2]{\ensuremath{\mathrm{dynEnv}_{#1}^{\mathit{#2}}}}
+
+\newcommand{\statEnv}[1]{\stat \proofs #1}
+\newcommand{\statEnvMultiline}[2]{\hspace{-5pt} \stat  \proofs \hspace{-7pt} \begin{array}{c} #1 \\ = \\ #2 \end{array}}
+\newcommand{\dynEnv}[1]{\dyn \proofs #1}
+\newcommand{\dynEnvMultiline}[2]{\hspace{-5pt} \dyn  \proofs \hspace{-7pt} \begin{array}{c} #1 \\ = \\ #2 \end{array}}
+\newcommand{\dynEnvX}[3]{\ensuremath{\dynX{#1}{#2} \proofs #3}}
+
+\newcommand{\ifThenElse}[3]{\ensuremath{\begin{array}{l}\mathtt{if}~(#1) \\ \indent \mathtt{then}~#2~\mathtt{else}~#3\end{array}}}
+\newcommand{\fempty}[1]{\ensuremath{\mathit{fn{:}empty}(#1)}}
+
+
+% % types such as RDFTerm
+\newcommand{\type}[1]{\stt{#1}}
+
+% environment component such as varValue
+\newcommand{\ecomp}[1]{\textrm{#1}}
+
+% filename
+\newcommand{\fname}[1]{\textsl{#1}}
+
+
+\newcommand{\envFunc}[2]{\ensuremath{\ecomp{#1}\!\left( #2 \right)}}
+
+\newcommand{\envExtend}[2]{\ensuremath{\ecomp{ + }\envFunc{#1}{#2}}}
+
+\newcommand{\envComp}[3]{\ensuremath{#1.\envFunc{#2}{#3}}}
+
+
+\newcommand{\var}[1]{\ensuremath{\$\mathit{#1}}}
+\newcommand{\varR}[1]{\ensuremath{\$\mathtt{xsp{:}#1}}}
+\newcommand{\varName}[1]{\ensuremath{\mathit{#1}}}
+\newcommand{\varNameR}[1]{\ensuremath{\mathtt{xsp{:}#1}}}
+
+\newcommand{\litVar}[1]{{\lit{\$#1}\xspace}}
+
+
+% optimisation functions
+\newcommand{\onl}[1]{\ensuremath{\funcCall{opt_{nl}}{#1}}}
+\newcommand{\sr}[1]{\ensuremath{\funcCall{opt_{sr}}{#1}}}
+\newcommand{\ong}[1]{\ensuremath{\funcCall{opt_{ng}}{#1}}}
+
+
+\def\VarName{\ensuremath{\$\!\mathit{VarName}}}
+\def\Vars{\ensuremath{\mathit{Vars}}}
+\def\bVars{\ensuremath{\mathit{bVars}}}
+
+\def\false{\ensuremath{\mathit{fn{:}false}()}}
+\def\true{\ensuremath{\mathit{fn{:}true}()}}
+
+
+
+\makeatletter
+\def\Ddots{\mathinner{\mkern1mu\raise\p@
+\vbox{\kern7\p@\hbox{.}}\mkern2mu
+\raise4\p@\hbox{.}\mkern2mu\raise7\p@\hbox{.}\mkern1mu}}
+\makeatother
+
+
+\newcommand{\grammarRule}[1]{{\textit{#1}}}
+\newcommand{\e}[3]{\ensuremath{{\mathit{#1}}_{\mathit{#2}}^{\mathit{#3}}}}
+\newcommand{\omg}[2]{\ensuremath{\e{\Omega}{#1}{#2}}}
+\newcommand{\sm}[2]{\ensuremath{\e{\mu}{#1}{#2}}}
+\newcommand{\gsup}[2]{\e{#1}{}{#2}}
+\newcommand{\evalS}[2]{\ensuremath{\funcCall{eval}{#1, #2}}}
+\newcommand{\evalXS}[3]{\ensuremath{\funcCall{\e{eval}{xs}{}}{#1, #2, #3}}}
+\newcommand{\xml}[2]{\ensuremath{\mathtt{{<}#1{>}}#2\mathtt{{<}/#1{>}}}}
+\newcommand{\RASQL}[1]{\ensuremath{\funcCall{RA_{\mathit{sql}}}{#1}}}
+\newcommand{\RAXSP}[1]{\ensuremath{\funcCall{RA_{\mathit{xsp}}}{#1}}}
+
+
+\hyphenation{XMark-RDF}
+\hyphenation{SPAR-QL}
+\hyphenation{XSP-AR-QL}
+\hyphenation{Sparql-For-Clause} 
+\hyphenation{Sparql-Where-Clause} 
+\hyphenation{Construct-Clause} 
+\hyphenation{style-sheet} 
+
+\def\SparqlForClause{\grammarRule{Sparql\-For\-Clause}\xspace}
+\def\SQLForClause{\grammarRule{SQL\-For\-Clause}\xspace}
+\def\ForClause{\grammarRule{For\-Clause}\xspace}
+\def\ReturnClause{\grammarRule{Return\-Clause}\xspace}
+\def\ExprSingle{\grammarRule{Expr\-Single}\xspace}
+\def\ReturnExpr{\keyword{return}~\ExprSingle\xspace}
+\def\ConstructClause{\grammarRule{Con\-struct\-Clause}\xspace}
+\def\ConstructTemplate{\grammarRule{Con\-struct\-Tem\-plate}\xspace}
+\def\GroupGraphPattern{\grammarRule{Group\-Graph\-Pattern}\xspace}
+\def\SparqlWhereClause{\grammarRule{Whe\-re\-Clause}\xspace}
+\def\DatasetClause{\grammarRule{Da\-ta\-set\-Clau\-se}\xspace}
+\def\OptDatasetClause{\grammarRule{Opt\-Dataset\-Clause}\xspace}
+\def\SolutionModifier{\grammarRule{Solution\-Modifier}\xspace}
+\def\FLWORExpr{\grammarRule{FLWOR\-Expr}\xspace}
+\def\XSPARQLFLWORExpr{\grammarRule{XSPARQL\-Expr}\xspace}
+\def\GroupGraphPattern{\grammarRule{GGP}\xspace}
+\def\OrderCondition{\grammarRule{OC}\xspace}
+\def\FLWOR{\textsf{FLWOR}\xspace}
+
+\lstdefinelanguage{XSPARQL} {
+  keywords={prefix,construct,select,declare,function,variable,as,at,in,%
+    from,where,order,by,for,let,return,if,then,else,import,module,optional},%
+  otherkeywords={:=,=,\{,\}},%
+  string=[b]",%
+  comment=[s]{(:}{:)},%
+  sensitive=false,
+}
+
+\lstdefinestyle{framenumbers} {
+  frame=TB,
+  xleftmargin=0.05\linewidth,
+  xrightmargin=0.05\linewidth,
+  columns=fullflexible,%
+  numbers=left,%
+  numberstyle=\tiny,%
+  numbersep=2p,%
+  showstringspaces=false,%
+  basicstyle=\ttfamily\small,%
+  stringstyle=\itshape,%
+  numbersep=5pt,%
+  frame=single,%
+  breaklines=true,%
+  escapeinside={(:@}{@:)} %
+}
+
+\lstset {%
+  style=framenumbers,%
+  numberbychapter=true,%
+  captionpos=b%
+}
+
+\newfloat{query}{t}{ql}[chapter]
+\floatname{query}{Query}
+
+\newfloat{data}{t}{data}[chapter]
+\floatname{data}{Data}
+
+\setlength{\abovecaptionskip}{5pt plus 1.0pt minus 2.0pt}
+
+
+
+\newcommand{\mapping}[2]{%
+  \begin{small}%
+    \centering%
+    \begin{prooftree}%
+      \def\ScoreOverhang{1pt}%
+      \def\extraVskip{1pt}%
+      \alwaysNoLine%
+      \AxiomC{$#1$}%
+      \UnaryInfC{$==$}%
+      \UnaryInfC{$#2$}%
+    \end{prooftree}%
+  \end{small}%
+}
+
+\newcommand{\sema}[1]{\sem{\begin{array}{l}#1\end{array}}}
+
+
+\newcounter{normalisationrulecounter}
+\setcounter{normalisationrulecounter}{1}
+\newenvironment{normalisationrule}
+{\renewcommand{\theequation}{{N\arabic{normalisationrulecounter}}}\begin{equation}\begin{minipage}{0.88\linewidth}\begin{small}}
+{\end{small}\end{minipage}\end{equation}\stepcounter{normalisationrulecounter}}
+
+\newenvironment{myprooftree}
+{\begin{prooftree}%
+    \def\ScoreOverhang{1pt}%
+    \def\extraVskip{1pt}%
+    \alwaysNoLine%
+  }{%
+  \end{prooftree}%
+}
+
+
+\newcounter{staticrulecounter}
+\setcounter{staticrulecounter}{1}
+\newenvironment{staticrule}
+{\renewcommand{\theequation}{{S\arabic{staticrulecounter}}}\begin{equation}\begin{minipage}{0.9\linewidth}\begin{small}}
+{\end{small}\end{minipage}\end{equation}\stepcounter{staticrulecounter}}
+
+
+\newcounter{dynamicrulecounter}
+\setcounter{dynamicrulecounter}{1}
+\newenvironment{dynamicrule}
+{\renewcommand{\theequation}{{D\arabic{dynamicrulecounter}}}\begin{equation}\begin{minipage}{0.9\linewidth}\begin{small}\begin{myprooftree}}
+{\end{myprooftree}\end{small}\end{minipage}\end{equation}\stepcounter{dynamicrulecounter}}
+
+
+\newcounter{prooftreerulecounter}
+\setcounter{prooftreerulecounter}{1}
+\newenvironment{tree}
+{\renewcommand{\theequation}{{T\arabic{prooftreerulecounter}}}\begin{equation}\begin{minipage}{0.88\linewidth}\begin{small}}
+{\end{small}\end{minipage}\end{equation}\stepcounter{prooftreerulecounter}}
+
+\newcounter{querycounter}
+\setcounter{querycounter}{1}
+\newenvironment{queryF}
+{\renewcommand{\theequation}{{Q\arabic{querycounter}}}\begin{equation}\begin{minipage}{0.88\linewidth}\begin{small}}
+{\end{small}\end{minipage}\end{equation}\stepcounter{querycounter}}
+
+
+\newenvironment{prooftreefunction}{%
+    \def\proofSkipAmount{\vskip -10pt plus1pt minus1pt}%
+    \begin{prooftree}\small%
+    }{%
+    \end{prooftree}%
+}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% ENVIRONMENTS
+
+\newtheorem{definition}{Definition}[chapter]
+\newtheorem{theorem}{Theorem}[chapter]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\newcommand{\eoe}{\hfill$\Diamond$\medskip}
+\newenvironment{remark}{\noindent\textbf{Remark:\ }}{\hspace*{\fill}$\Box$\medskip}
+\renewenvironment{proof}{\noindent\textbf{Proof:\ }}{\hspace*{\fill}$\Box$\medskip}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+\pdfoptionpdfminorversion=6
+
+
+
+\newcommand\yes{\ensuremath{\surd}}
+\newcommand\no{\ensuremath{\times}}
+\newcommand\kindof{\yes/\no}
+
+\def\nrdn{nr-datalog\ensuremath{^\neg}\xspace}
+
+%% quotations
+\newcommand{\quotationpage}[2]{\newpage\vspace*{\fill}\begin{minipage}{0.9\textwidth}\begin{quotation}\textit{``#1''}\end{quotation}\hfill---\textbf{#2}\end{minipage}\vspace*{\fill}\newpage}
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% mode: flyspell
+%%% mode: reftex
+%%% TeX-master: "../thesis"
+%%% End:
+

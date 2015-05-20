@@ -1,0 +1,174 @@
+\subsection{Deductive system}
+\label{sec:anql-deductive-system}
+An important feature of our framework is that we are able to provide a deductive system in the style of the one for
+classical \ac{RDFS}.  Moreover, \emph{the schemata of the rules are the same for any annotation domain} (only support for the
+domain dependent~$\otimes$ and~$\oplus$ operations has to be provided).
+%
+The rules of our deductive system, as in \cref{sec:rdf-schema}, are arranged in groups that capture the semantic
+conditions of models, where~$A,B,C,X$, and~$Y$ are meta-variables representing elements in~$\AUBL$ and~$D,E$ represent
+elements in~$\AUL$.
+%
+The rule set contains two rules,~$(1a)$ and $(1b)$, that are the same as for the crisp case, while rules~$(2a)$
+to~$(5b)$ are the annotated rules homologous to the crisp ones. 
+%
+\ifnormalisedardf%
+\else%
+Finally, rule~$(6)$ is specific to the annotated case.
+\fi%
+%
+  \begin{description}
+  \item[1. Simple:]~ \\[0.5em]
+    \begin{tabular}{ll}
+      $(a) \quad \frac{G}{G'}$ for an annotated map $\theta:G' \to G$ & 
+      \ifnormalisedardf%
+      $(b) \quad \frac{G}{G'}$ for $G' \preceq G$
+      \else%
+      $(b) \quad \frac{G}{G'}$ if $\forall \fuzzyg{\tau}{\lambda_{1}}
+      \in G', \exists\fuzzyg{\tau}{\lambda_{2}} \in G$ such that~$\lambda_{1} \preceq \lambda_{2}$
+      \fi
+    \end{tabular}
+  \item[2. Subproperty:]~ \\[0.5em]
+    \begin{tabular}{ll}
+      $(a) \quad \frac{\fuzzyg{\triple{A,  \spp, B}}{\lambda_{1}},  \fuzzyg{\triple{B,  \spp, C}}{\lambda_{2}}}{\fuzzyg{\triple{A,  \spp, C}}{\lambda_{1}\otimes \lambda_{2}}}$ &
+      $(b) \quad \frac{\fuzzyg{\triple{D, \spp, E}}{\lambda_{1}},  \fuzzyg{\triple{X, D, Y}}{\lambda_{2}}}{\fuzzyg{\triple{X, E, Y}}{\lambda_{1} \otimes \lambda_{2}}}$
+    \end{tabular}
+  \item[3. Subclass:]~ \\[0.5em]
+    \begin{tabular}{ll}
+      $(a) \quad \frac{\fuzzyg{\triple{A, \subclass, B}}{\lambda_{1}},  \fuzzyg{\triple{B, \subclass, C}}{\lambda_{2}}}{\fuzzyg{\triple{A, \subclass, C}}{\lambda_{1} \otimes \lambda_{2}}}$ &
+      $(b) \quad \frac{\fuzzyg{\triple{A, \subclass, B}}{\lambda_{1}},  \fuzzyg{\triple{X, \typeR, A}}{\lambda_{2}}}{\fuzzyg{\triple{X, \typeR, B}}{\lambda_{1} \otimes \lambda_{2}}}$
+    \end{tabular}
+  \item[4. Typing:]~ \\[0.5em]
+    \begin{tabular}{ll}
+      $(a) \quad \frac{\fuzzyg{\triple{D, \domR, B}}{\lambda_{1}},  \fuzzyg{\triple{X, D, Y}}{\lambda_{2}}}{\fuzzyg{\triple{X, \typeR, B}}{\lambda_{1} \otimes \lambda_{2}}}$ &
+  $(b) \quad \frac{\fuzzyg{\triple{D, \range, B}}{\lambda_{1}},  \fuzzyg{\triple{X, D, Y}}{\lambda_{2}}}{\fuzzyg{\triple{Y, \typeR, B}}{\lambda_{1} \otimes \lambda_{2}}}$
+    \end{tabular}
+  \item[5. Implicit Typing:]~ \\[0.5em]
+    \begin{tabular}{l}
+      $(a) \quad \frac{\fuzzyg{\triple{A, \domR, B}}{\lambda_{1}},  \fuzzyg{\triple{D,  \spp, A}}{\lambda_{2}},
+        \fuzzyg{\triple{X, D, Y}}{\lambda_{3}}}{\fuzzyg{\triple{X, \typeR, B}}{\lambda_{1} \otimes \lambda_{2} \otimes
+          \lambda_{3}}}$ \\[1.5em]
+      $(b) \quad \frac{\fuzzyg{\triple{A, \range, B}}{\lambda_{1}},  \fuzzyg{\triple{D,  \spp, A}}{\lambda_{2}}, \fuzzyg{\triple{X, D, Y}}{\lambda_{3}}}{\fuzzyg{\triple{Y, \typeR, B}}{\lambda_{1} \otimes \lambda_{2} \otimes \lambda_{3}}}$
+    \end{tabular}
+\ifnormalisedardf%
+\else%
+  \item[6. Generalisation:]~ \\[0.5em]
+    \begin{tabular}{l}
+      $\frac{\fuzzyg{\triple{X, A, Y}}{\lambda_{1}},  \fuzzyg{\triple{X, A, Y}}{\lambda_{2}}}{\fuzzyg{\triple{X, A, Y}}{\lambda_{1} \oplus \lambda_{2}}}$
+    \end{tabular}
+\fi%
+\end{description}
+%
+\ifnormalisedardf%
+Please note we assume that a rule is not applied if the consequence is of the form~$\fuzzyg{\tau}{\bot}$ (see
+\cref{sec:anql-semantics}).
+%  
+\else%
+Please note that rule~$(6)$ is destructive \ie~this rule removes the premises as the conclusion is inferred.
+%
+We also assume that a rule is not applied if the consequence is of the form~$\fuzzyg{\tau}{\bot}$ 
+%
+(see \cref{sec:anql-semantics}).
+\fi%
+
+
+\begin{comment}
+%
+Alternatively, rules~2--5 can be represented concisely using the following inference rule:
+%
+\begin{center}
+  \begin{tabular}{cl}
+    $(AG)$ & $\frac{
+      \fuzzyg{\tau_{1}}{\lambda_{1}},\ \ldots,\ \fuzzyg{\tau_{n}}{\lambda_{n}, \{\tau_{1}, \ldots \tau_{n}\} \vdash_{\mathsf{RDFS}} \tau}
+    }
+    {
+      \fuzzyg{\tau}{\bigotimes_{i} \lambda_{i}}
+    }$
+  \end{tabular}
+\end{center}
+%
+\nd Essentially, this rule says that if a classical \ac{RDFS} triple~$\tau$ can be inferred by applying a classical
+\ac{RDFS} inference rule to triples~$\tau_{1}, \ldots, \tau_{n}$ (denoted~$\{\tau_{1}, \ldots, \tau_{n}\}
+\vdash_{\mathsf{RDFS}} \tau$), then the annotation term of~$\tau$ will be~$\bigotimes_{i} \lambda_{i}$,
+where~$\lambda_{i}$ is the annotation of triple~$\tau_{i}$.  It follows immediately that, using rule~$(AG)$, in
+addition to~\ifnormalisedardf rule~$1$~\else rules~$1$ and~$6$~\fi from the deductive system above, it is easy to
+extend these rules to cover complete \ac{RDFS}.
+%
+\end{comment}
+
+\ifnormalisedardf%
+Like for the classical case, the \emph{closure} is defined as~$\fc{cl}{G} = \set{ \fuzzyg{\tau}{\lambda} \mid G
+  \vdash^{*} \fuzzyg{\tau}{\lambda} }$, where~$\vdash^{*}$ is as~$\vdash$ without rule~$(1a)$.  Note again that the size
+of the closure of~$G$ is polynomial in~$|G|$ and can be computed in polynomial time, provided that the computational
+complexity of operations~$\otimes$ and~$\oplus$ are polynomially bounded (from a computational complexity point of view,
+it is as for the classical case, plus the cost of the operations~$\otimes$ and~$\oplus$ in~$L$).
+%
+\fi
+
+
+\ifnormalisedardf%
+Furthermore note that~$\fc{cl}{G}$ is not guaranteed to be a normalised annotated \ac{RDF} graph.  In order to ensure a
+normalised graph we can apply the following rule, denoted \emph{generalisation rule}:
+%
+$$\frac{\fuzzyg{\triple{X, A, Y}}{\lambda_{1}},  \fuzzyg{\triple{X, A, Y}}{\lambda_{2}}}{\fuzzyg{\triple{X, A,
+      Y}}{\lambda_{1} \oplus \lambda_{2}}} \enspace ,$$
+%
+where each application of this rule removes the premises from the graph. 
+%
+\fi%
+%
+Let us show an example of the application of the generalisation rule\ifnormalisedardf\else~$(6)$\fi.
+%
+\begin{example}[Generalisation operation]
+  %
+  Consider the following triples along with our running example from \cref{fig:dataset-example}:
+  %
+    \[
+    \begin{array}{l}
+      %
+      \fuzzyg{\triple{\qname{foaf}{name}, \domR, \qname{foaf}{Person}}}{[-\infty,+\infty]}\footnote{We assume this
+        triple is valid to reduce the number of triples shown, the domain of \qname{foaf}{name} is in fact \qname{owl}{Thing}.} \\
+      \fuzzyg{\triple{\qname{foaf}{Person}, \subclass, \qname{foaf}{Agent}}}{[-\infty,+\infty]} \\
+      \fuzzyg{\triple{\qname{mo}{MusicArtist}, \subclass, \qname{foaf}{Agent}}}{[-\infty,+\infty]} \enspace ,
+      % 
+    \end{array}
+    \]
+  % 
+  we infer the following triples:
+  % 
+    \[
+    \begin{array}{l}
+      \fuzzyg{\triple{\qname{dbpedia}{Marco\mathunderscore{}Hietala}, \typeR, \qname{foaf}{Agent}}}{[1984,2012]} \\
+      \fuzzyg{\triple{\qname{dbpedia}{Marco\mathunderscore{}Hietala}, \typeR, \qname{foaf}{Agent}}}{[1966,2012]} \enspace .
+    \end{array}
+    \]
+  % 
+  The application of the ``Generalisation'' rule will collapse the triples:
+  % 
+    \[
+    \begin{array}{l}
+      \fuzzyg{\triple{\qname{dbpedia}{Marco\mathunderscore{}Hietala}, \typeR, \qname{foaf}{Agent}}}{[1966,2012]}  \enspace ,
+    \end{array}
+    \]
+  % 
+  since~$[1984,2012] \oplus [1966,2012] = [1966,2012]$.
+  %
+\end{example}
+
+\ifnormalisedardf%
+\else%
+%
+Finally, like for the classical case, the \emph{closure} is defined as~$\fc{cl}{G} = \{\fuzzyg{\tau}{\lambda} \mid G
+\vdash^{*} \fuzzyg{\tau}{\lambda} \}$, where~$\vdash^{*}$ is as~$\vdash$ without rule~$(1a)$.  Note again that the size
+of the closure of~$G$ is polynomial in~$|G|$ and can be computed in polynomial time, provided that the computational
+complexity of operations~$\otimes$ and~$\oplus$ are polynomially bounded (from a computational complexity point of view,
+it is as for the classical case, plus the cost of the operations~$\otimes$ and~$\oplus$ in~$L$).
+%
+\fi
+
+\input{6-anql/ardfs-soundness-completeness}
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "../thesis"
+%%% End:

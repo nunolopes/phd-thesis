@@ -1,0 +1,66 @@
+\subsubsection{The Provenance domain}
+\label{sec:provenance-domain}
+
+Typically, provenance is identified by a URI, usually the URI of the document in which the triples are defined or
+possibly a URI identifying a named graph. However, provenance of inferred triples is an issue that has been little
+tackled in the literature~\cite{DelbruPolleresTummarello:2008aa,FlourisFundulakiPediaditis:2009aa}.
+%
+The intuition behind our approach is similar to the one of~\citet{DelbruPolleresTummarello:2008aa}
+and~\citet{FlourisFundulakiPediaditis:2009aa} where provenance of an inferred triple is defined as the aggregation of
+provenances of documents that allow to infer that triple. 
+
+
+We start from a countably infinite set of \emph{atomic provenances} \AP, which in practice can be represented by
+\acp{URI}. We consider the propositional formulae made from symbols in \AP (atomic propositions), logical \textsl{or}
+($\lor$) and logical \textsl{and} ($\land$), for which we have the standard entailment~$\models$.
+%
+A \emph{provenance value} is an equivalent class for the logical equivalence relation, \ie~the set of annotation values
+is the quotient set of~$\AP$ by the logical equivalence. The order relation is~$\models$,~$\otimes$ and~$\oplus$ are
+$\land$ and~$\lor$, respectively. We set~$\top$ to \textsl{true} and~$\bot$ to \textsl{false}.
+%
+
+\begin{example}[Provenance domain~$\otimes$]
+  % 
+  Consider the following triples (numbered for easier reference below):
+  %
+  {\allowdisplaybreaks
+  \begin{align}
+    &\fuzzyg{\triple{\qname{dbpedia}{Marco\mathunderscore{}Hietala}, \qname{mo}{member\mathunderscore{}of}, \qname{}{NightwishMember}}}{\texttt{\footnotesize dbpedia}}\label{prov1}\\
+    &\fuzzyg{\triple{\qname{dbpedia}{Marco\mathunderscore{}Hietala}, \typeR, \qname{foaf}{Person}}}{\texttt{\footnotesize dbpedia}}\label{prov2}\\
+    &\fuzzyg{\triple{\qname{dbpedia}{Nightwish},\typeR, \qname{mo}{MusicGroup}}}{\texttt{\footnotesize dbpedia}}\label{prov3}\\
+    &\fuzzyg{\triple{\qname{foaf}{Person}, \subclass, \qname{foaf}{Agent}}}{\texttt{\footnotesize foaf}} \label{prov4}\\
+    &\fuzzyg{\triple{\qname{mo}{member\mathunderscore{}of}, \domR, \qname{foaf}{Person}}}{\texttt{\footnotesize mo}} \label{prov5}\\
+    &\fuzzyg{\triple{\qname{mo}{member\mathunderscore{}of}, \range, \qname{mo}{MusicGroup}}}{\texttt{\footnotesize mo}}\label{prov6}
+  \end{align}%
+  }%
+  % 
+  We can deduce that \qname{dbpedia}{Marco\mathunderscore{}Hietala} is a \qname{foaf}{Agent} in two different ways:
+  %
+  \begin{enumerate*}[noitemsep,label=(\alph*)]
+  \item using statements~\eqref{prov1},~\eqref{prov4}, and~\eqref{prov5}; or
+  \item using the statements~\eqref{prov2} and~\eqref{prov4}.
+  \end{enumerate*}
+  %
+  So, it is possible to infer the following annotated triple:
+  % 
+  \[
+  \fuzzyg{\triple{\qname{dbpedia}{Marco\mathunderscore{}Hietala}, \typeR, \qname{foaf}{Agent}}}{(\texttt{\footnotesize
+      dbpedia}\land\texttt{\footnotesize foaf}\land\texttt{\footnotesize mo})\lor(\texttt{\footnotesize
+      foaf}\land\texttt{\footnotesize mo})}
+  \]
+  % 
+  However, since~$(\texttt{\footnotesize dbpedia}\land\texttt{\footnotesize foaf}\land\texttt{\footnotesize
+    mo})\lor(\texttt{\footnotesize foaf}\land\texttt{\footnotesize mo})$ is logically equivalent
+  to~$\texttt{\footnotesize foaf}\land\texttt{\footnotesize mo}$, the aggregated inference can be collapsed into:
+  \[
+  \fuzzyg{\triple{\qname{dbpedia}{Marco\mathunderscore{}Hietala}, \typeR, \uri{Agent}}}{\texttt{\footnotesize
+      foaf}\land\texttt{\footnotesize mo}}
+  \]
+  % 
+\end{example}
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "../thesis"
+%%% End:

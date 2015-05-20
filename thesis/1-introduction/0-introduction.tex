@@ -1,0 +1,476 @@
+\chapter{Introduction}
+\label{cha:introduction}
+%
+The term \emph{database} is commonly used to denote a \emph{large collection of data} stored within a
+computer. 
+%
+While initial database systems focused mainly on the physical representation of the database, relying on files stored in
+the computers' filesystem, new database models were introduced that provided an abstraction layer over the physical
+representation of the database~\cite{AbiteboulHullVianu:1995aa,SilberschatzKorthSudarshan:2005aa}.
+%
+One of these new database models, the relational model, is nowadays an almost-ubiquitous representation model and, since
+the introduction of this model by~\citet{Codd:1970aa}, there have been continuous advancements on storage and querying
+mechanisms for relational data.
+%
+Several companies have focused on the commercialisation of relational database products, like Oracle, IBM DB2,
+and Microsoft SQL Server or open-source solutions like PostgreSQL and MySQL.
+%
+The relational model relies on a strict separation between the data and the organisational schema of the data, where the
+schema must be provided beforehand to the \emph{database management system}.  An historical evolution of the data models
+in databases was presented by~\citet{Navathe:1992aa} and, with the ultimate focus on graph databases,
+by~\citet{AnglesGutierrez:2008ab}.
+
+Database research also began to focus on different aspects of their data, for instance maintaining extra information
+such as temporal and provenance.
+%
+Temporal information allows to determine when tuples were inserted into the database or to represent time periods when
+the tuple is considered valid.
+%
+Provenance information becomes especially important when combining data from different sources, as it can be used
+determine from which sources information was derived from.
+
+
+\begin{figure}[t]
+  \centering
+  \begin{scaletikzpicturetowidth}{\textwidth}
+    \input{1-introduction/overview-models-languages}
+  \end{scaletikzpicturetowidth}
+  \caption{Overview of data models and query languages}
+  \label{fig:overview-dm-ql}
+\end{figure}
+%
+A timeline of the different data models, approaches for representing temporal and provenance information, and query
+languages is presented in \cref{fig:overview-dm-ql}.\footnote{The models and languages we are particularly interested in
+  for this thesis are highlighted in \textbf{bold}.}
+%
+The aim of this figure is to show trends in research rather than exact dates for several topics.  For example, research
+in semantic data models (like the Entity-Relationship model), temporality and provenance in databases, as well as graph
+databases, has spanned over several years.
+
+
+\subsubsection*{Web Data Models}
+
+
+With the increased importance of the \ac{WWW} in our daily lives, we have also witnessed a shift in the focus of
+enterprise applications: from the desktop to the Web~\cite{AbiteboulBunemanSuciu:1999aa}.
+%
+While the Web was initially used to boost the visibility of the enterprise, \eg~the corporate website quickly became an
+important form of attracting new business and clients, nowadays more enterprise tasks are accomplished though Web
+applications.
+%
+For example, it is becoming commonplace for enterprises to use online calendars and meeting scheduling systems or even
+word processing systems that allow employees to collaboratively and concurrently work on the same document.
+%
+Many of these Web applications follow a \emph{multitier} approach, where data sources (often residing in relational
+databases) are integrated before exposing the result as \ac{HTML} pages, possibly linked to other information sources
+across the Web~\cite{SilberschatzKorthSudarshan:2005aa,AbiteboulBunemanSuciu:1999aa}.
+
+For an open environment, such as the \ac{WWW}, the predefined schema requirement of the relational model does not
+provide the flexibility necessary to deal with different representations of the same concepts and agreeing on a common
+representation of concepts (also referred to as a \emph{global-schema}) is often not an achievable
+objective~\cite{AbiteboulBunemanSuciu:1999aa}.
+%
+Thus, \emph{\sd} data emerged as a possible solution for avoiding the need for a predefined schema and several flexible
+data models, well suited for representing integrated data, were
+introduced~\cite{PapakonstantinouGarcia-MolinaWidom:1995aa,CluetDelobelSimeon:1998aa,Buneman:1997aa}.
+%
+Most of the presented data models for \sd data are tree or graph-based.
+% 
+On the \ac{WWW} the \ac{XML} has become a widely used data representation format and is regarded
+by~\citet{AbiteboulBunemanSuciu:1999aa} as the \emph{de-facto} standard for information exchange.  \footnote{More
+  recently, \ac{JSON} is becoming the preferred information exchange format, often in determent of \ac{XML}.}
+%
+\ac{XML} follows a \sd, \emph{tree-like} data model and several information integration projects relied on \ac{XML} for
+representing their
+data~\cite{DraperHalevyWeld:2001ab,DraperHalevyWeld:2001aa,BaruGuptaLudascher:1999aa,ManolescuFlorescuKossmann:2001aa,YuPopa:2004aa}.
+%
+
+Another data model, the \acf{RDF}\footnote{The \ac{RDF} data model is considered essentially a \emph{directed labelled
+    graph}, however, in \cref{sec:model-integr-data} we discuss different views on this representation
+  model.}~\cite{ManolaMiller:2004aa} has recently been gaining importance on the Web and the Semantic
+Web~\cite{LeeHendlerLassila:2001aa}, supported by efforts like the \ac{LOD}
+initiative~\cite{BizerHeathBerners-Lee:2009ab}.
+%
+With the increase of data published in \ac{RDF} as Linked Data, for example the DBpedia
+project~\cite{BizerLehmannKobilarov:2009aa}, a valuable and steadily growing source of structured information from
+various domains is being made available.
+%
+The possibility of using \ac{LOD} structured information in integration scenarios, allowing for an easy and low cost
+enrichment of enterprise data, provides further incentive for an enterprise to represent its integrated data in
+\ac{RDF}~\cite{Stephens:2007aa}.
+
+
+
+\subsubsection*{Data Segmentation and Data Integration}
+
+Four decades past the introduction of the relational model, most current software applications still rely on relational
+databases (RDB) to store their information.
+%
+Enterprises commonly use RDB-based software applications to manage each aspect of their business, ranging from human
+resources to manufacturing.  However, the use of specialised applications results in data segmentation, where the
+enterprise's valuable data is spread across different applications and relational
+databases~\cite{Dillnut:2006aa,SilberschatzKorthSudarshan:2005aa,BernsteinHaas:2008aa}.
+
+
+%
+For instance, having an integrated view on customers allows an enterprise salesman to better target its product, or
+enables decision support systems to provide the management with a high-level view of all of the enterprise resources,
+from manufacturing to human resources and sales.
+%
+As such, data integration in the context of relational databases has been a research topic in the
+past~\cite{HalevyRajaramanOrdille:2006aa} and a good overview of integration techniques is provided
+by~\citet{DoanHalevy:2005aa}.
+%
+Focusing on enterprise data integration, common issues and possible solutions are described
+in~\citet{ZieglerDittrich:2004aa,HalevyAshishBitton:2005aa}.
+
+
+Common approaches for integrating segmented data over relational database systems involve the use of \emph{mediator} or
+\emph{data-warehousing} systems~\cite{Wiederhold:1992aa,AbiteboulBunemanSuciu:1999aa,ZieglerDittrich:2004aa}.
+%
+Mediator systems provide an abstraction layer over the original data sources often using a \emph{global-schema} (or
+\emph{mediated-schema}), where queries over this schema are executed over the original sources.  On the other hand in
+the data-warehousing approach, data in the original sources is materialised into a common data model.
+%
+Although both of these approaches have advantages and disadvantages, data-warehousing is particularly unsuitable in
+changing environments: 
+%
+consider for instance that one of the sources is highly dynamic \eg~containing data gathered from sensors: this would
+cause the integrated data to become quickly outdated~\cite{AbiteboulBunemanSuciu:1999aa}.
+%
+Other forms of data integration may also be considered, such as federated databases~\cite{ShethLarson:1990aa}, using Web
+services~\cite{AbiteboulBenjellounMilo:2002aa}, or peer-to-peer systems~\cite{ArenasKantereKementsietsidis:2003aa}.
+
+For the scope of this thesis we consider performing the data integration by relying on a newly defined query language
+that is capable of accessing and transforming data stored in heterogeneous data sources and models that can be used as
+an implementation language for both mediator and data-warehousing scenarios.
+
+
+\subsubsection*{Meta-information in the Data Integration Process}
+
+Although existing systems provide a way to solve the data segmentation problem, additional questions often arise when
+integrating data, such as \emph{which sources} were involved in producing a specific piece of information or how to deal
+with \emph{conflicting} information contained in the original sources.  For example, different enterprise systems can
+store different addresses for an employee.
+%
+There are several forms of dealing with conflicting information, for example, maintaing \emph{provenance} information
+(also known as \emph{lineage}) allows to determine from which of the original sources the specific information has been
+derived~\cite{CuiWidomWiener:2000aa,WoodruffStonebraker:1997aa,BenjellounSarmaHalevy:2008aa} in order to trace the
+origin of the contradiction and possibly correct it.
+%
+Other approaches include maintaining \emph{temporal} or \emph{uncertain} information, which caters for evolving data,
+possibly avoiding contractions, and levels of confidence or certainty to be assigned to the conflicting data,
+respectively.\footnote{In the following we refer to ``information about data'' commonly as \emph{meta-information}.}
+%
+These aspects of data have been identified as an important part of the data integration process
+by~\citet{HalevyRajaramanOrdille:2006aa}, and for example, the Trio
+system~\cite{Widom:2005aa,AgrawalBenjellounSarma:2006aa} extends the relational data model to consider both provenance
+and uncertain information.
+%
+
+
+Meta-information can become an important aspect of any data integration process and as such any suitable data model for
+representing integrated data needs to cater for this kind of information.
+%
+Even aside from our core focus on data integration, meta-information is still an important aspect in any software
+application.
+%
+It is common in applications and database schemas to maintain temporal information, for example, keeping logs of
+specific changes to the database, records of past employees, or having historical data available for manufacturing
+materials in order to predict future needs.
+%
+In certain scenarios, temporal information even constitutes a critical aspect, where well known examples involve
+real-time monitoring such as air-traffic control.
+%
+In these cases, temporal information is considered an important dimension, warranting its introduction into the
+relational model~\cite{AbiteboulHullVianu:1995aa,Snodgrass:1999aa}, which in turn lead to the concept of temporal
+databases.\footnote{An historical overview of temporality in databases is presented by~\citet{Snodgrass:1990aa}.}
+%
+Similar extensions have also been proposed to represent temporal information in
+\ac{XML}~\cite{AmagasaYoshikawaUemura:2000aa,RizzoloVaisman:2008aa} and
+\ac{RDF}~\cite{GutierrezHurtadoVaisman:2007aa,PuglieseUdreaSubrahmanian:2008aa,TappoletBernstein:2009aa}.
+%
+However temporal information is not the only kind of meta-information we can consider.  Other extensions to the
+relational model also allow to represent ambiguous or approximate data in the form of fuzzy information.  An overview of
+fuzzy databases is provided by~\citet{MaYan:2008aa}, where fuzzy extensions were later also proposed for the
+\ac{XML}~\cite{MaYan:2007aa} and \ac{RDF} models~\cite{Straccia:2009aa,MazzieriDragoni:2008aa,LvMaYan:2008aa}.
+
+
+
+
+\section{Problem Statement}
+\label{sec:problem-statement}
+
+
+Currently established data models do not easily support the data integration process: a data model suitable for
+representing integrated data needs to be flexible and to cater for meta-information.
+%
+However, even such a flexible data model is not enough for a complete data integration application: while a flexible
+data model facilitates the representation of integrated data, it still does not help the task of data gathering and
+transformation.
+%
+For a complete solution, the data integration application must be aware of both the input sources and the target data
+model.
+
+
+Existing solutions for enterprise data integration rely on specialised or custom-built applications, following either
+the mediator or data-warehouse approaches, to bridge the distributed sources and different data models.  However, the
+costs of such applications quickly becomes too high~\cite{HalevyAshishBitton:2005aa}.
+%
+Another option is to consider using a query language for the data integration task~\cite{DraperHalevyWeld:2001aa}, but
+traditional query languages focus only on one data format and are thus not a possibility when the distributed data
+adheres to different data formats.
+%
+In such cases, the use of a query language requires translating the original data into a common data model, much like
+the data-warehousing approach, and then performing the queries over the integrated data.  
+%
+A scenario that may also complicate such an approach is when the original data is protected by some form of access
+control, where these access restrictions would also need to be replicated in the mediator or data-warehouse in order to
+avoid information leakage.
+
+
+
+With the introduction of the \ac{WWW}, the data integration task can become unfeasible using traditional approaches due
+to the large amount of sources and different models.
+%
+The evolution of the Web into the Semantic Web has also introduced a new data model, \ac{RDF}, which can facilitate the
+representation of integrated data.
+%
+However, the currently standardised \ac{RDF}-based specifications do not cater for any type of meta-information
+regarding the individual \ac{RDF} triples.\footnote{One possible way of attaching meta-information to \ac{RDF} triples
+  is by using \emph{reification}.  However the use of this feature may be discouraged in future revisions of the
+  \ac{RDF} language \cf~\url{http://www.w3.org/2010/09/rdf-wg-charter}.}
+
+
+\input{1-introduction/integrated-data-model}
+
+\section{Hypothesis}
+\label{sec:hypothesis}
+
+
+In this thesis we propose the use of \ac{RDF} as a representation model for integrated data and extend \ac{RDF} with
+support for meta-information, thus allowing us to deal with temporal and uncertain data.
+%
+Several data models suitable for representing integrated data have been presented before, mostly tree or
+graph-based~\cite{CluetDelobelSimeon:1998aa,PapakonstantinouGarcia-MolinaWidom:1995aa,Abiteboul:1997aa}, and we consider
+that \ac{RDF}, being graph-based, is a well suited format for representing integrated data. 
+%
+We are particularly focusing on the conversion of data stored in legacy models, such as relational databases and
+\ac{XML}, into \ac{RDF}.
+%
+The objective is to facilitate this data integration process by providing a query language that is capable of accessing
+the data stored in different source formats and thus, as opposed to traditional query languages, avoid the explicit need
+for \textit{a priori} data translation, while allowing the target \ac{RDF} data to be created.
+
+
+Support for meta-information in \ac{RDF} is necessary not only for representing integrated data, but also
+%
+if the original source already contains some form of meta-information, such as temporal data, or access restrictions.
+To represent temporal, fuzzy, provenance, or access control information, we need to consider an extension of the
+\ac{RDF} data model that caters for such kinds of meta-information and further make the query language aware of this
+extension.
+
+
+
+The main hypothesis of this thesis can be summarised as follows:
+%
+\begin{quotation}
+  \noindent
+  % 
+  \textbf{%
+    %
+    Efficient data integration over heterogeneous data sources can be achieved by
+    \begin{enumerate*}[label=(\roman*), noitemsep, before=\unskip{: }, after=\unskip{.}, itemjoin={{; }}, itemjoin*={{; and }}]
+    \item\label{hip:a} a query language that allows to access data adhering to different formats in the original sources (without the
+      need for data transformation)
+    \item\label{hip:b} a set of optimisations that allow for efficient query evaluation in such a query language
+    \item\label{hip:c} an interchange representation format based on \ac{RDF} with support for meta-information,
+      allowing to represent temporal, uncertain, provenance, or even access-control information
+    \end{enumerate*}
+  }
+\end{quotation}
+% 
+The proposed query language must be expressive enough to represent arbitrary transformations between data models, an
+important characteristic since one of the considered data models is the tree-based \ac{XML}, where the merging of
+\ac{XML} data needs to based on tree transformations.
+
+When representing the integrated data as \ac{RDF} extended with meta-information, other issues arise: how should
+\ac{RDFS} handle such meta-information in the inference process? Or how can we query the meta-information?  Extending
+the \ac{RDF} data model with meta-information also requires a similar extension to SPARQL: the \ac{W3C} recommended
+query language for \ac{RDF}.
+%
+
+
+\section{Contributions}
+\label{sec:contributions}
+
+%
+We validate our hypothesis by designing a query language, called XSPARQL, that combines the XQuery, SPARQL, and the
+\ac{SQL} query languages, thus providing a cross-model query language suitable for data integration.
+%
+The initial proposal of combining the XQuery and SPARQL query languages was presented before the start of this thesis
+by~\citet{AkhtarKopeckyKrennwallner:2008aa}.  
+%
+Shortly after this initial paper, I joined the project and started working on the following aspects, which constitute a
+substantial part of the presented thesis:
+\begin{itemize}[noitemsep]
+\item formalising the existing XSPARQL language and extending its semantics to cater for both the \ac{XML} and
+  relational models;
+  % 
+\item a set of optimisations over this novel language, specifically targeted at nested queries, that improve the
+  evaluation times for such types of queries, including both formal proof of the correctness and empirical proof of the
+  efficiency of such optimisations; and
+  % 
+\item a general extension of the \ac{RDF} data model, called Annotated RDFS, that allows to represent meta-information
+  and forms the target data model for integrated data.
+  % 
+  We also detail extensions of the \ac{RDFS} inference rules and the SPARQL query language that allow to infer new
+  information and query this novel data model.
+  %
+\end{itemize}
+%
+The difference in ordering of the data models is bridged at the query language level: even for the unordered data models
+(relational and \ac{RDF}) their query languages (\ac{SQL} and SPARQL, respectively) impose an ordering on the query
+results.\footnote{This is further detailed in \cref{cha:query-languages}.}
+%
+The XSPARQL query language is based on XQuery, which is an intrinsically ordered query language for \ac{XML} data, and 
+%
+we rely on the implicit ordering provided the \ac{SQL} and SPARQL query languages to maintain an ordered query language.
+%
+For the purposes of data integration, where we are interested in generating \ac{RDF}, the ordering in the query language
+is not important (since the target data model is unordered).\footnote{In \cref{cha:optimisations} we exploit features of
+  the XQuery language (and thus inherited by XSPARQL) that allow to disregard ordering during query evaluation.}
+
+\subsection{Impact}
+\label{sec:scientific-contributions}
+
+
+For tackling our hypothesis points~\ref{hip:a} and~\ref{hip:b}, the consolidated work on the XSPARQL language, catering
+for the integration of the \ac{XML} and \ac{RDF} formats has been published in the Journal on Data
+Semantics~\cite{BischofDeckerKrennwallner:2012aa}.  This work formalises XSPARQL and introduces the optimisations for
+nested SPARQL queries in our current implementation of the XSPARQL language.
+%
+Further expanding on our hypothesis point~\ref{hip:a}, the extension of XSPARQL to also support relational
+databases~\cite{LopesBischofDecker2011aa} was presented at the Portuguese Conference on Artificial Intelligence
+(EPIA2011).
+
+
+Regarding our novel data model, hypothesis point~\ref{hip:c}, we introduced the initial Annotated RDFS framework, along
+with the definition of the Fuzzy and Temporal annotation domains, was accepted to the AAAI Conference on Artificial
+Intelligence (AAAI 2010)~\cite{StracciaLopesLukacsy:2010aa}.
+%
+\citet{LopesPolleresStraccia:2010aa} later introduced the extension of the SPARQL query language that caters for
+querying domain annotations.  This work was presented at the International Semantic Web Conference (ISWC-10).
+%
+The consolidation of the Annotated RDFS model and the AnQL query language~\cite{ZimmermannLopesPolleres:2012aa} was
+published in the Journal of Web Semantics.
+%
+
+Finally, based on the data model proposed in this thesis,~\citet{LopesKirraneZimmermann:2012aa} specialises Annotated
+RDFS to the access control domain.  This is also an important aspect when considering data integration since the
+underlying sources often to have their data protected by some form of access control.  
+%
+Using the combined XSPARQL query language, it is possible to extract the data and access control information from the
+underlying sources and replicate it as Annotated RDFS.
+%
+This work has been accepted to the International Conference on Logic Programming.
+
+
+
+\subsection{Other Contributions}
+\label{sec:contr-stand}
+
+Since the focus of this thesis is on Web languages and data models, in addition to research publications, another
+important aspect of the dissemination of our results is the impact regarding standardisation.
+%
+As such, parts of the work developed for this thesis have been submitted to the \ac{W3C} in the form of Member
+Submissions or at the \ac{W3C} organised workshop on RDF Next Steps:
+%
+the first contribution was a \ac{W3C} Member Submission describing the XSPARQL language.  The aim of such Member
+Submissions is to make the \ac{W3C} aware of technology being developed, which may be considered as input to future
+working groups.
+%
+The XSPARQL \ac{W3C} Member Submission was composed of four documents:
+\begin{inparaenum}[(i)]
+\item XSPARQL Language Specification~\cite{PolleresKrennwallnerLopes:2009aa};
+\item XSPARQL: Implementation and Test-cases~\cite{LopesKrennwallnerPolleres:2009aa};
+\item XSPARQL: Semantics~\cite{KrennwallnerLopesPolleres:2009aa}; and
+\item XSPARQL: Use cases~\cite{PassantKopeckyCorlosquet:2009aa}. 
+\end{inparaenum}
+%
+
+Two position papers were accepted to the \ac{W3C} Workshop on RDF Next Steps. The purpose of this workshop was to gather
+feedback on possible improvements (if any) for the next iteration of the \ac{RDF} language.  The accepted position
+papers argued for the need to integrate \ac{XML} and \ac{RDF} by means of a query
+language~\cite{LopesBischofErling:2010aa}, largely inspired by the XSPARQL language, and the need to cater for
+meta-information in \ac{RDF}~\cite{LopesZimmermannHogan:2010aa}, calling for a framework similar to Annotated RDFS.
+
+A presentation detailing the XSPARQL language and focusing on the integration of heterogeneous sources on the Web, such
+as \ac{XML} and \ac{RDF} in the form of Linked Data, was presented at the 2011 Semantic Technology (SemTech)
+Conference~\cite{LopesPolleres:2011aa}.  
+
+
+Also, my participation in the \ac{W3C} RDB2RDF working group, currently a \ac{W3C} recommendation, resulted in an
+implementation of the RDB2RDF Direct Mapping~\cite{ArenasPrudhommeauxSequeda:2011aa} and
+R2RML~\cite{DasSundaraCyganiak:2011aa} language specifications, using the XSPARQL language described in this thesis.
+The implementation of these specifications in XSPARQL was submitted to the \ac{W3C} RDB2RDF Working Group.
+
+
+
+
+\section{Thesis Outline}
+\label{sec:outline}
+
+Next we present an overview of each of the following chapters in this thesis:
+%
+\begin{description}
+
+\item[\cref{cha:data-models} (\nameref*{cha:data-models})] presents the necessary background information regarding the
+  relevant data models considered in the integrated query language: the relational, \ac{XML}, and \ac{RDF} data models.
+
+\item[\cref{cha:query-languages} (\nameref*{cha:query-languages})] gives an overview of the query languages that can be
+  used over the different data models: SQL for relational databases, XQuery for \ac{XML} data, and SPARQL for data
+  adhering to the \ac{RDF} model.
+  % 
+
+\item[\cref{cha:xsparql} (\nameref*{cha:xsparql})] introduces our combined query language, called XSPARQL, that allows
+  data adhering to the relational, \ac{XML}, and \ac{RDF} data models to queried using a common language.  The XSPARQL
+  language consists of an extension of the XQuery query language with syntactical constructs taken from \ac{SQL} and
+  SPARQL.  We present the syntax and semantics of XSPARQL, based on extending the XQuery formal semantics, and show
+  correspondences between this novel query language and its composing languages.
+  % 
+
+\item[\cref{cha:optimisations} (\nameref*{cha:optimisations})] describes our current implementation of the XSPARQL
+  language, presents the experimental evaluation and some possible optimisations for XSPARQL queries.  These
+  optimisations focus on the interface between the different data formats, which in the case of nested queries, may
+  cause severe evaluation overhead when compared with their single data model counterparts.  We present an evaluation of
+  the proposed optimisations based on a newly defined benchmark suite encompassing different data models.
+
+\item[\cref{cha:anql} (\nameref*{cha:anql})] presents a common extension of the \ac{RDF} data model, called Annotated
+  RDFS, that caters for different kinds of meta-information, and facilitates the modelling of Temporal, Fuzzy, and
+  Provenance meta-information in \ac{RDF}.
+  % 
+  This chapter also includes the extension of the SPARQL query language to query the \ac{RDF} annotated with
+  meta-information.  This extension of the SPARQL language, called AnQL, allows the user to write meta-information aware
+  queries and we extend the SPARQL algebra to allow for the propagation of this meta-information in the query.
+  %   
+
+\item[\cref{cha:usecase} (\nameref*{cha:usecase})] illustrates an integrated \usecase where the XSPARQL language further
+  extended to support Annotated RDFS is used to extract legacy information contained in several enterprise systems and
+  convert it to \ac{RDF} while maintaining any existing access control permissions.  We give an overview of a system
+  architecture that, based on XSPARQL, extracts the data (along with the access control information) from the original
+  sources, converts this data into Annotated RDFS, and enforces the access control permissions.
+
+\item[\cref{cha:conclusions} (\nameref*{cha:conclusions})] contains critical discussion of the presented work,
+  highlights future directions of research and finishes with some concluding remarks.
+
+\end{description}
+
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% mode: flyspell
+%%% mode: reftex
+%%% TeX-master: "../thesis"
+%%% End:

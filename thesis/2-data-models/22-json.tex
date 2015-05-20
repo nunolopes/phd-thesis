@@ -1,0 +1,81 @@
+
+\section{JavaScript Object Notation (JSON)}
+\label{sec:json}
+
+
+\ac{JSON} is defined as a ``lightweight data-interchange format'' is another tree-based model designed as an alternative
+to \ac{XML} for data transmission between different applications.
+%
+Although it originates from the JavaScript language, its format is language independent and thus can be used by several
+programming languages.
+
+The main structure of \ac{JSON} is called an \emph{object}, enclosed between~\character{\textbraceleft}
+and~\character{\textbraceright}, and consists of an unordered sequence of \emph{name-value} pairs, separated
+by~\character{:}. 
+%
+In such structures, the \emph{name} is restricted to be a string while \emph{value} may be one of
+\begin{inparaenum}[(a)]
+\item string;
+\item number;
+\item object;
+\item array;
+\item boolean (true or false); or
+\item null.
+\end{inparaenum}
+%
+\emph{Arrays} consist of an ordered list of values and are enclosed between~\character{[} and~\character{]}.
+%
+The \ac{JSON} representation of our \usecase data is presented in \cref{fig:bands-json}.
+%
+\begin{data}[t]
+  \centering
+  \lstinputlisting[basicstyle=\small\ttfamily]{0-data+queries/usecaseData.json}
+  \caption{Bands in JSON (\fname{bands.json})}
+\label{fig:bands-json}
+\end{data}
+%
+This simple and unambiguous structure, coupled with the fact that \ac{JSON} is natively recognised and imported by
+JavaScript, made \ac{JSON} extremely popular on the Web.  A comparative study of the uptake of \ac{XML} and JSON was
+presented by~\citet{Musser:2011aa}.\footnote{The presentation is available
+  at~\url{http://www.slideshare.net/jmusser/j-musser-semtechjun2011/}, retrieved on 2012/04/10.}
+
+
+Although \ac{JSON} and \ac{XML} serve very similar purposes, commonly presented advantages for using \ac{JSON} over
+\ac{XML} are:
+%
+\begin{inparaenum}[(i)]
+\item \ac{JSON} documents are (usually) smaller; and
+\item an external schema is not required to unambiguously represent the content.
+\end{inparaenum}
+%
+On the other hand, one of the biggest disadvantages of \ac{JSON} is its lack of support for namespaces: whereas in
+\ac{XML} it is possible to distinguish attribute and element names by giving them different namespace prefixes, this is
+not possible in \ac{JSON}.
+
+
+Due to the similarities between the \ac{JSON} and \ac{XML} formats, the question of translating between them has arisen.
+Since \ac{XML} is arguably the more expressive language, being more flexible in its format, converting from \ac{XML} to
+\ac{JSON} poses some problems:
+%
+\begin{description}
+\item[Namespaces.]  Since \ac{JSON} does not natively support namespaces, a non-trivial issue is how to represent
+  \ac{XML} namespaces in such a fashion that can be translated back into \ac{XML};
+\item[Attributes.]  Similar to namespaces, \ac{JSON} has no equivalent for \ac{XML} element attributes and similar
+  representational questions arise for \ac{XML} attributes;
+\item[Mixed Content.]  Since the contents of \ac{XML} elements can consist of text values arbitrarily mixed with other
+  elements, an accurate representation of this mixed content in \ac{JSON}, although possible, would yield a very verbose
+  representation.
+\end{description}
+%
+On the other hand, converting from \ac{JSON} to \ac{XML} is a straightforward task, relying solely on using predefined
+element names to represent \ac{JSON} objects and arrays.  This straightforward conversion will be used in
+\cref{cha:xsparql} for the inclusion of \ac{JSON} data into our proposed transformation language.
+
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% mode: flyspell
+%%% mode: reftex
+%%% TeX-master: "../thesis"
+%%% End:

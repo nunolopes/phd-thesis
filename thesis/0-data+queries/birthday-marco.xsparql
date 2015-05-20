@@ -1,0 +1,13 @@
+(: ?format=application/sparql-results+xml&amp;default-graph-uri=http://dbpedia.org&amp;query= :)
+prefix foaf: <http://xmlns.com/foaf/0.1/>
+prefix : <http://example.org/>
+prefix dbpedia-owl: <http://dbpedia.org/ontology/>
+
+let $MB := for * from <http://dbpedia.org/resource/Marco_Hietala>
+            where { [ dbpedia-owl:birthDate $B ]. }
+            return $B
+
+for * from <http://dbpedia.org/>
+endpoint <http://dbpedia.org/sparql>
+where { [ dbpedia-owl:birthDate $B; foaf:name $N  ] . filter ( regex(str($B),str($MB)) )  }
+construct { <http://dbpedia.org/resource/Marco_Hietala> :sameBirthDayAs $N }
