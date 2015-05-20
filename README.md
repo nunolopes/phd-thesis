@@ -2,7 +2,7 @@
 Source code (LaTeX) for my PhD thesis.  NUIG template 
 
 ## Compiling
-To compile the the thesis simply run:
+To compile the thesis simply run:
 ```
 pdflatex thesis.tex
 ```
@@ -15,4 +15,11 @@ biber thesis
 As usual, you may need to compile multiple times to resolve the cross references.
 
 # viva-presentation
-Comin soon..
+Source code (Beamer) of my viva presentation
+
+## Compiling
+To compile the presentation simply run:
+```
+pdflatex presentation.tex
+```
+
