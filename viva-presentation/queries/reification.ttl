@@ -1,0 +1,5 @@
+:address1 rdf:type \alert{rdf:Statement}
+         \alert{rdf:subject} :nuno;
+         \alert{rdf:predicate} :address ;
+         \alert{rdf:object} :Dublin ;
+         \textcolor{blue}{:loc}  <http://eat.ie/> .

@@ -1,0 +1,4 @@
+@prefix : <http://pizza-vocab.ie/> . 
+
+:meal a :FoodOrder .
+:meal :author "Nuno" .

@@ -1,0 +1,5 @@
+:address1 a          :AddressRecord;
+         :person     :nuno; 
+         :address    :Galway;
+         :start      "2008" ;
+         :end        "2012" .

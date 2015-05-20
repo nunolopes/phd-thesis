@@ -1,0 +1,137 @@
+\RecustomVerbatimEnvironment{Verbatim}{Verbatim}{frame=none,fontsize=\scriptsize}
+\RecustomVerbatimCommand{\VerbatimInput}{VerbatimInput}{fontsize=\scriptsize}
+\DefineVerbatimEnvironment{VerbatimChars}{Verbatim}{frame=none,fontsize=\scriptsize,commandchars=\\\{\}}
+
+
+\newcommand{\fuzzyg}[2]{\mbox{$#1\colon#2$}}
+\newcommand{\AU}{\ensuremath{\mathbf{U}}\xspace}
+\newcommand{\AP}{\ensuremath{\mathbf{P}}\xspace}
+\newcommand{\AB}{\ensuremath{\mathbf{B}}\xspace}
+\newcommand{\AL}{\ensuremath{\mathbf{L}}\xspace}
+\newcommand{\AV}{\ensuremath{\mathbf{V}}\xspace}
+\newcommand{\AUBL}{\ensuremath{\mathbf{UBL}}\xspace}
+\newcommand{\AUB}{\ensuremath{\mathbf{UB}}\xspace}
+\newcommand{\AUL}{\ensuremath{\mathbf{UL}}\xspace}
+\renewcommand{\AA}{\ensuremath{\mathbf{A}}\xspace}
+\newcommand{\AULV}{\ensuremath{\mathbf{ULV}}\xspace}
+\newcommand{\AUV}{\ensuremath{\mathbf{UV}}\xspace}
+\newcommand{\triple}[1]{(#1)}
+\newcommand{\term}[1]{\ensuremath{\mathrm{#1}}}
+\newcommand{\eval}[1]{[\![ #1 ]\!]}
+\newcommand{\ii}[1]{\mbox{$(#1)$}}
+\renewcommand{\iff}{iff\xspace}
+\newcommand{\rhodf}{\mbox{$\rho$df}\xspace}
+\newcommand{\spp}{\ensuremath{\mathsf{sp}}}
+\newcommand{\subclass}{\ensuremath{\mathsf{sc}}}
+\newcommand{\type}{\ensuremath{\mathsf{type}}}
+\newcommand{\dom}{\ensuremath{\mathsf{dom}}}
+\newcommand{\range}{\ensuremath{\mathsf{range}}}
+\newcommand{\typeR}{\ensuremath{\mathsf{type}}}
+
+
+\newcommand{\I}{\ensuremath{\mathcal{I}}\xspace}      
+
+\newcommand{\intL}[1]{{#1}^{\I_{L}} }
+\newcommand{\intA}[1]{{#1}^{\I_{\A}} }
+\renewcommand{\int}[1]{{#1}^{\I} }
+\newcommand{\intP}[1]{{P[\![#1]\!]}}
+\newcommand{\intC}[1]{{C[\![#1]\!]}}
+
+\newcommand{\universe}{\ensuremath{\mathit{universe}}\xspace}
+\newcommand{\tuple}[1]{\langle #1 \rangle }
+
+
+\newcommand{\Vars}[1]{\ensuremath{\operatorname{vars}(#1)}}
+\newcommand{\sem}[2]{\ensuremath{\left[\!\!\left[{#1}\right]\!\!\right]_{\mathit{#2}}}}
+\newcommand{\semT}[3]{\ensuremath{\left[\!\!\left[{#1}\right]\!\!\right]_{\mathit{#2}}}^{\mathit{#3}}}
+\newcommand{\xsparqlrewriter}{\ensuremath{\text{\textit{rewrite}}}}
+\newcommand{\proofs}{\ensuremath{\vdash}}
+\newcommand{\concat}{\ensuremath{\mathtt{fn{:}concat}}\xspace}
+\newcommand{\rdfstyle}[1]{{\tt\textbf{#1}}}
+
+
+\usepackage{bussproofs}
+\def\stat{\ensuremath{\mathrm{statEnv}}}
+\def\dyn{\ensuremath{\mathrm{dynEnv}}}
+\newcommand{\statEnv}[1]{\stat \proofs #1}
+\newcommand{\statEnvMultiline}[2]{\hspace{-5pt} \stat  \proofs \hspace{-7pt} \begin{array}{c} #1 \\ = \\ #2 \end{array}}
+\newcommand{\dynEnv}[1]{\dyn \proofs #1}
+\newcommand{\dynEnvMultiline}[2]{\hspace{-5pt} \dyn  \proofs \hspace{-7pt} \begin{array}{c} #1 \\ = \\ #2 \end{array}}
+
+\newcommand{\ifThenElse}[3]{\ensuremath{\begin{array}{l}\mathtt{if}~(#1) \\ \indent \mathtt{then}~#2~\mathtt{else}~#3\end{array}}}
+\newcommand{\fempty}[1]{\ensuremath{\mathit{fn{:}empty}(#1)}}
+\newcommand{\envElem}[2]{\ensuremath{\mathit{#1}_{#2}}}
+\newcommand{\var}[1]{\ensuremath{\$\mathit{#1}}}
+\def\varname{\ensuremath{\var{VarName}}}
+
+
+
+\def\XSPARQLFLWORExpr{\rdfstyle{Expr}\xspace}
+\def\DECLARE{\rdfstyle{declare namespace}\xspace}
+\def\FOR{\rdfstyle{for}\xspace}
+\def\IN{\rdfstyle{in}\xspace}
+\def\AT{\rdfstyle{at}\xspace}
+\def\LET{\rdfstyle{let}\xspace}
+\def\WHERE{\rdfstyle{where}\xspace}
+\def\RETURN{\rdfstyle{return}\xspace}
+\def\SATISFY{\rdfstyle{satisfy}\xspace}
+\def\IF{\rdfstyle{if}\xspace}
+\def\THEN{\rdfstyle{then}\xspace}
+\def\ELSE{\rdfstyle{else}\xspace}
+\def\WHERE{\rdfstyle{where}\xspace}
+\def\SELECT{\rdfstyle{select}\xspace}
+\def\ASK{\rdfstyle{ask}\xspace}
+\def\FROM{\rdfstyle{from}\xspace}
+\def\FROMNAMED{\rdfstyle{from named}\xspace}
+\def\DESCRIBE{\rdfstyle{describe}\xspace}
+\def\CONSTRUCT{\rdfstyle{construct}\xspace}
+\def\DISTINCT{\rdfstyle{distinct}\xspace}
+\def\ORDERBY{\rdfstyle{order by}\xspace}
+\def\AND{\rdfstyle{and}\xspace}
+\def\FILTER{\rdfstyle{filter}\xspace}
+\def\OFFSET{\rdfstyle{offset}\xspace}
+\def\LIMIT{\rdfstyle{limit}\xspace}
+\def\UNION{\rdfstyle{union}\xspace}
+\def\OPTIONAL{\rdfstyle{optional}\xspace}
+\def\GRAPH{\rdfstyle{graph}\xspace}
+\def\PREFIX{\rdfstyle{prefix}\xspace}
+\def\BOUND{\rdfstyle{bound}\xspace} 
+\def\isBlank{\rdfstyle{isBlank}\xspace} 
+\def\isIRI{\rdfstyle{isIRI}\xspace}
+\def\isLiteral{\rdfstyle{isLiteral}\xspace} 
+\def\NULL{{\sf null}\xspace}
+
+
+\newcommand{\set}[1]{\ensuremath{\mathbf{#1}}}
+\newcommand{\uri}[1]{\ensuremath{\mathtt{#1}}}
+
+
+\colorlet{sql}{green}
+\colorlet{xquery}{green}
+\colorlet{sparql}{green}
+\colorlet{xsparql}{green}
+
+\newcommand{\ecomp}[1]{\textrm{#1}}
+
+\newcommand{\seq}[1]{\ensuremath{\left(#1\right)}}
+\newcommand{\funcName}[1]{\ensuremath{\mathit{#1}}}
+\newcommand{\funcCall}[2]{\ensuremath{\funcName{#1}\!\left(#2\right)}}
+\newcommand{\e}[3]{\ensuremath{{\mathit{#1}}_{\mathit{#2}}^{\mathit{#3}}}}
+\newcommand{\omg}[2]{\ensuremath{\e{\Omega}{#1}{#2}}}
+\newcommand{\sm}[2]{\ensuremath{\e{\mu}{#1}{#2}}}
+\newcommand{\grammarRule}[1]{{\textit{#1}}}
+\def\DatasetClause{\grammarRule{Da\-ta\-set\-Clau\-se}\xspace}
+\def\SparqlWhereClause{\grammarRule{Whe\-re\-Clause}\xspace}
+\def\DatasetClause{\grammarRule{Da\-ta\-set\-Clau\-se}\xspace}
+\def\OptDatasetClause{\grammarRule{Opt\-Dataset\-Clause}\xspace}
+\def\SolutionModifier{\grammarRule{Solution\-Modifier}\xspace}
+\newcommand{\envFunc}[2]{\ensuremath{\ecomp{#1}\!\left( #2 \right)}}
+\newcommand{\envExtend}[2]{\ensuremath{\ecomp{ + }\envFunc{#1}{#2}}}
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% mode: flyspell
+%%% mode: reftex
+%%% TeX-master: "presentation"
+%%% End:

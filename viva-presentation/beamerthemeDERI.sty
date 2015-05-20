@@ -1,0 +1,64 @@
+% \ProvidesPackageRCS $Header: /cvsroot/latex-beamer/latex-beamer/themes/theme/beamerthemeCopenhagen.sty,v 1.7 2004/10/07 20:53:10 tantau Exp $
+
+\newif\ifbeamer@sb@navigation
+\beamer@sb@navigationtrue
+\newif\ifbeamer@sb@slidenumbers
+\beamer@sb@slidenumberstrue
+
+\DeclareOptionBeamer{navigation}[true]{\csname beamer@sb@navigation#1\endcsname}
+\DeclareOptionBeamer{slidenumbers}[true]{\csname beamer@sb@slidenumbers#1\endcsname}
+
+\ProcessOptionsBeamer
+
+
+\pgfdeclareimage[width=\paperwidth,height=\paperheight]{master}{0-images/DERI_master}
+\pgfdeclareimage[width=\paperwidth]{slave}{0-images/DERI_slave}
+
+\useoutertheme{DERI}
+\useinnertheme{DERI}
+
+
+\definecolor{beamer@blendedgreen}{rgb}{0.10,0.30,0.08}
+\definecolor{beamer@lightblendedgreen}{RGB}{232,232,232}
+\definecolor{deri@darkred}{rgb}{0.87,0.0,0.0}
+\setbeamercolor{alerted text}{fg=deri@darkred}
+
+
+\usecolortheme[named=beamer@blendedgreen]{structure}
+\beamertemplateballitem
+
+\setbeamerfont{title}{size=\huge}
+\setbeamerfont{date}{size=\small}
+
+\setbeamertemplate{blocks}[rounded][shadow=true]
+\setbeamercolor{block title}{bg=beamer@blendedgreen, fg=white}
+\setbeamercolor{block body}{bg=beamer@lightblendedgreen}
+
+\setbeamercolor{block title example}{bg=beamer@blendedgreen, fg=white}
+\setbeamercolor{block body example}{bg=beamer@lightblendedgreen}
+
+\setbeamercolor{block title alerted}{bg=deri@darkred, fg=black}
+\setbeamercolor{block body alerted}{bg=beamer@lightblendedgreen}
+
+
+\setbeamercolor{footline}{fg=black,bg=gray}
+\setbeamercolor{title in head/foot}{fg=black}
+\setbeamercolor{title}{fg=white}
+\setbeamertemplate{navigation symbols}{} 
+
+\setbeamertemplate{background}{\pgfuseimage{slave}}
+
+\setbeamertemplate{background} 
+{\ifnum\thepage=1\relax% 
+  \pgfuseimage{master}%
+  \else% 
+  \pgfuseimage{slave}%
+  \fi% 
+} 
+
+%%% Local Variables:
+%%% mode: latex
+%%% mode: flyspell
+%%% mode: reftex
+%%% TeX-master: "presentation"
+%%% End:

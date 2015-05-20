@@ -1,0 +1,4 @@
+prefix : <http://pizza-vocab.ie/>
+
+for $person in doc("eat.ie/..")//name
+construct { :meal a :FoodOrder; :author {$person} }

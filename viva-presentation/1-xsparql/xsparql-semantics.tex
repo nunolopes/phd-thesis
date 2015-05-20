@@ -1,0 +1,128 @@
+
+\begin{frame}{Language Semantics}
+
+  \begin{block}{}
+    \begin{itemize}
+    \item<1-> Extension of the XQuery Evaluation Semantics 
+    \item<2-> \FOR{} add variables and values to the dynamic environment
+    \item<3-> Reuse semantics of original languages for the new expressions
+    \end{itemize}
+  \end{block}
+
+
+  \begin{tikzpicture}
+    \node[text width=.95\linewidth]{
+      \begin{block}{}
+        \begin{tikzpicture}
+          \node[text width=\linewidth]{\VerbatimInput{queries/example-integration.xsparql}};
+          
+          \begin{pgfonlayer}{background}
+            \draw[box,visible on=<2>] (-0.51\linewidth,4.1em) rectangle (0.45\linewidth,3.2em);
+          \end{pgfonlayer}
+
+          \begin{pgfonlayer}{background}
+            \draw[box,visible on=<3-5>] (-0.51\linewidth,3.2em) rectangle (0.45\linewidth,1.7em);
+          \end{pgfonlayer}
+          \node[boxFull=green,visible on=<4>,text width=3.5cm] at (0.35\linewidth,1em) {{\small  dynEnv.varValue  $\Rightarrow$ relation\\~ \\\begin{tabular}{l}person\\\hline "nuno"\end{tabular}}};
+          \node[boxFull=green,visible on=<5>,text width=3cm] at (0.4\linewidth,3em) {{\small  eval(SQL SELECT) $\Join$ dynEnv.varValue}};
+
+          \begin{pgfonlayer}{background}
+            \draw[box,visible on=<6-7>] (-0.51\linewidth,0em) rectangle (0.45\linewidth,-1.6em);
+          \end{pgfonlayer}
+          \node[boxFull=green,visible on=<6>,text width=3.8cm] at (0.35\linewidth,-3.5em) {{\small dynEnv.varValue $\Rightarrow$ SPARQL sol. seq.\\\{\{~person~$\Rightarrow$~"nuno"~\}\}}};
+          \node[boxFull=green,visible on=<7>,text width=3.8cm] at (0.35\linewidth,-3.5em) {{\small eval(SPARQL SELECT) solutions compatible dynEnv.varValue}};
+
+        \end{tikzpicture}
+      \end{block}
+    };
+
+    \node[visible on=<2>,anchor=east] at (-.45\linewidth,2.5em) {\scalebox{.4}{\pgfuseimage{xml}}};
+    \node[visible on=<3-5>,anchor=east] at (-.44\linewidth,2em) {\scalebox{.4}{\pgfuseimage{rdb}}};
+    \node[visible on=<6-7>,anchor=east] at (-.42\linewidth,0) {\scalebox{.4}{\pgfuseimage{rdf}}};
+
+    \node[boxFull=beamer@lightblendedgreen,visible on=<8->,text width=\linewidth] {{\tiny
+      \begin{prooftree}
+        \def\ScoreOverhang{1pt}%
+        \def\extraVskip{1pt}%
+        \alwaysNoLine%
+        % 
+        \AxiomC{$\dyn.\ecomp{globalPosition} = \seq{ \envElem{Pos}{1}, \cdots, \envElem{Pos}{j} } $}
+        % 
+        \UnaryInfC{$\dynEnv{\funcCall{fs{:}dataset}{\DatasetClause} \Rightarrow \envElem{Dataset}{}}$}
+        % 
+        \UnaryInfC{$\begin{array}{r@{\hspace{-1pt}}l}%
+            \dyn &~\proofs \funcCall{fs{:}sparql}{%
+              \begin{array}{l}%
+                \envElem{Dataset}{}, \SparqlWhereClause,\\
+                \SolutionModifier
+              \end{array}
+            } \Rightarrow \sm{1}{}, \dots, \sm{m}{}
+          \end{array}
+          $}
+        % 
+        \UnaryInfC{$\begin{array}{r@{\hspace{-1pt}}l}%
+            \dyn & \envExtend{globalPosition}{\seq{ \envElem{Pos}{1}, \cdots, \envElem{Pos}{j}, 1 }} ~\envExtend{activeDataset}{\grammarRule{Dataset}}\\
+            &\envExtend{varValue}{%
+              \begin{array}{l}%
+                % \envElem{Variable}{pos} \Rightarrow 1;\\
+                \envElem{Var}{1} \Rightarrow \funcCall{fs{:}value}{\sm{1}{},\envElem{Var}{1}};\\
+                \dotsc;\\
+                \envElem{Var}{n} \Rightarrow \funcCall{fs{:}value}{\sm{1}{},\envElem{Var}{n}}
+              \end{array}%
+            }~\proofs \grammarRule{ExprSingle} \Rightarrow
+            \envElem{Value}{1}
+          \end{array}$}
+        % 
+        \UnaryInfC{$\vdots$}
+        % 
+        \UnaryInfC{$\begin{array}{r@{\hspace{-1pt}}l}
+            \dyn & \envExtend{globalPosition}{\seq{ \envElem{Pos}{1}, \cdots, \envElem{Pos}{j}, m }} ~\envExtend{activeDataset}{\grammarRule{Dataset}}\\
+            &\envExtend{varValue}{\begin{array}{l}
+                % \envElem{Variable}{pos} \Rightarrow n;\\
+                \envElem{Var}{1} \Rightarrow \funcCall{fs{:}value}{\sm{m}{},\envElem{Var}{1}}; \\
+                \dotsc; \\
+                \envElem{Var}{n} \Rightarrow \funcCall{fs{:}value}{\sm{m}{},\envElem{Var}{n}} 
+              \end{array}%
+            }~\proofs \grammarRule{ExprSingle} \Rightarrow \envElem{Value}{m}
+          \end{array}$}
+        % 
+        \singleLine
+        % 
+        \UnaryInfC{$\dynEnv{\begin{array}{l}
+              \FOR~\envElem{\var{Var}}{1}\dotsb\envElem{\var{Var}}{n}~\DatasetClause\\
+              \SparqlWhereClause~\SolutionModifier\\
+              \RETURN~\grammarRule{ExprSingle}
+            \end{array}} \Rightarrow \envElem{Value}{1}, \dots, \envElem{Value}{m}$}
+      \end{prooftree}%
+    }};
+
+  \node[boxFull=red,visible on=<9->,text width=\linewidth] at (0,3.5em){{\tiny
+      \vspace{-2em}%
+      \begin{prooftree}%
+        \def\ScoreOverhang{1pt}%
+        \def\extraVskip{1pt}%
+        \alwaysNoLine%
+        % 
+        \AxiomC{$\begin{array}{r@{\hspace{-1pt}}l}%
+            \dyn &~\proofs \funcCall{fs{:}sparql}{%
+              \begin{array}{l}%
+                \envElem{Dataset}{}, \SparqlWhereClause,\\
+                \SolutionModifier
+              \end{array}
+            } \Rightarrow \sm{1}{}, \dots, \sm{m}{}
+          \end{array}
+          $}
+      \end{prooftree}%
+    }};
+
+  \end{tikzpicture}
+\end{frame}
+
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% mode: flyspell
+%%% mode: reftex
+%%% TeX-master: "../presentation"
+%%% End:

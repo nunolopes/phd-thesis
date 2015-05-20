@@ -1,0 +1,4 @@
+for $lat $long from <geonames.org/..>
+where { $point geo:lat $lat; 
+               geo:long $long }
+return $lat

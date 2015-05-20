@@ -1,0 +1,46 @@
+
+
+\defbeamertemplate*{title page}{DERI}[1][]
+{
+ \vspace*{-10pt}
+  \usebeamercolor[fg]{title}
+  \vbox{}
+  \vfill
+  \begin{centering}
+    \begin{beamercolorbox}[sep=8pt,center,#1]{title}
+      \usebeamerfont{title}\inserttitle\par%
+      \ifx\insertsubtitle\@empty%
+      \else%
+        \vskip0.25em%
+        {\usebeamerfont{subtitle}\usebeamercolor[fg]{subtitle}\insertsubtitle\par}%
+      \fi%     
+    \end{beamercolorbox}%
+    \begin{beamercolorbox}[sep=8pt,center,#1]{author}
+      \usebeamerfont{author}\insertauthor
+    \end{beamercolorbox}
+    \vskip-0.5em\par
+    \begin{beamercolorbox}[sep=8pt,center,#1]{date}
+      \usebeamerfont{date}\insertdate
+    \end{beamercolorbox}
+    \vskip-0.5em
+    {\usebeamercolor[fg]{titlegraphic}\inserttitlegraphic\par}
+  \end{centering}
+  \vfill
+  \addtocounter{framenumber}{-1}
+}
+
+
+\defbeamertemplate*{footnote}{DERI}
+{
+  \parindent 5em\noindent%
+  \raggedright
+  \hbox to 8.8em{\hfil\insertfootnotemark}\insertfootnotetext\par%
+}
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% mode: flyspell
+%%% mode: reftex
+%%% TeX-master: "presentation"
+%%% End:

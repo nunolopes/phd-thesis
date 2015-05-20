@@ -1,0 +1,11 @@
+for $person in doc("eat.ie/...")//name
+  for address as $address from clients
+  where person = $person
+    let $uri := fn:concat(
+         "api.geonames.org/search?q=", $address)
+    for $lat $long from $uri
+    where { $point geo:lat $lat; geo:long $long }
+    return <kml>
+             <lat>{$lat}<lat>
+             <long>{$long}</long>
+           </kml>

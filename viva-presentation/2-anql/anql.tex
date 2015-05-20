@@ -1,0 +1,294 @@
+\subsection*{Overview}
+
+
+
+\begin{frame}{Data Integration: Pizza Delivery Company} 
+
+  \hspace*{-1em}
+  \begin{tikzpicture}
+
+    \begin{scope}[visible on=<+->]
+      \node (rdb) at (5,-2) {\pgfuseimage{rdb}} ;
+      \node at (rdb.north east) {\pgfuseimage{rdb-table}}; 
+      \node[box=green,visible on=<.->] at (rdb.north west) {RDB};
+      \node[inner sep=0,left=.1em of rdb.west] (rdb-name1) {Clients};
+      \node[inner sep=0,below=.1em of rdb-name1.south] (rdb-name) {/ Orders};
+      
+      \begin{pgfonlayer}{background}
+        \node[box=gray, fit=(rdb) (rdb-name)] (rdbms) {} ;
+      \end{pgfonlayer}
+
+    \end{scope}
+
+
+    \begin{scope}
+      \node at (-4,-2) (excel) {\pgfuseimage{excel}};
+
+      \node[inner sep=0] at (excel.south) (excel-name) {Deliveries};
+      
+      \begin{pgfonlayer}{background}
+        \node[box=gray, visible on =<.->, fit=(excel) (excel-name)] {} ;
+      \end{pgfonlayer}
+
+      \node at (excel.north east) {\scalebox{.7}{\pgfuseimage{xml}}};
+      \node[box=green,visible on=<.->] at (excel.north west) {XML};
+
+    \end{scope}
+    
+    \begin{scope}
+      \node (eat) at (-4,3){\pgfuseimage{eat}};
+      \node[inner sep=0,below=.1em of eat.south] (eat-name1) {Clients};
+      \node[inner sep=0,below=.1em of eat-name1.south] (eat-name) {/ Orders};
+
+      \begin{pgfonlayer}{background}
+        \node[box=gray, visible on =<.->, fit=(eat) (eat-name)] {} ;
+      \end{pgfonlayer}
+
+      \node at (eat.north east) {\scalebox{.7}{\pgfuseimage{xml}}};
+      \node[box=green,visible on=<.->] at (eat.north west) {XML};
+
+    \end{scope}
+
+
+    \begin{scope}
+      \node at (1,1) (di)  {\pgfuseimage{XSPARQLogo}};
+      
+      \path[-latex] (eat.south east) edge [color=xquery,line width=5pt] (di); 
+      \path[-latex] (rdb.north west) edge [color=xquery,line width=5pt] (di); 
+      \path[-latex] (excel.north east) edge [color=xquery,line width=5pt] (di); 
+      
+    \end{scope}
+    
+    \begin{scope}
+      \node at (5,3) (dbpedia)  {\pgfuseimage{dbpedia}};
+
+      \begin{pgfonlayer}{background}
+        \node[box=gray, visible on =<.->, fit=(dbpedia)] {} ;
+      \end{pgfonlayer}
+
+      \node at (dbpedia.north east) {\scalebox{.7}{\pgfuseimage{rdf}}};
+      \node[box=green,visible on=<.->] at (dbpedia.north west) {RDF};
+
+      \path[latex-latex] (dbpedia.south west) edge [color=xquery,line width=5pt] (di);
+
+    \end{scope}
+
+
+
+    \begin{scope}[visible on=<+->]
+      \node[boxFull=green,text width=3cm] at (rdb.south west) (rdb-order){
+        {\small
+          \begin{tabular}{c|c}
+            person & address\\
+            \hline
+            Nuno & Galway \\
+          \end{tabular}
+        }
+      };
+      
+      \node[boxFull=green,text width=4.2cm,anchor=north] at (eat.south east) (eat-order){
+        \VerbatimInput[firstline=2,lastline=5]{queries/justeat.xml}
+      };
+
+    \end{scope}
+
+    \begin{scope}[visible on=<.->]
+      \node[boxFull=red,anchor=north] at (eat-order.south){2012};
+      \node[boxFull=red,anchor=south] at (rdb-order.north){From 2008 to 2012};
+    \end{scope}
+    
+  \end{tikzpicture}
+
+\end{frame}
+
+
+
+ 
+\begin{frame}{Use Annotated RDF(S)!}
+
+  \begin{center}
+    Annotations refer to a specific \alert{\textbf{domain}}
+  \end{center}
+  \pause
+  {\color{green}{Temporal:}}\\[-.6em]
+  \begin{block}{}
+    {\small\tt
+      :nuno :address :Galway . \textcolor{blue}{[2008,2012]}
+    }
+  \end{block}
+  \pause
+
+  {\color{green}{Fuzzy:}}\\[-.6em]
+  \begin{block}{}
+    {\small\tt
+      :nuno :address :Dublin . \textcolor{blue}{0.9}
+    }
+  \end{block}
+
+  \pause
+
+  {\color{green}{Provenance:}}\\[-.5em]
+  \begin{block}{}
+    {\small\tt
+      :nuno :address :Dublin . \textcolor{blue}{<http://eat.ie>}
+    }
+  \end{block}
+
+  \pause
+  \begin{center}
+    Representation for the \textcolor{blue}{values} of each \alert{annotation domain}
+  \end{center}
+
+  
+\end{frame}
+
+
+
+\subsection{Annotated RDFS}
+
+
+\input{2-anql/ardfs-inferences-sensors}
+
+
+\begin{frame}{Operations on Annotations Elements}
+
+  \begin{block}{}
+    \begin{center}
+      \begin{tikzpicture}
+        \matrix[ampersand replacement=\&,matrix of nodes,row sep=2em,column sep=0em] (lat) {
+          \&|[visible on=<5>]| $[-\infty,+\infty]$ \& \\
+          \&|[visible on=<4->, text width=2cm]| $\only<-7>{\visible<-5>{[2008,+\infty]}}\only<8->{\hspace{-30pt}\visible<9>{\alert{\{}}[2000,2005],[2008,2012]\visible<9>{\alert{\}}}}$ \& \\ 
+          $\visible<9>{\alert{\{}}[\only<-5>{2009,+\infty}\only<6->{\alert<6>{2000,2005}}]\visible<9>{\alert{\}}}$ \& \& $\visible<9>{\alert{\{}}[2008,2012]\visible<9>{\alert{\}}}$\\
+          \&|[visible on=<2-5>]| $\visible<9>{\alert{\{}}[2009,2012]\visible<9>{\alert{\}}}$ \& \\
+          \&|[visible on=<3->]| $\invisible<6>{\visible<9>{\alert{\{}}[]\visible<9>{\alert{\}}}}$ \& \\
+        };
+
+        \begin{scope}[visible on=<2-5>]
+          \path (lat-4-2) edge (lat-3-1);
+          \path (lat-4-2) edge (lat-3-3);
+          \node[above=.5em of lat-4-2] {\alert<2>{$\otimes$}};
+        \end{scope}
+        \path[visible on=<3-5>] (lat-4-2) edge[dashed] (lat-5-2);
+
+        \begin{scope}[visible on=<7->]
+          \path (lat-5-2) edge (lat-3-1);
+          \path (lat-5-2) edge (lat-3-3);
+          \node[above=.5em of lat-5-2] {\alert<2>{$\otimes$}};
+        \end{scope}
+        
+        \begin{scope}[visible on=<4-5>]
+          \path (lat-2-2) edge (lat-3-1);
+          \path (lat-2-2) edge (lat-3-3);
+          \node[below =.5em of lat-2-2] {\alert<3>{$\oplus$}};
+        \end{scope}
+        \path[visible on=<5>] (lat-1-2) edge[dashed] (lat-2-2);
+
+        \begin{scope}[visible on=<8->]
+          \path (lat-2-2) edge (lat-3-1);
+          \path (lat-2-2) edge (lat-3-3);
+          \node[below =.5em of lat-2-2] {$\oplus$};
+        \end{scope}
+
+      \end{tikzpicture}
+    \end{center}
+  \end{block}
+
+\end{frame}
+
+
+
+
+\subsection{AnQL: Annotated SPARQL}
+
+\input{2-anql/anql-syntax}
+
+
+
+
+\begin{frame}[fragile]{Evaluation of SPARQL OPTIONALs}
+
+  \begin{block}{\small ``List my  address, time interval and optionally people living in the same city at the same time.''}
+    \begin{Verbatim}[frame=none,fontsize=\small]
+SELECT   ?city ?t ?person 
+WHERE    { :nuno :address ?city . ?t
+           OPTIONAL { ?person :address ?city . ?t } }
+    \end{Verbatim}
+  \end{block}
+
+  \begin{block}{Sample input:}
+    {\small\tt
+    $\begin{array}{llll}
+      \term{{:}nuno} & \term{{:}address} & \term{{:}Galway}\ . & \alert<2,3>{\ [2008, 2012]}\\
+      {\color<3>{blue}{\term{{:}axel}}} & \term{{:}address} & \term{{:}Galway}\ . & \alert<3>{\ [2005, 2010]}\\
+    \end{array}$
+  }
+  \end{block}
+  \pause 
+
+  \begin{block}{Answers:}
+    $\begin{array}{lcl}
+      S_{1} & = & \{?city \to \term{{:}Galway}, ?t \to \alert<2>{[2008, 2012]}\} \\ 
+      \pause 
+      S_{2} & = & \{?city \to \term{{:}Galway}, ?t \to \alert<3>{[2008, 2010]}, \  ?person \to {\color<3>{blue}{\term{{:}axel}}}\} \\ 
+    \end{array}$
+  \end{block}
+  
+  \pause
+
+  {\small \alert{OPTIONAL provide more information maybe restricting annotation values}}
+
+\end{frame}
+
+
+\begin{frame}{Annotated RDF(S) Domains}
+
+  {\color{green}{Temporal:}}\\[-.6em]
+  \begin{block}{}
+    {\small\tt
+      :nuno :address :Galway . \textcolor{blue}{[2008,2012]}
+    }
+  \end{block}
+
+  {\color{green}{Fuzzy:}}\\[-.6em]
+  \begin{block}{}
+    {\small\tt
+      :nuno :address :Galway . \textcolor{blue}{0.9}
+    }
+  \end{block}
+
+  {\color{green}{Provenance:}}\\[-.5em]
+  \begin{block}{}
+    {\small\tt
+      :nuno :address :Dublin . \textcolor{blue}{http://eat.ie}
+    }
+  \end{block}
+
+
+  \pause
+  {\color{green}{Combining domains:}} Included in~\cite{ZimmermannLopesPolleres:2012aa}\\[-.5em]
+  \begin{block}{}
+    {\small\tt
+      :nuno :address :Dublin . \textcolor{blue}{(http://eat.ie, [2012,2012])}
+    }
+  \end{block}
+
+  \pause
+  {\color{green}{Access Control:}} Presented at~\cite{LopesKirraneZimmermann:2012aa}\\[-.5em]
+  \begin{block}{}
+    {\small\tt
+      :nuno :address :Galway . \textcolor{blue}{[nl]}
+    }
+  \end{block}
+
+  
+\end{frame}
+
+
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% mode: flyspell
+%%% mode: reftex
+%%% TeX-master: "../presentation"
+%%% End:

@@ -1,0 +1,10 @@
+for $person $name from <input.rdf>
+where { $person foaf:name $name }
+return <item person="{$name}">
+  {count( 
+     for * from <input.rdf>
+     where { $ca :buyer $person .}
+     return $ca
+    )}
+</item>
+

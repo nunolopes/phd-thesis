@@ -1,0 +1,50 @@
+
+\begin{frame}{How to represent context information in RDF?}
+
+  \begin{itemize}
+  \item RDF triples \\
+    \begin{tabular}{ll}
+      \begin{minipage}{0.5\paperwidth}
+        \VerbatimInput[frame=single,fontsize=\scriptsize]{queries/address.ttl}
+      \end{minipage}
+      &
+      \only<2->{
+        \begin{minipage}{0.5\paperwidth}
+          \alert{ Not enough!}
+      \end{minipage}
+    }
+    \end{tabular}
+    
+    \item<3-> Domain vocabulary/ontology \\
+      \begin{tabular}{ll}
+        \begin{minipage}{0.5\paperwidth}
+          \VerbatimInput[commandchars=\\\{\},fontsize=\scriptsize,frame=single]{queries/domain-vocab.ttl}
+        \end{minipage}
+        &
+        \begin{minipage}{0.4\paperwidth}
+          \only<6->{\alert{No defined \\semantics!}}
+        \end{minipage}
+      \end{tabular}
+
+    \item<4-> Reification \\
+      \begin{tabular}{ll}
+        \begin{minipage}{0.5\paperwidth}
+          \VerbatimInput[commandchars=\\\{\},fontsize=\scriptsize,frame=single]{queries/reification.ttl}
+        \end{minipage}
+        &
+        \begin{minipage}{0.4\paperwidth}
+          \only<6->{\alert{No defined \\semantics!}}
+        \end{minipage}
+      \end{tabular}
+
+    \item<5-> Named Graphs
+
+  \end{itemize}
+\end{frame}
+
+%%% Local Variables:
+%%% mode: latex
+%%% mode: flyspell
+%%% mode: reftex
+%%% TeX-master: "../presentation"
+%%% End:

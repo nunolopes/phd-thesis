@@ -1,0 +1,165 @@
+\usepackage{tikz}
+\usetikzlibrary{er,calc,positioning,shapes,shadows,arrows,shapes.callouts,backgrounds,fit}
+
+\usetikzlibrary{arrows,shapes,shapes.callouts,positioning,backgrounds}
+\usetikzlibrary{decorations.text}
+\usetikzlibrary{shapes.arrows,shapes.symbols}
+\usetikzlibrary{matrix}
+\usetikzlibrary{fit}
+\usetikzlibrary{calc}
+
+\tikzset{
+  invisible/.style={opacity=0},
+  visible on/.style={alt=#1{}{invisible}},
+  alt/.code args={<#1>#2#3}{%
+    \alt<#1>{\pgfkeysalso{#2}}{\pgfkeysalso{#3}} 
+  },
+}
+
+\tikzset{box/.style={rectangle,draw=#1!40,fill=#1!40,opacity=.9,rounded corners},box/.default=red}
+\tikzset{boxFull/.style={rectangle,draw=#1!40,fill=#1!40,rounded corners},boxFull/.default=red}
+\tikzset{lines/.style={draw=#1!80,ultra thick,rounded corners,opacity=.7},lines/.default=red}
+\tikzset{balloon/.style={ellipse callout,fill=#1!50,opacity=.9},balloon/.default=red}
+\tikzset{sqballoon/.style={rectangle callout,fill=#1!50,opacity=.9,rounded corners},sqballoon/.default=red}
+\tikzset{sqballoonFull/.style={rectangle callout,fill=#1!50,rounded corners},sqballoonFull/.default=red}
+\tikzset{cloud/.style={cloud callout, cloud puffs=150, aspect=2.5, cloud puff arc=120,shading=ball,text=white}}
+
+\tikzstyle{na} = [baseline=-.5ex]
+\tikzstyle{every picture}+=[remember picture]
+\tikzstyle{every node}=[font=\large]
+\tikzstyle{background grid}=[draw,black!50,step=1em]
+\everymath{\displaystyle}
+
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.7}
+
+
+\pgfdeclarelayer{background}
+\pgfdeclarelayer{foreground}
+\pgfsetlayers{background,main,foreground}
+
+\makeatletter
+\pgfdeclareshape{document}{
+  \inheritsavedanchors[from=rectangle] 
+  \inheritanchorborder[from=rectangle]
+  \inheritanchor[from=rectangle]{center}
+  \inheritanchor[from=rectangle]{north}
+  \inheritanchor[from=rectangle]{south}
+  \inheritanchor[from=rectangle]{west}
+  \inheritanchor[from=rectangle]{east}
+  \inheritanchor[from=rectangle]{south east}
+  %
+  \backgroundpath{%
+    %
+    \southwest \pgf@xa=\pgf@x \pgf@ya=\pgf@y
+    \northeast \pgf@xb=\pgf@x \pgf@yb=\pgf@y
+    % 
+    \pgf@xc=\pgf@xb \advance\pgf@xc by-5pt
+    \pgf@yc=\pgf@yb \advance\pgf@yc by-5pt
+    % 
+    \pgfpathmoveto{\pgfpoint{\pgf@xa}{\pgf@ya}}
+    \pgfpathlineto{\pgfpoint{\pgf@xa}{\pgf@yb}}
+    \pgfpathlineto{\pgfpoint{\pgf@xc}{\pgf@yb}}
+    \pgfpathlineto{\pgfpoint{\pgf@xb}{\pgf@yc}}
+    \pgfpathlineto{\pgfpoint{\pgf@xb}{\pgf@ya}}
+    \pgfpathclose
+    % 
+    \pgfpathmoveto{\pgfpoint{\pgf@xc}{\pgf@yb}}
+    \pgfpathlineto{\pgfpoint{\pgf@xc}{\pgf@yc}}
+    \pgfpathlineto{\pgfpoint{\pgf@xb}{\pgf@yc}}
+    \pgfpathlineto{\pgfpoint{\pgf@xc}{\pgf@yc}}
+  }
+}
+\makeatother
+
+\tikzset{doc/.style={draw,document,text centered,text width=#1,inner sep=2ex, minimum width=1.5cm, minimum height=1cm },doc/.default=1cm }%
+
+
+
+\newcommand{\documentSet}[3]{
+  \begin{scope}
+    \node[#1,fill=white,doc=.9cm] (#2) {#3};
+    \begin{pgfonlayer}{background}
+      \node[#1,doc=.9cm,yshift=-2pt, xshift=2pt] {#3};
+      \node[#1,doc=.9cm,yshift=-4pt, xshift=4pt] {#3};
+    \end{pgfonlayer}
+\end{scope}
+}
+
+\newcommand{\documentSetL}[3]{
+  \begin{scope}
+    \node[#1,fill=white,doc=1.35cm] (#2) {#3};
+    \begin{pgfonlayer}{background}
+      \node[#1,doc=1.35cm,yshift=-2pt, xshift=2pt] {#3};
+      \node[#1,doc=1.35cm,yshift=-4pt, xshift=4pt] {#3};
+    \end{pgfonlayer}
+\end{scope}
+}
+
+
+
+
+
+\PassOptionsToPackage{framemethod=TikZ}{mdframed}
+\usepackage{mdframed}
+\theoremstyle{definition}
+
+
+
+\makeatletter
+\pgfdeclareshape{document}{
+  \inheritsavedanchors[from=rectangle] % 
+  \inheritanchorborder[from=rectangle]
+  \inheritanchor[from=rectangle]{center}
+  \inheritanchor[from=rectangle]{north}
+  \inheritanchor[from=rectangle]{south}
+  \inheritanchor[from=rectangle]{west}
+  \inheritanchor[from=rectangle]{east}
+  \inheritanchor[from=rectangle]{south east}
+  % 
+  \backgroundpath{% 
+    % 
+    \southwest \pgf@xa=\pgf@x \pgf@ya=\pgf@y
+    \northeast \pgf@xb=\pgf@x \pgf@yb=\pgf@y
+    % 
+    \pgf@xc=\pgf@xb \advance\pgf@xc by-5pt % 
+    \pgf@yc=\pgf@yb \advance\pgf@yc by-5pt
+    % 
+    \pgfpathmoveto{\pgfpoint{\pgf@xa}{\pgf@ya}}
+    \pgfpathlineto{\pgfpoint{\pgf@xa}{\pgf@yb}}
+    \pgfpathlineto{\pgfpoint{\pgf@xc}{\pgf@yb}}
+    \pgfpathlineto{\pgfpoint{\pgf@xb}{\pgf@yc}}
+    \pgfpathlineto{\pgfpoint{\pgf@xb}{\pgf@ya}}
+    \pgfpathclose
+    % 
+    \pgfpathmoveto{\pgfpoint{\pgf@xc}{\pgf@yb}}
+    \pgfpathlineto{\pgfpoint{\pgf@xc}{\pgf@yc}}
+    \pgfpathlineto{\pgfpoint{\pgf@xb}{\pgf@yc}}
+    \pgfpathlineto{\pgfpoint{\pgf@xc}{\pgf@yc}}
+  }
+}
+\makeatother
+
+\tikzset{doc/.style={draw,document,text centered,text width=#1,inner sep=2ex, minimum width=1.5cm, minimum height=1cm },doc/.default=1cm }%
+
+
+
+\usepackage{environ}
+\makeatletter
+\newsavebox{\measure@tikzpicture}
+\NewEnviron{scaletikzpicturetowidth}[1]{%
+  \def\tikz@width{#1}%
+  \def\tikzscale{1}\begin{lrbox}{\measure@tikzpicture}%
+  \BODY
+  \end{lrbox}%
+  \pgfmathparse{#1/\wd\measure@tikzpicture}%
+  \edef\tikzscale{\pgfmathresult}%
+  \BODY
+}
+\makeatother
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "presentation"
+%%% End:

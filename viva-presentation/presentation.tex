@@ -1,0 +1,150 @@
+\documentclass[table,svgnames]{beamer}
+
+\input{packages}
+\input{config}
+
+
+\title{\Large{Integrating Heterogeneous Data by Extending Semantic Web Standards}}
+
+\author{Nuno Lopes}
+
+\date{26 November, 2012}
+
+
+\begin{document}
+
+\begin{frame}[plain]
+  \titlepage
+\end{frame}
+
+
+\section{Overview}
+\input{motivating-usecase}
+
+{
+  \setbeamertemplate{footline}{}
+  \addtocounter{framenumber}{-1}
+  \begin{frame}{Outline and Contributions} 
+    \begin{tikzpicture}
+      \node[text width=.5\linewidth] (two) {
+        \begin{itemize}
+        \item XSPARQL
+          \begin{itemize}
+          \item Syntax \& Semantics
+          \item Implementation
+          \item Evaluation 
+          \end{itemize}
+        \end{itemize}
+      };
+      \node[box=green,right=of two,visible on=<2>,text width=3cm] {\cite{BischofDeckerKrennwallner:2012aa}, \cite{LopesBischofDecker2011aa}};
+      \node[text width=.5\linewidth,below = 1em of two] (three){
+        \begin{itemize}
+        \item Annotated RDF(S)
+          \begin{itemize}
+          \item Annotated RDF(S)
+          \item AnQL: Annotated SPARQL
+          \item Architecture
+          \end{itemize}
+        \end{itemize}
+      };
+      \node[box=green,right=of three,visible on=<3>,text width=3cm] {\cite{StracciaLopesLukacsy:2010aa}, \cite{LopesPolleresStraccia:2010aa}, \cite{ZimmermannLopesPolleres:2012aa}};
+    \end{tikzpicture}
+  \end{frame}
+}
+
+\section{XSPARQL}
+\input{1-xsparql/xsparql}
+
+\section{Annotated RDF(S)}
+\input{2-anql/anql}
+
+\input{3-combination/combining-xsparql-anql}
+
+\input{conclusions}
+
+\newcounter{finalframe}
+\setcounter{finalframe}{\value{framenumber}}
+
+\appendix
+
+\section*{Bibliography}
+{
+  \setbeamertemplate{footline}{}
+  \addtocounter{framenumber}{-1}
+  \begin{frame}[allowframebreaks]{Bibliography}
+    \def\newblock{}
+\begin{thebibliography}{BDK{\etalchar{+}}12}
+
+% \bibitem[JoDS2012]{BischofDeckerKrennwallner:2012aa}
+\bibitem[JoDS2012]{BischofDeckerKrennwallner:2012aa}
+Stefan Bischof, Stefan Decker, Thomas Krennwallner, Nuno Lopes, and Axel
+  Polleres.
+\newblock {Mapping between RDF and XML with XSPARQL}.
+\newblock {\em Journal on Data Semantics}, 1:147--185, 2012.
+
+% \bibitem[GGL{\etalchar{+}}08]{GroppeGroppeLinnemann:2008aa}
+\bibitem[SAC2008]{GroppeGroppeLinnemann:2008aa}
+Sven Groppe, Jinghua Groppe, Volker Linnemann, Dirk Kukulenz, Nils Hoeller, and
+  Christoph Reinke.
+\newblock {Embedding SPARQL into XQuery/XSLT}.
+\newblock In Roger~L. Wainwright and Hisham Haddad, editors, {\em {Proceedings
+  of the 2008 ACM Symposium on Applied Computing (SAC), Fortaleza, Ceara,
+  Brazil, March 16-20, 2008}}, pages 2271--2278. ACM, 2008.
+
+% \bibitem[LBDP11]{LopesBischofDecker2011aa}
+\bibitem[EPIA2011]{LopesBischofDecker2011aa}
+Nuno Lopes, Stefan Bischof, Stefan Decker, and Axel Polleres.
+\newblock {On the Semantics of Heterogeneous Querying of Relational, XML and
+  RDF Data with XSPARQL}.
+\newblock In Paulo Moura and Vitor~Beires Nogueira, editors, {\em {Proceedings
+  of the 15th Portuguese Conference on Artificial Intelligence (EPIA2011) --
+  Computational Logic with Applications Track}}, Lisbon, Portugal, October
+  2011.
+
+% \bibitem[LKZ{\etalchar{+}}12]{LopesKirraneZimmermann:2012aa}
+\bibitem[ICLP2012]{LopesKirraneZimmermann:2012aa}
+Nuno Lopes, Sabrina Kirrane, Antoine Zimmermann, Axel Polleres, and Alessandra
+  Mileo.
+\newblock {A Logic Programming approach for Access Control over RDF}.
+\newblock In Agostino Dovier and V{\'\i}tor~Santos Costa, editors, {\em
+  {Technical Communications of the 28th International Conference on Logic
+  Programming (ICLP'12)}}, volume~17 of {\em Leibniz International Proceedings
+  in Informatics (LIPIcs)}, pages 381--392, Dagstuhl, Germany, 2012. Schloss
+  Dagstuhl--Leibniz-Zentrum fuer Informatik.
+
+\bibitem[ISWC2010]{LopesPolleresStraccia:2010aa}
+Nuno Lopes, Axel Polleres, Umberto Straccia, and Antoine Zimmermann.
+\newblock {AnQL: SPARQLing Up Annotated RDFS}.
+\newblock In {\em {International Semantic Web Conference (1)}}, pages 518--533,
+  2010.
+
+\bibitem[AAAI2010]{StracciaLopesLukacsy:2010aa}
+Umberto Straccia, Nuno Lopes, Gergely Luk{\'a}csy, and Axel Polleres.
+\newblock {A General Framework for Representing and Reasoning with Annotated
+  Semantic Web Data}.
+\newblock In Maria Fox and David Poole, editors, {\em {Proceedings of the
+  Twenty-Fourth AAAI Conference on Artificial Intelligence, AAAI 2010, Atlanta,
+  Georgia, USA, July 11-15, 2010}}. AAAI Press, July 2010.
+
+\bibitem[JWS2012]{ZimmermannLopesPolleres:2012aa}
+Antoine Zimmermann, Nuno Lopes, Axel Polleres, and Umberto Straccia.
+\newblock {A General Framework for Representing, Reasoning and Querying with
+  Annotated Semantic Web Data}.
+\newblock {\em Web Semantics: Science, Services and Agents on the World Wide
+  Web}, 11(0):72--95, 2012.
+
+\end{thebibliography}
+
+  \end{frame}
+}
+
+
+\setcounter{framenumber}{\value{finalframe}}
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% mode: flyspell
+%%% mode: reftex
+%%% End:

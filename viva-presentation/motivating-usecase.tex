@@ -1,0 +1,210 @@
+
+\subsection*{}
+
+
+\begin{frame}{Data Integration: Pizza Delivery Company} %on the Web
+
+  \hspace*{-1em}
+  \begin{tikzpicture}
+
+    \begin{scope}[visible on=<+->]
+      \node (rdb) at (5,-2) {\pgfuseimage{rdb}} ;
+      \node at (rdb.north east) {\pgfuseimage{rdb-table}}; 
+      \node[box=green,visible on=<.->] at (rdb.north west) {RDB};
+      \node[inner sep=0,left=.1em of rdb.west] (rdb-name1) {Clients};
+      \node[inner sep=0,below=.1em of rdb-name1.south] (rdb-name) {/ Orders};
+      
+      \begin{pgfonlayer}{background}
+        \node[box=gray, fit=(rdb) (rdb-name)] (rdbms) {} ;
+      \end{pgfonlayer}
+
+      \begin{scope}[visible on=<+->]
+        \node[boxFull=green,text width=3cm] at (rdb.south west) (rdb-order){
+          {\small
+            \begin{tabular}{c|c}
+              person & address\\
+              \hline
+              Nuno & Galway \\
+            \end{tabular}
+          }
+        };
+      \end{scope}
+      
+
+    \end{scope}
+
+
+    \begin{scope}[visible on=<+->]
+      \node at (-4,-2) (excel) {\pgfuseimage{excel}};
+
+      \node[inner sep=0] at (excel.south) (excel-name) {Deliveries};
+      
+      \begin{pgfonlayer}{background}
+        \node[box=gray, visible on =<.->, fit=(excel) (excel-name)] {} ;
+      \end{pgfonlayer}
+
+      \node at (excel.north east) {\scalebox{.7}{\pgfuseimage{xml}}};
+      \node[box=green,visible on=<.->] at (excel.north west) {XML};
+
+      \node[visible on=<+->] at (excel.south east) {\pgfuseimage{deliveries}};
+    \end{scope}
+
+    
+    \begin{scope}[visible on=<+->]
+      \node (eat) at (-4,3){\pgfuseimage{eat}};
+      \node[inner sep=0,below=.1em of eat.south] (eat-name1) {Clients};
+      \node[inner sep=0,below=.1em of eat-name1.south] (eat-name) {/ Orders};
+
+      \begin{pgfonlayer}{background}
+        \node[box=gray, visible on =<.->, fit=(eat) (eat-name)] {} ;
+      \end{pgfonlayer}
+
+      \node[] at (eat.north east) {\scalebox{.7}{\pgfuseimage{xml}}};
+      \node[boxFull=green] at (eat.north west) {XML};
+
+      
+      \node[boxFull=green,text width=4.2cm,anchor=north,visible on=<+->] at (eat.south east) (eat-order){
+        \VerbatimInput[firstline=2,lastline=5]{queries/justeat.xml}
+      };
+
+    \end{scope}
+
+
+    \node[visible on=<+>,anchor=north east] at (4,3) (dbpedia)  {\pgfuseimage{lod}};
+
+    \begin{scope}[visible on=<+->]
+      \node at (5,3) (dbpedia)  {\pgfuseimage{dbpedia}};
+
+      \begin{pgfonlayer}{background}
+        \node[box=gray, visible on =<.->, fit=(dbpedia)] {} ;
+      \end{pgfonlayer}
+
+      \node at (dbpedia.north east) {\scalebox{.7}{\pgfuseimage{rdf}}};
+      \node[box=green,visible on=<.->] at (dbpedia.north west) {RDF};
+
+    \end{scope}
+
+
+
+
+    \begin{scope}[visible on=<+->]
+      \node[boxFull=red,text width=7cm,visible on=<.>] at (1,1) (di)  {How many pizzas were delivered to Nuno's home during his PhD?};
+      
+      \path[-latex] (eat.south east) edge [color=xquery,line width=5pt] (di); 
+      \path[-latex] (rdb.north west) edge [color=xquery,line width=5pt] (di); 
+      \path[-latex] (excel.north east) edge [color=xquery,line width=5pt] (di); 
+      \path[-latex,visible on=<.>] (dbpedia.south west) edge [color=xquery,line width=5pt] (di);
+      
+    \end{scope}
+    
+    \begin{scope}[visible on=<+->]
+      \path[latex-latex] (dbpedia.south west) edge [color=xquery,line width=5pt] (di);
+      \node at (di)  {\pgfuseimage{rdf}};
+    \end{scope}
+
+    
+    \begin{scope}[visible on=<+->]
+      \node[boxFull=red,anchor=north] at (eat-order.south){2012};
+      \node[boxFull=red,anchor=south] at (rdb-order.north){From 2008 to 2012};
+    \end{scope}
+
+
+  \end{tikzpicture}
+
+\end{frame}
+
+\begin{frame}{Using Query Languages for Data Integration}
+
+  \begin{tikzpicture}[scale=.9,transform shape]
+    \matrix[ampersand replacement=\&, column sep = 4em,row sep=.5em ] {
+
+      \node[visible on=<2->,text width=4.7cm] (sql) {
+        \begin{block}{SQL}
+          \VerbatimInput{queries/example.sql}
+        \end{block}
+      }; \&
+      \node[right= of sql] (rdb) {\pgfscaleimage{.9}{rdb}}; 
+      \\
+
+      \node[visible on=<2->,text width=4.7cm] (sparql) {
+        \begin{block}{SPARQL}
+          \VerbatimInput[fontsize=\scriptsize]{queries/example.sparql}
+        \end{block}
+      };  \& 
+      \node[right= of sparql] (rdf) {\pgfscaleimage{.9}{rdf}};
+       \\
+
+      \node[visible on=<2->,text width=4.7cm] (xquery) {
+        \begin{block}{XQuery}
+          \VerbatimInput{queries/example.xquery}
+        \end{block}
+      };  \& 
+      \node[right= of xquery] (xml) {\pgfscaleimage{.9}{xml}};
+       \\
+    };
+    \path[visible on=<2->,latex-] ([xshift=.5em]sql.east) edge [color=sql,line width=5pt] (rdb); 
+    \path[visible on=<2->,latex-] ([xshift=.5em]sparql.east) edge [color=sparql,line width=5pt] (rdf); 
+    \path[visible on=<2->,latex-] ([xshift=.5em]xquery.east) edge [color=xquery,line width=5pt] (xml); 
+
+    \node[boxFull=green,visible on=<3->,anchor=south east] at (sql.south east) {relation};
+    \node[boxFull=green,visible on=<3->,anchor=south east] at (sparql.south east) {solution sequence};
+    \node[boxFull=green,visible on=<3->,anchor=south east] at (xquery.south east) {sequence of items};
+
+
+    \draw[box=blue,visible on=<4->] let \p1 = (xquery.south west) in let \p2 = (sql.north west) in (\x1-5em,\y1) rectangle (\x1-3em,\y2) node[rotate=90,midway] (med) {Mediator / Data Warehouse};
+
+    \foreach \point in {sql,sparql,xquery}
+    { \path[visible on=<4->,-latex] ([xshift=1.1em]med.east |- \point) edge [color=orange,line width=5pt] (\point);  }
+
+    \node[visible on=<5->] at (med.south west) {\pgfuseimage{rdf}};
+
+    \node[boxFull=red,text width=6cm,visible on=<6->,left=6em of sparql,anchor=south,rotate=90] {How many pizzas were delivered to Nuno's home
+      during his PhD?};
+
+
+  \end{tikzpicture}
+  
+\end{frame}
+
+
+\input{2-anql/anql-representation-syntaxes}
+
+
+
+
+
+
+
+\begin{frame}{Hypothesis and Research Questions}
+
+  \begin{block}{Hypothesis}%
+    Efficient data integration over heterogenous data sources can be achieved by
+    \begin{itemize}
+    \item<2-> a combined query language that accesses heterogenous data in its original sources
+    \item<3-> optimisations for efficient query evaluation for this language
+    \item<4-> an RDF-based format with support for context information
+    \end{itemize}
+  \end{block}
+
+
+  \begin{block}<5->{Research Questions}%
+    \begin{itemize}
+    \item<5-> How to design a query language that bridges the different formats?
+    \item<6-> Can we reuse existing optimisations from other query languages?
+    \item<7-> How to adapt RDF and SPARQL for context information?
+    \end{itemize}
+  \end{block}
+
+
+\end{frame}
+
+
+
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% mode: flyspell
+%%% mode: reftex
+%%% TeX-master: "presentation"
+%%% End:

@@ -1,0 +1,117 @@
+
+\begin{tikzpicture}[node distance = 35pt,scale=.8,transform shape,%
+  terminal/.style={ rectangle,minimum size=6mm,rounded corners=3mm,text centered,draw=black!50,fill=gray!20},%
+  component/.style={ rectangle,minimum size=6mm,rounded corners=3mm,text centered,draw=black!50},%
+  rdb/.style={cylinder, shape border rotate=90, draw,minimum width=1.5cm,minimum height=1cm, shape aspect=.35}%
+  ]
+
+  \tikzstyle{every node}=[font=\footnotesize]
+
+  % reasoner
+  \begin{scope}[visible on=<2->]
+    \node[terminal, text width=1.5cm, minimum height=1cm] (reasoner) {Reasoner}; %
+    \coordinate[left= 5em of reasoner.west] (left-reasoner);
+  \end{scope}
+  
+  % domains
+  \begin{scope}[node distance = 5pt,text width=1.2cm,anchor=east,visible on=<3->]
+
+    \node[component] at (left-reasoner) (ac) {Access Control}; %
+    \node[component, above=of ac]  (frdf) {Fuzzy}; %
+    \node[component,left =of frdf] (trdf) {Temporal}; %
+    \node[component,below =of trdf] (prov) {Prove\-nance}; %
+
+    % domains outer box
+    \node[draw=black,dotted,thick,inner sep=10pt,rectangle,fit=(trdf) (ac) (frdf) (prov)] (domains) {} ;%
+    \node[,inner sep=0,fill=white] at (domains.north) (domains-label) { \bf Domains};
+  \end{scope}
+
+
+
+  \coordinate[right= 5em of reasoner.north east] (right-reasoner);
+  % rules outer box
+  \begin{scope}[visible on=<4->]
+    % domains
+    \begin{scope}[node distance = 5pt,text width=1.1cm,anchor=north west]
+      \node[component] at (right-reasoner) (crules) {Custom Rules}; %
+      \node[component, above=of crules]  (rhodf) {RDFS ($\rhodf$)}; %
+    \end{scope}
+    
+    \node[draw=black,dotted,thick,inner sep=10pt,rectangle,fit=(rhodf) (crules)] (rules) {} ;%
+    \node[inner sep=0,fill=white] at (rules.north) {\bf Rules};
+    \draw[-latex] (reasoner.east) -- (rules.west);%
+
+  \end{scope}
+
+
+  % anql 
+  \begin{scope}[visible on=<2->]
+    \node[terminal,text width=1.5cm, above =1em of reasoner] (anql) {AnQL}; %
+    \node[draw=black,dotted,thick,inner ysep=15pt,inner xsep=20pt,rectangle,fit=(anql) (reasoner)] (ardf) {} ;%
+    
+    \node[inner sep=0,fill=white] at (ardf.north) (ardfs) { \bf Annotated RDFS};
+    \draw[latex-] (reasoner.north) -- (anql.south);%
+  \end{scope}
+  
+  \begin{scope}[visible on=<5->]
+    \node[doc, above = of anql] (anqlQuery) {AnQL Query}; %
+    \draw[-latex] (anqlQuery.south) -- (anql.north);%
+    \draw[dashed,-latex] (anqlQuery.west) -| (domains-label.north);%
+  \end{scope}
+
+
+
+
+  % input sources
+  \documentSetL{below=2.5em of reasoner}{ardf}{Annotated RDF};%
+
+  \begin{scope}[visible on=<3->]
+    \draw[dashed,-latex] (ardf.west) -| (domains.south);%
+    \draw[-latex] (reasoner.west) -- (domains.east);%
+  \end{scope}
+  
+  \draw[visible on=<2->,latex-latex] (reasoner.south) -- (ardf.north);%
+
+ 
+
+  \node[terminal,below =1em  of ardf,minimum width=9.5cm] (xsparql) {XSPARQL}; %
+  \draw[-latex] ($(xsparql.north west)!(ardf.south)!(xsparql.north east)$) -- (ardf.south);%
+
+ 
+  \node[below=2em of xsparql]  (crm)  {\scalebox{.7}{\pgfuseimage{eat}}};%
+  \draw[-latex] (crm.north) -- (xsparql.south);%
+
+
+  \node[left=of crm]  (hr)  {\scalebox{.7}{\pgfuseimage{xml}}};%
+  \draw[-latex] (hr.north) -- ($(xsparql.south west)!(hr.north)!(xsparql.south east)$);%
+
+
+  \node[right=of crm]  (dms)  {\scalebox{.7}{\pgfuseimage{rdb}}};%
+  \draw[-latex] (dms.north) -- ($(xsparql.south west)!(dms.north)!(xsparql.south east)$);%
+
+  
+
+    \node[box=green,visible on=<1>,text width=2.5cm, font=\normalsize, right =of ardf]  {Data converted to RDF using XSPARQL};
+
+
+    \node[box=green,visible on=<2>,text width=3cm, font=\normalsize,right =of ardfs]  {Implementation in SWI Prolog};
+
+
+    \node[box=green,visible on=<3>,text width=3cm, font=\normalsize,anchor=south,above=1em of domains]  {Each domain is a different Prolog module};
+
+
+    \node[box=green,visible on=<4>,text width=3cm, font=\normalsize,anchor=south,above =1em of rules] {Rules specified as Prolog predicates};
+
+
+
+\end{tikzpicture}
+
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% mode: flyspell
+%%% mode: reftex
+%%% TeX-master: "../presentation"
+%%% End:
+

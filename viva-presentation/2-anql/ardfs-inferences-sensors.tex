@@ -1,0 +1,47 @@
+
+\begin{frame}[fragile]{Annotated RDF(S) Inference example}
+     \vspace{-10pt}
+     \begin{center}
+       Inference rules are \alert{\textbf{independent}} of the annotation domain
+     \end{center}
+     \vspace{-10pt}
+    \uncover<2->{
+      \begin{block}{\only<3->{\alert<3>{Annotated}} RDFS subPropertyOf (``\texttt{\spp}'') rule:}
+      {\small\tt\begin{tabbing}
+          \(\Rightarrow\) \=:x ?Prop2 ?y \= \only<3->{\alert<3>{?\(v{1} \otimes v{2}\)}}\kill
+          \> ?Prop1 \spp\ ?Prop2 .\ \ \=\only<3->{\alert<3>{?\(v{1}\)}}\\
+          \> ?x ?Prop1 ?y .\> \only<3->{\alert<3>{?\(v{2}\)}}  \\
+          \(\Rightarrow\) \> ?x ?Prop2\ ?y .\> \only<4->{?v{1}\ \alert<4>{\(\otimes\)}\ ?v{2}}
+        \end{tabbing}}
+    \end{block}
+
+       \begin{block}{}
+         {\small\tt
+        \begin{tabbing}
+          \(\Rightarrow\) \=:address foaf:based\_Near\ :room311\=\kill
+          \>:address \spp\ foaf:based\_near .\> \only<3->{\alert<3>{[2009,\(+\infty\)]}}\\          
+          \>:nuno :address :Galway  .\> \only<3->{\alert<3>{[2008,2012]}}\\
+          \(\Rightarrow\) \>:nuno foaf:based\_near\ :Galway .\> \only<4->{{[2009,\(+\infty\)]{\alert<4>{\(\otimes\)}}[2008,2012]}}
+        \end{tabbing}}
+    \end{block}
+  }
+
+  \begin{block}<5->{ Extra rule to group annotations triples ($\oplus$):}
+    {\small\tt
+      \begin{tabbing}
+      \(\Rightarrow\) \=:nuno :address :Galway \ \ \ \ \  \=\kill
+      \> \uncover<5-6>{:nuno :address :Galway .}\> \uncover<5-6>{[2009,\(+\infty\)]}\\
+      \> \uncover<5-6>{:nuno :address :Galway .}\> \uncover<5-6>{[2008,2012]}\\
+      \only<6,7->{\(\Rightarrow\) \> :nuno :address :Galway .\>  [2009,\(+\infty\)]\alert<6>{\(\oplus\)}[2008,2012]}
+    \end{tabbing}}
+\end{block}
+
+\end{frame}
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% mode: flyspell
+%%% mode: reftex
+%%% TeX-master: "../presentation"
+%%% End:

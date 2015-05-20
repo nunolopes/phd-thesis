@@ -1,0 +1,67 @@
+
+  \begin{tikzpicture}[scale=.9,transform shape,
+    terminal/.style={ rectangle,minimum size=6mm,rounded corners=3mm,text centered,draw=black!50,fill=gray!20},%
+    rdb/.style={cylinder, shape border rotate=90, draw,minimum width=1.5cm,minimum height=1cm, shape aspect=.35}%
+    ]
+    \tikzstyle{every node}=[font=\footnotesize]
+
+
+    % XSPARQL engine
+    \begin{scope}[node distance = 20pt,visible on=<+->]
+      \node[terminal,text width=1.7cm] (rewriter) {Query Rewriter}; %
+      \node[right=of rewriter,doc=1cm] (rewritenXQ) {XQuery query};%
+      \node[right=of rewritenXQ, terminal,text width=1.7cm] (EXQuery) {Enhanced XQuery engine}; %
+    \end{scope}
+
+
+    \begin{scope}[visible on=<+->]
+      % XSPARQL query
+      \node[above=2.5em of rewriter, doc=1.4cm] (XS-Q) {XSPARQL query};%
+      % outer diagram arrows
+      \draw[-latex] (XS-Q.south) -- (rewriter.north);%
+    \end{scope}
+    
+    \coordinate[below=1.5em of EXQuery.south] (input-separator);
+    % input sources
+    \begin{scope}[node distance = 7pt,visible on=<+->]
+      \documentSet{below=2.5em of input-separator,visible on=<.->}{xml}{XML}; 
+      \documentSet{right=of xml,visible on=<.->}{rdf}{RDF};
+      \node[left=of xml, rdb]  (rdb)  {RDB};%
+    \end{scope}
+  
+    \begin{scope}[visible on=<.->]
+      \node[sqballoonFull,visible on=<.>,anchor=west, callout absolute pointer={(input-separator)},text width=3cm] 
+      at (-4em,-6em) {Custom XQuery functions implemented as Java methods};
+      \draw[-latex] (input-separator) -- (EXQuery.south);%
+      \draw[-latex] (input-separator) -- (xml.north) node [midway,inner sep=0,fill=white] {XQuery};%
+      \draw[-latex] (input-separator) -| (rdb.north) node [near end,inner sep=0,fill=white] {SQL};%
+      \draw[-latex] (input-separator) -| (rdf.north) node [near end, inner sep=0,fill=white] {SPARQL};%
+    \end{scope}
+    
+    % outputs
+    \begin{scope}[node distance = 2pt,visible on=<+->]
+      \node[above=2em of EXQuery, doc=1cm] (output) {XML~/ RDF};%
+    \end{scope}
+  
+    % inner diagram arrows
+    \draw[-latex] (rewriter.east) -- (rewritenXQ.west);%
+    \draw[-latex] (rewritenXQ.east) -- (EXQuery.west);%
+    
+    % outer box
+    \node[draw=black,dotted,thick,inner sep=10pt,rectangle,fit=(rewriter) (EXQuery)] (XSPARQL) {} ;%
+    \node[inner sep=0,fill=white] at (XSPARQL.north) {XSPARQL};
+
+
+    \begin{scope}[visible on=<.->]
+      % output lines
+      \draw[-latex] (EXQuery.north) -- (output.south) ;%
+    \end{scope}
+  \end{tikzpicture}
+
+%%% Local Variables:
+%%% mode: latex
+%%% mode: flyspell
+%%% mode: reftex
+%%% TeX-master: "../presentation"
+%%% End:
+

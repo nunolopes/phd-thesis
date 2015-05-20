@@ -1,0 +1,3 @@
+for address as $address from clients
+where person = "Nuno"
+return $address

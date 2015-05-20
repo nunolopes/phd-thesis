@@ -1,0 +1,39 @@
+\begin{frame}[fragile]{AnQL: Annotated SPARQL}
+
+  \begin{block}{Extension of SPARQL Syntax}
+    \begin{itemize}
+    \item<+-> \alert<.>{triple pattern}
+    \item<+-> \alert{annotated triple pattern} is a triple pattern plus 
+      \begin{itemize}
+      \item<.-> annotation term\only<+->{; or}
+      \item<.-> annotation variable
+      \end{itemize}
+    \item<+-> \alert{Basic Annotated Patterns} (BAP) are sets of annotated triple patterns
+
+    \end{itemize}
+  \end{block}
+
+  \begin{block}{Example}
+    \begin{small}
+      \begin{semiverbatim}
+\only<4->{\{} \uncover<-2,4->{?person a foaf:Person . \only<2,4->{[\(-\infty, +\infty\)]}}\only<-2>{
+}
+  \only<3->{?person :address ?address . ?l 
+\uncover<4->{\}}} 
+\end{semiverbatim}
+    \end{small}
+  \end{block}
+
+\visible<+->{Combine BAPs using $\mathsf{AND} (.)$, $\mathsf{OPTIONAL}$, $\mathsf{UNION}$, $\mathsf{FILTER}$}
+
+ 
+\end{frame}
+
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% mode: flyspell
+%%% mode: reftex
+%%% TeX-master: "../presentation"
+%%% End:

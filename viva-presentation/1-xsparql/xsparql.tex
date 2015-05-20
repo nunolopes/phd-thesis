@@ -1,0 +1,390 @@
+\subsection*{Overview}
+
+\begin{frame}{XSPARQL}
+
+    \begin{columns}
+      \begin{column}{0.25\linewidth}
+          \pgfuseimage{XSPARQLogo}
+      \end{column}
+      \begin{column}{0.65\linewidth}
+        \begin{block}{}
+          \begin{itemize}
+          \item<+-> \alert<.>{Transformation language} between RDB, XML, and RDF
+          \item<+-> \alert<.>{Syntactic} extension of XQuery
+          \item<+-> \alert<.>{Semantics} based on XQuery's semantics
+          \end{itemize}
+        \end{block}
+      \end{column}
+    \end{columns}
+    
+    \vspace{10pt}
+
+    \begin{block}<+->{Why based on XQuery? }
+      \begin{itemize}
+      \item<.-> Expressive language
+      \item<.-> Use as scripting language
+      \item<+-> Arbitrary Nesting of expressions
+      \end{itemize}
+    \end{block}
+
+\end{frame}
+
+
+\subsection{Syntax \& Semantics}
+\begin{frame}{Same Language for each Format}
+
+  \begin{center}
+  \begin{tikzpicture}
+
+    \node[visible on=<4>,text width=5.5cm] (xsparql) {
+      \begin{block}{XSPARQL}
+        \VerbatimInput{queries/example.sql.xsparql}
+      \end{block}
+    };
+
+    \node[visible on=<5->,text width=5.5cm] (xsparql) {
+      \begin{block}{XSPARQL}
+        \VerbatimInput{queries/example.sparql.xsparql}
+      \end{block}
+    };
+
+    \node[visible on=<2-3>,text width=5.5cm] (xsparql) {
+      \begin{block}{\only<2>{XQuery}\only<3>{XSPARQL}}
+        \VerbatimInput{queries/example.xquery}
+      \end{block}
+    };
+
+
+    \node[box=green,visible on=<2>,text width=3cm,above =of xsparql.west] {
+      {\small
+        \begin{tabular}{l}
+          \FOR \emph{var} \IN \emph{\XSPARQLFLWORExpr}\\
+          \LET \emph{var} := \emph{\XSPARQLFLWORExpr}\\
+          \WHERE \emph{\XSPARQLFLWORExpr}\\
+          \ORDERBY \emph{\XSPARQLFLWORExpr}\\
+          \RETURN \emph{\XSPARQLFLWORExpr}
+        \end{tabular}}
+    };
+
+    \node[box=green,visible on=<4>,text width=3.5cm,above =of xsparql.west] {
+      {\small
+        \begin{tabular}{l}
+          \FOR \emph{SelectSpec} \\
+          \FROM \emph{RelationList} \\
+          \WHERE \emph{WhereSpecList }\\ 
+          \RETURN \emph{\XSPARQLFLWORExpr}
+        \end{tabular}}
+    };
+
+    \node[box=green,visible on=<5>,text width=3.5cm,above =of xsparql.west] {
+      {\small
+        \begin{tabular}{l}
+          \FOR \emph{varlist} \\
+          \FROM~DatasetClause \\
+          \WHERE \{\emph{ pattern } \}\\
+          \RETURN \emph{\XSPARQLFLWORExpr}
+        \end{tabular}}
+    };
+
+
+    \matrix[right =4em of xsparql,ampersand replacement=\&, column sep = 5em, row sep = 0, matrix of nodes] (matrix){
+      
+      \pgfuseimage{rdb} \\
+      \pgfuseimage{rdf} \\
+      \pgfuseimage{xml} \\ 
+    };
+
+    \path[visible on=<2->,latex-latex] ([xshift=.5em]xsparql.south east) edge [color=xsparql,line width=5pt] (matrix-3-1); 
+    \path[visible on=<4->,-latex] ([xshift=.5em]xsparql.north east) edge [color=xsparql,line width=5pt] (matrix-1-1); 
+    \path[visible on=<5->,-latex] ([xshift=.5em]xsparql.east) edge [color=xsparql,line width=5pt] (matrix-2-1); 
+
+  \end{tikzpicture}
+\end{center}
+\end{frame}
+
+
+\begin{frame}{Creating RDF with XSPARQL}
+  
+  \begin{tikzpicture}
+    \node [text width=\linewidth] {
+      \begin{block}<+->{Convert online orders into RDF}%
+        \begin{tikzpicture}
+        \node  [text width=\linewidth,]{
+          \vspace{-1em}\VerbatimInput{queries/example_lifting.xsparql}
+        };
+        
+        \begin{pgfonlayer}{background}
+          \draw[box,visible on=<+>] (-0.51\linewidth,-0.6em) rectangle (0.45\linewidth,-1.5em);
+        \end{pgfonlayer}
+
+      \end{tikzpicture}
+
+    \end{block}
+    };
+
+    \node[boxFull=green,text width=3cm,visible on=<.>] at (10.5em,-3em) {\CONSTRUCT{} clause generates RDF};
+    \node[sqballoonFull,visible on=<+>,anchor=west, callout absolute pointer={(4.7em,-2.5em)},text width=4cm] at (2em,1em) {Arbitrary XSPARQL expressions in subject, predicate, and object};
+  \end{tikzpicture}
+  
+
+\vspace{-5pt}
+
+  \begin{block}<+->{Query result}
+    \VerbatimInput{queries/example_lifting.xsparql.ttl}
+  \end{block}
+
+\end{frame}
+
+
+
+\begin{frame}{Integration Query Example}
+  
+  \begin{block}{``Display pizza deliveries in Google Maps using KML''}
+    \begin{tikzpicture}
+      \node[text width=\linewidth]{\VerbatimInput{queries/example-integration.xsparql}};
+
+      \begin{pgfonlayer}{background}
+        \draw[box,visible on=<2>] (-0.51\linewidth,4.5em) rectangle (0.45\linewidth,3.5em);
+        \draw[box,visible on=<3>] (-0.51\linewidth,3.6em) rectangle (0.45\linewidth,2em);
+        \draw[box,visible on=<4>] (-0.51\linewidth,-1.9em) rectangle (0.45\linewidth,0em);
+        \draw[box,visible on=<5>] (-0.51\linewidth,-1.8em) rectangle (0.45\linewidth,-4.9em);
+      \end{pgfonlayer}
+      \node[visible on=<2>] at (.35\linewidth,2.5em) {\scalebox{.7}{\pgfuseimage{xml}}};
+      \node[visible on=<2>] at (.4\linewidth,3.5em) {\pgfuseimage{eat}};
+      \node[visible on=<3>] at (.4\linewidth,2.2em) {\scalebox{.7}{\pgfuseimage{rdb}}};
+      \node[visible on=<4>] at (.4\linewidth,0) {\scalebox{.7}{\pgfuseimage{rdf}}};
+      \node[visible on=<5>] at (.35\linewidth,-2em) {\pgfuseimage{map-pizza}};
+
+    
+    \end{tikzpicture}
+  \end{block}
+
+  \begin{block}<6>{More involved XSPARQL queries: RDB2RDF}
+    \begin{itemize}
+    \item Direct Mapping: $\sim$130 LOC
+    \item R2RML: $\sim$290 LOC
+    \end{itemize}
+  \end{block}
+
+\end{frame}
+
+
+
+
+\input{1-xsparql/xsparql-semantics}
+
+
+\begin{frame}{Language Implementation}
+
+  \begin{block}{}
+    \begin{itemize}
+    \item<1-> Reuse components (SPARQL engine, Relational Database)
+    \item<2-> Implemented XSPARQL by rewriting to XQuery
+    \item<3-> Semantics implemented by substitution of bound variables
+    \end{itemize}
+  \end{block}
+
+  \begin{block}<4->{Bound Variable Substitution}
+    \begin{itemize}
+    \item<4-> \alert{Bound} variables are replaced by their \alert{value} at runtime
+    \item<5-> Implemented in the generated XQuery
+    \item<6-> Pushing the variable bindings into the respective query engine
+    \end{itemize}
+  \end{block}
+
+  \begin{block}<4->{}
+    \begin{tikzpicture}
+      \node[text width=\linewidth]{\vspace*{-1em}\VerbatimInput[lastline=3]{queries/example-integration.xsparql}};
+
+      \begin{pgfonlayer}{background}
+        \draw[box,visible on=<4>] (-13em,.5em) rectangle (-9.5em,1.5em);
+        \draw[box,visible on=<4>] (-4em,0em) rectangle (-8em,-1em);
+
+        \draw[box,visible on=<5-6>] (-0.51\linewidth,-1em) rectangle (0.45\linewidth,.5em);
+
+      \end{pgfonlayer}
+
+      \node[boxFull=green,visible on=<5-6>,text width=4.7cm,anchor=west] at (1em,-1em) {\vspace*{-1em}\VerbatimInput[firstline=2,lastline=4]{queries/variable-replacement.xq}};
+
+    
+    \end{tikzpicture}
+  \end{block}
+
+
+\end{frame}
+
+
+\subsection{Implementation}
+
+
+\begin{frame}{Implementation}
+
+  \begin{center}
+    \input{1-xsparql/architecture-tikz}
+  \end{center}
+  
+\end{frame}
+
+
+
+\subsection{Evaluation}
+
+\begin{frame}{XSPARQL Evaluation}
+
+  \vspace{-5pt}
+
+  \begin{center}{}
+    \begin{tikzpicture}
+    \matrix<+->[ampersand replacement=\&, column sep = 4em, matrix of nodes,row sep=2em,inner sep=.1em] (xmark){
+      $XMark$ \&       |[visible on=<+->]|$XMark_{RDF}$ \&  |[visible on=<+->]|     $XMark_{RDB}$ \\
+      \scalebox{.65}{\pgfuseimage{xml}} \& |[visible on=<.(-1)->]|\scalebox{.65}{\pgfuseimage{rdf}} \& |[visible on=<.->]|\scalebox{.65}{\pgfuseimage{rdb}} \\
+    };
+
+    \begin{pgfonlayer}{background}
+      \node[box=gray,visible on=<.(-2)->,fit={(xmark-1-1) (xmark-2-1)}] {} ;%
+      \node[box=gray,visible on=<.(-1)->,fit={(xmark-1-2) (xmark-2-2)}] {} ;%
+      \node[box=gray,visible on=<.->,fit={(xmark-1-3) (xmark-2-3)}] {} ;%
+    \end{pgfonlayer}
+
+    \path[visible on=<.(-2)->,-latex] (xmark-1-1) edge [color=green,line width=5pt] (xmark-2-1); 
+    \path[visible on=<.(-1)->,-latex] (xmark-1-2) edge [color=green,line width=5pt] (xmark-2-2); 
+    \path[visible on=<.->,-latex] (xmark-1-3) edge [color=green,line width=5pt] (xmark-2-3); 
+
+    \path[visible on=<.(-1)-.>,-latex,dashed] (xmark-1-1) edge [color=orange,line width=3pt] (xmark-1-2); 
+    \path[visible on=<.(-1)-.>,-latex,dashed] (xmark-2-1) edge [color=orange,line width=3pt] (xmark-2-2); 
+
+    \path[visible on=<.>,-latex,dashed] (xmark-1-1) edge [color=orange,line width=3pt,bend left=17] (xmark-1-3); 
+    \path[visible on=<.>,-latex,dashed] (xmark-2-1) edge [color=orange,line width=3pt,bend right=27] (xmark-2-3); 
+
+    \end{tikzpicture}
+  \end{center}
+
+  \vspace{-10pt}
+
+  \begin{block}<+->{Experimental Results}
+    \begin{itemize}
+    \item Compared to native XQuery (XMark)
+      \begin{description}
+      \item[RDB and RDF:] same order of magnitude for most queries
+      \end{description}
+    \item<+-> Except on RDF nested queries (self joining data)
+      \begin{itemize}
+      \item[] several orders of magnitude slower
+      \item[] due to the number of calls to the SPARQL engine
+      \end{itemize}
+    \end{itemize}
+  \end{block}
+
+\end{frame}
+
+
+\begin{frame}{Rewriting techniques for Nested Queries}
+
+  \begin{block}<+->{{\small $Q_8$: ``List the names of persons and the number of items they bought.''}}
+    \begin{tikzpicture}
+      \node[text width=\linewidth] {
+        \VerbatimInput{queries/query08.xsparql}
+      };
+
+      \begin{pgfonlayer}{background}
+        \draw[box,visible on=<+-.(6)>] (-0.51\linewidth,4em) rectangle (0em,2em);
+      \end{pgfonlayer}
+
+      \node[boxFull=green,visible on=<.-.(3)>,text width=3.8cm,anchor=west] at (2em,5em) 
+      {Returns $\left(\begin{array}{c} {\texttt{\scriptsize nuno}},\\ {\texttt{\scriptsize axel}},\\ \vdots\end{array} \right)$};
+          
+
+      \begin{pgfonlayer}{background}
+        \draw[box,visible on=<+->] (-13em,.5em) rectangle (0em,-1.2em);
+      \end{pgfonlayer}
+
+      \node[boxFull=green,visible on=<.-.(2)>,text width=5cm,inner sep=0] at (0.25\linewidth,-1em) (rewrite) {\VerbatimInput{queries/nested-inner-rewriting.xq}};
+
+      \node[boxFull=orange,visible on=<+>,text width=1cm,anchor=south west] at (10em,-2.4em) {{\scriptsize\tt nuno}};
+      \node[boxFull=orange,visible on=<.>,text width=1cm,anchor=south west] at (7em,6em) {{\scriptsize\tt nuno}};
+
+      \begin{scope}[visible on=<+>]
+        \node[boxFull=orange,text width=1cm,anchor=south west] at (10em,-2.5em) {{\scriptsize\tt axel}};
+        \node[boxFull=orange,text width=1cm,anchor=south west] at (7em,4.5em) {{\scriptsize\tt axel}};
+      \end{scope}
+    
+          
+
+      \path[visible on=<+>,-latex,dashed] (0em,0em) edge [color=orange,line width=3pt,bend right] (0em,4.5em); 
+
+      \node[boxFull=green,visible on=<.-.(1)>,text width=5.5cm,anchor=south east] at (0em,4.5em) {\VerbatimInput{queries/nested-inner-rewriting-opt.xq}};
+      \draw[draw=none,fill=beamer@lightblendedgreen,visible on=<+->] (-13.1em,.6em) rectangle (.1em,-1.3em) node[midway] {Join in XQuery};
+
+      \node[boxFull=green,visible on=<+>,text width=4cm,anchor=north west] at (.1em,4em) {Nested Loop rewriting};
+      \node[visible on=<.->,text width=5.5cm,anchor=south east] at (0em,4.5em) {\VerbatimInput{queries/nested-inner-rewriting-opt.xq}};
+
+      % other optimisations
+      \node[boxFull=green,visible on=<+>,text width=5cm,anchor=north west] at (.1em,0em) {Applied to related language: SPARQL2XQuery~\cite{GroppeGroppeLinnemann:2008aa}};
+
+      \node[boxFull=green,visible on=<+>,text width=5cm,anchor=north west] at (.1em,0em) {Other optimisations: \\ Join in SPARQL};
+      
+
+    \end{tikzpicture}
+  \end{block}
+
+\end{frame}
+
+
+\def\plotsDir{1-xsparql/plots/}
+%
+\begin{frame}{Evaluation of different rewritings - $XMark_{RDF} Q_8$}
+  \pgfplotsset{
+    tick label style={font=\small},
+    label style={font=\small},
+    legend style={font=\footnotesize}
+  }
+  \begin{figure}
+    \setlength{\abovecaptionskip}{0pt}
+    \setlength{\belowcaptionskip}{0pt}
+      \import{\plotsDir}{optimisations-paper-query08}
+    \vspace{-5pt}
+  \end{figure}
+
+  \vspace{-5pt}
+  \begin{block}{}
+    \begin{itemize}
+    \item Optimised rewritings show promising results
+    \item Best Results: SPARQL-based 
+    \item Results included in~\cite{BischofDeckerKrennwallner:2012aa}
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+
+\begin{frame}{Evaluation of different rewritings - $XMark_{RDB} Q_8$}
+  \pgfplotsset{
+    tick label style={font=\small},
+    label style={font=\small},
+    legend style={font=\footnotesize}
+  }
+  {
+    \begin{figure}
+      \setlength{\abovecaptionskip}{0pt}
+      \setlength{\belowcaptionskip}{0pt}
+      \import{\plotsDir}{optimisations-paper-query08-rdb}
+      \vspace{-5pt}
+    \end{figure}
+  }
+  \vspace{-5pt}
+  \begin{block}{}
+    \begin{itemize}
+    \item Not so effective for RDB, requires different optimisations
+    \item Due to schema representation?
+    \item Additional Results for this thesis
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% mode: flyspell
+%%% mode: reftex
+%%% TeX-master: "../presentation"
+%%% End:

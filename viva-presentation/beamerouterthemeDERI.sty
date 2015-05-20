@@ -1,0 +1,110 @@
+\newif\ifbeamer@sb@subsection
+
+\DeclareOptionBeamer{subsection}[false]{\csname beamer@sb@subsection#1\endcsname}
+\ExecuteOptionsBeamer{subsection=false}
+
+
+\mode<presentation>
+
+\setbeamercolor{frametitle}{parent=palette primary}
+\setbeamercolor{subsection in head/foot}{parent=palette secondary}
+\setbeamercolor{section in head/foot}{parent=palette quaternary}
+
+
+\beamer@compresstrue
+
+\AtBeginDocument{
+  {
+    \usebeamerfont*{headline}
+    \colorlet{global.bg}{bg}
+    \usebeamercolor{subsection in head/foot}
+    \usebeamercolor{section in head/foot}
+    \usebeamercolor{frametitle}
+
+    \ifbeamer@sb@subsection
+      \pgfdeclareverticalshading{beamer@barshade}{\the\paperwidth}{%
+         color(0ex)=(global.bg);%
+         color(1ex)=(subsection in head/foot.bg);%
+         color(3.25ex)=(subsection in head/foot.bg);%
+         color(4.25ex)=(section in head/foot.bg);%
+         color(9.75ex)=(section in head/foot.bg)%
+       }
+       \pgfdeclareverticalshading{beamer@aboveframetitle}{\the\paperwidth}{%
+         color(0ex)=(frametitle.bg);%
+         color(1ex)=(frametitle.bg);%
+         color(2ex)=(subsection in head/foot.bg)
+       }
+    \else
+      \pgfdeclareverticalshading{beamer@barshade}{\the\paperwidth}{%
+         color(0ex)=(global.bg);%
+         color(1ex)=(section in head/foot.bg);%
+         color(7ex)=(section in head/foot.bg)%
+       }
+     \pgfdeclareverticalshading{beamer@aboveframetitle}{\the\paperwidth}{%
+         color(0ex)=(frametitle.bg);%
+         color(1ex)=(frametitle.bg);%
+         color(2ex)=(section in head/foot.bg)
+       }
+    \fi  
+
+    \pgfdeclareverticalshading{beamer@belowframetitle}{\the\paperwidth}{%
+      color(0ex)=(global.bg);%
+      color(1ex)=(frametitle.bg)
+    }
+  }
+}
+
+
+\defbeamertemplate*{footline}{DERI}
+{
+\begin{beamercolorbox}[center]{}
+  \ifbeamer@sb@slidenumbers%
+  \vspace*{7pt}
+  \ifnum\thepage=1\relax% 
+  \vskip10pt%  
+  \else% 
+  \usebeamerfont{footline}  
+  \usebeamercolor[fg]{footline}{\insertframenumber\ /\ \inserttotalframenumber}
+  \fi% 
+  \fi% 
+\end{beamercolorbox}
+}
+
+
+\defbeamertemplate*{headline}{DERI}{
+  \ifbeamer@sb@navigation%
+  \ifnum\thepage=1\relax% 
+ \begin{beamercolorbox}[ignorebg,ht=2.25ex,dp=1ex]{section in head/foot}
+   \begin{minipage}{0.82\paperwidth}
+     \vspace*{3em}
+   \end{minipage}
+ \end{beamercolorbox}%
+  \else% 
+ \begin{beamercolorbox}[ignorebg,ht=2.25ex,dp=1ex]{section in head/foot}
+   \insertnavigation{0.82\paperwidth}
+ \end{beamercolorbox}%
+  \fi% 
+  \fi% 
+}
+
+\defbeamertemplate*{frametitle}{DERI}{
+\vskip5pt
+\begin{beamercolorbox}[]{}
+  \hskip-25pt 
+  \usebeamerfont{title in head/foot}
+  \usebeamercolor[fg]{title in head/foot}{\insertframetitle}
+  \usebeamerfont{footline}
+\end{beamercolorbox}
+}
+ 
+  
+\mode
+<all>
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% mode: flyspell
+%%% mode: reftex
+%%% TeX-master: "presentation"
+%%% End:

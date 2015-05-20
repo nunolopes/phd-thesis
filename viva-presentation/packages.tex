@@ -1,0 +1,50 @@
+
+
+\usepackage{graphicx}
+\graphicspath{{0-images/}}
+\usepackage{fancyvrb}
+\usepackage{url}
+\usepackage{xspace}
+\PassOptionsToPackage{usenames,dvipsnames}{xcolor}
+\usepackage{xcolor}
+\usepackage{import}
+
+
+\setlength{\leftmargini}{12pt}
+
+
+\newcommand\link[1]{{\color{blue}#1}}
+
+
+
+\RecustomVerbatimEnvironment{Verbatim}{Verbatim}{frame=single,fontsize=\scriptsize,commandchars=\\\{\}}
+
+
+\usepackage{tikz}
+\input{tikz-config}
+
+
+\input{images}
+
+\usepackage{listings}
+
+
+
+\definecolor{orange}{RGB}{239,98,17}
+\definecolor{green}{rgb}{0.10,0.60,0.08}
+
+
+\mode<presentation>
+{
+  \usetheme[navigation=false]{DERI}
+  \beamertemplateballitem
+}
+
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% mode: flyspell
+%%% mode: reftex
+%%% TeX-master: "presentation"
+%%% End:
